@@ -1,8 +1,8 @@
-    function [devicesUsed, devIdUsed, nDevs] = checkConnectedSensors(devIdAll,children,h,isStation,isDongle,portS)
+    function [devicesUsed, devIdUsed, nDevs] = checkConnectedSensors(devIdAll,children,h,isStation,isDongle,portS,device)
         childUsed = false(size(children));
         if isempty(children)
             fprintf('\n No devices found \n')
-            stopAll
+            stopAll(h,device,isStation,isDongle,portS)
             error('MTw:example:devicdes','No devices found')
         else
             % check which sensors are connected

@@ -3,10 +3,9 @@
 % antenna switching issues due to rotation in terms of the antenna or
 % switching between antennas
 
+% without cbmex, functions aside
 
-% without cbmex
-
-function XsensCerebusRecordv2()
+function XsensCerebusRecordv3()
     
 
 %% cbmex intitialization
@@ -40,8 +39,6 @@ function XsensCerebusRecordv2()
         fprintf(' XDA build: %.0f %s\n',version{4:5});
     end
 
-    logfile = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens','wt');
-   fprintf(xsenslog,'CerebusTime\t Roll\t Pitch\t Yaw\n');
 %% Scanning connection ports
     % ports rescanned must be reopened
     p_br = h.XsScanner_scanPorts(0, 100, true, true);
@@ -113,7 +110,7 @@ function XsensCerebusRecordv2()
     devIdAll = cellfun(@(x) dec2hex(h.XsDevice_deviceId(x)),children,'uniformOutput',false);
     % check connected sensors, see which are accepted and which are
     % rejected.
-     [devicesUsed, devIdUsed, nDevs] = checkConnectedSensors(devIdAll);%,children,h,isStation,isDongle,portS);
+     [devicesUsed, devIdUsed, nDevs] = checkConnectedSensors(devIdAll,children,h,isStation,isDongle,portS,device);
      fprintf(' Used device: %s \n',devIdUsed{:});
 
 
@@ -167,7 +164,7 @@ function XsensCerebusRecordv2()
     else
         fprintf('\n Problems with going to measurement\n')
     end
-    stopAll;%(h,device,isStation,isDongle,portS);
+    stopAll(h,device,isStation,isDongle,portS);
 
 %% Event handler
     function handleData(varargin)
@@ -188,123 +185,4 @@ function XsensCerebusRecordv2()
 
         end
     end
-
-    function stopAll
-        % close everything in the right way
-        if ~isempty(h.eventlisteners)
-            h.unregisterevent({'onLiveDataAvailable',@handleData});
-        h.setCallbackOption(h.XsComCallbackOptions_XSC_None, h.XsComCallbackOptions_XSC_LivePacket);
-        end
-        % stop recording, showing data
-        fprintf('\n Stop recording, go to config mode \n');
-        h.XsDevice_stopRecording(device);
-        h.XsDevice_gotoConfig(device);
-        % disable radio for station or dongle
-        if any(isStation|isDongle)
-            h.XsDevice_disableRadio(device);
-        end
-        % close log file
-        fprintf('\n Close log file \n');
-        h.XsDevice_closeLogFile(device);
-        % on close, devices go to config mode.
-        fprintf('\n Close port \n');
-        % close port
-        h.XsControl_closePort(portS);
-        % close handle
-        h.XsControl_close();
-        % delete handle
-        delete(h);
-        
-        % my added cbmex junk
-%         cbmex('fileconfig',FN,'',0)
-% %         cbmex('ccf','send',ccf_old)
-%         cbmex('close')
-%         fclose(xsenslog)
-    end
-
-    function [devicesUsed, devIdUsed, nDevs] = checkConnectedSensors(devIdAll)
-        childUsed = false(size(children));
-        if isempty(children)
-            fprintf('\n No devices found \n')
-            stopAll;%(h,device,isStation,isDongle,portS)
-            error('MTw:example:devicdes','No devices found')
-        else
-            % check which sensors are connected
-            for ic=1:length(children)
-                if h.XsDevice_connectivityState(children{ic}) == h.XsConnectivityState_XCS_Wireless
-                    childUsed(ic) = true;
-                end
-            end
-            % show wich sensors are connected
-            fprintf('\n Devices rejected:\n')
-            rejects = devIdAll(~childUsed);
-            I=0;
-            for i=1:length(rejects)
-                I = find(strcmp(devIdAll, rejects{i}));
-                fprintf(' %d - %s\n', I,rejects{i})
-            end
-            fprintf('\n Devices accepted:\n')
-            accepted = devIdAll(childUsed);
-            for i=1:length(accepted)
-                I = find(strcmp(devIdAll, accepted{i}));
-                fprintf(' %d - %s\n', I,accepted{i})
-            end
-            str = input('\n Keep current status?(y/n) \n','s');
-            change = [];
-            if strcmp(str,'n')
-                str = input('\n Type the numbers of the sensors (csv list, e.g. "1,2,3") from which status should be changed \n (if accepted than reject or the other way around):\n','s');
-                change = str2double(regexp(str, ',', 'split'));
-                for iR=1:length(change)
-                    if childUsed(change(iR))
-                        % reject sensors
-                        h.XsDevice_rejectConnection(children{change(iR)});
-                        childUsed(change(iR)) = false;
-                    else
-                        % accept sensors
-                        h.XsDevice_acceptConnection(children{change(iR)});
-                        childUsed(change(iR)) = true;
-                    end
-                end
-            end
-            % if no device is connected, give error
-            if sum(childUsed) == 0
-                error('MTw:example:devicdes','No devices connected')
-            end
-            % if sensors are rejected or accepted check blinking leds again
-            if ~isempty(change)
-                input('\n When sensors are connected (synced leds), press enter... \n');
-            end
-        end
-        devicesUsed = children(childUsed);
-        devIdUsed = devIdAll(childUsed);
-        nDevs = sum(childUsed);
-    end
 end
-
-%% Helper function to create figure for display
-% function [t, dataPlot, linePlot, packetCounter] = createFigForDisplay(nDevs, deviceIds)
-% 
-%         [dataPlot{1:nDevs}] = deal([]);
-%         [linePlot{1:nDevs}] = deal([]);
-%         [t{1:nDevs}] = deal([]);
-% 
-%         %% not more than 6 devices per plot
-%         nFigs = ceil(nDevs/6);
-%         devPerFig = ceil(nDevs/nFigs);
-%         m = ceil(sqrt(devPerFig));
-%         n = ceil(devPerFig/m);
-%         lDev = 0;
-%         for iFig=1:nFigs
-%             figure('name',['Example MTw_' num2str(iFig)])
-%             iPlot = 0;
-%             for iDev = lDev+1:min(iFig*devPerFig, nDevs)
-%                 iPlot = iPlot+1;
-%                 ax = subplot(m,n,iPlot);
-%                 linePlot{iDev} = plot(ax, 0,[NaN NaN NaN]);
-%                 title(['Orientation data ' deviceIds{iDev}]), xlabel('sample'), ylabel('euler (deg)')
-%                 legend(ax, 'roll','pitch','yaw');
-%             end
-%             lDev = iDev;
-%         end
-%         packetCounter = zeros(nDevs,1);
-%     end

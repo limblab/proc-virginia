@@ -23,3 +23,4 @@
         h.XsControl_close();
         % delete handle
         delete(h);
+    end

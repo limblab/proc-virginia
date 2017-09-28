@@ -4,10 +4,9 @@
 % switching between antennas
 
 
+% without cbmex
 
-
-
-function XsensCerebusRecordV2()
+function XsensCerebusRecordv2()
     
 
 %% cbmex intitialization
@@ -41,6 +40,9 @@ function XsensCerebusRecordV2()
         fprintf(' XDA build: %.0f %s\n',version{4:5});
     end
 
+    logfile = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\IMUlog_test1.txt','wt');
+    fprintf(logfile,'CerebusTime\t Roll\t Pitch\t Yaw\n');
+    
 %% Scanning connection ports
     % ports rescanned must be reopened
     p_br = h.XsScanner_scanPorts(0, 100, true, true);
@@ -103,7 +105,7 @@ function XsensCerebusRecordV2()
     % Set radio to channel 11
     h.XsDevice_enableRadio(device, 11);
 
-
+    pause(5);
   
     % check which devices are found
     children = h.XsDevice_children(device);
@@ -179,7 +181,7 @@ function XsensCerebusRecordV2()
             if h.XsDataPacket_containsOrientation(dataPacket)
                 oriC = cell2mat(h.XsDataPacket_orientationEuler_1(dataPacket));
                 %fprintf(xsenslog,'%f\t %f\t %f\t %f\n',cbmex('time'),oriC(1),oriC(2),oriC(3));
-                fprintf('%f\t %f\t %f\n',oriC(1),oriC(2),oriC(3));
+                fprintf(logfile,'%f\t %f\t %f\n',oriC(1),oriC(2),oriC(3));
             end
 
             h.liveDataPacketHandled(deviceFound, dataPacket);
@@ -213,7 +215,8 @@ function XsensCerebusRecordV2()
         h.XsControl_close();
         % delete handle
         delete(h);
-        
+        fclose(logfile);
+
         % my added cbmex junk
 %         cbmex('fileconfig',FN,'',0)
 % %         cbmex('ccf','send',ccf_old)
