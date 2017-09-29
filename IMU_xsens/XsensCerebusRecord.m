@@ -4,26 +4,21 @@
 % switching between antennas
 
 
-
-
-
 function XsensCerebusRecord()
-    
-
 %% cbmex intitialization
 % open cbmex, load ccf, prep everything for recording
 
 cbmex('open');
 cbmex('trialconfig',0) % turn off the data buffer
-FN = 'E:\Data-lab1\TestData\Wireless Transmitter\20170905_Noise_tracking\20170905_RotAntenna_1M.nev'; % cerebus file name -- we'll use this as the base for the xsens
+FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20170928_Xsens_cbmex.nev'; % cerebus file name -- we'll use this as the base for the xsens
 % ccf_old = 'E:\Data-lab1\TestData\Wireless Transmitter\20170903_Noise_tracking\20170903_temporary.ccf';
 % cbmex('ccf','save',ccf_old);
 % cbmex('ccf','send','E:\Data-lab1\TestData\Wireless Transmitter\20170810 IMU noise tracking\20170810_SpikeAndContinuous.ccf');
 
 
 cbmex('fileconfig',FN,'',1);
-xsenslog = fopen('E:\Data-lab1\TestData\Wireless Transmitter\20170905_Noise_tracking\20170905_RotAntenna_1M.txt','wt');
-fprintf(xsenslog,'CerebusTime\t Roll\t Pitch\t Yaw\n');
+xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20170928_Xsens_cbmex.txt','wt');
+fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
 
 %% Launching activex server
     switch computer
@@ -101,9 +96,9 @@ fprintf(xsenslog,'CerebusTime\t Roll\t Pitch\t Yaw\n');
     % Set the update rate to 120 Hz
     h.XsDevice_setUpdateRate(device, 120);
     % Set radio to channel 11
-    h.XsDevice_enableRadio(device, 11);
+    h.XsDevice_enableRadio(device, 15);
 
-
+    pause(3);
   
     % check which devices are found
     children = h.XsDevice_children(device);
@@ -148,13 +143,17 @@ fprintf(xsenslog,'CerebusTime\t Roll\t Pitch\t Yaw\n');
 
     
     input('Press ''enter'' when aligned with initial position')
+    pause(1);
     
-    if output
+    for i = 1:length(children)
+    coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+    end
+    
+    if output && all(coord_reset)
         % create log file
-        h.XsDevice_createLogFile(device,'exampleLogfile.mtb');
-        fprintf('\n Logfile: %s created\n',fullfile(cd,'exampleLogfile.mtb'));
-        
-        
+%         h.XsDevice_createLogFile(device,'exampleLogfile.mtb');
+%         fprintf('\n Logfile: %s created\n',fullfile(cd,'exampleLogfile.mtb'));
+          
         % start recording
         h.XsDevice_startRecording(device);
         % register onLiveDataAvailable event
@@ -178,11 +177,10 @@ fprintf(xsenslog,'CerebusTime\t Roll\t Pitch\t Yaw\n');
         if dataPacket
             if h.XsDataPacket_containsOrientation(dataPacket)
                 oriC = cell2mat(h.XsDataPacket_orientationEuler_1(dataPacket));
-                fprintf(xsenslog,'%f\t %f\t %f\t %f\n',cbmex('time'),oriC(1),oriC(2),oriC(3));
+                fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC(1),oriC(2),oriC(3));
             end
 
             h.liveDataPacketHandled(deviceFound, dataPacket);
-
 
         end
     end
@@ -202,8 +200,8 @@ fprintf(xsenslog,'CerebusTime\t Roll\t Pitch\t Yaw\n');
             h.XsDevice_disableRadio(device);
         end
         % close log file
-        fprintf('\n Close log file \n');
-        h.XsDevice_closeLogFile(device);
+%         fprintf('\n Close log file \n');
+%         h.XsDevice_closeLogFile(device);
         % on close, devices go to config mode.
         fprintf('\n Close port \n');
         % close port
@@ -215,9 +213,10 @@ fprintf(xsenslog,'CerebusTime\t Roll\t Pitch\t Yaw\n');
         
         % my added cbmex junk
         cbmex('fileconfig',FN,'',0)
-%         cbmex('ccf','send',ccf_old)
+%       cbmex('ccf','send',ccf_old)
         cbmex('close')
-        fclose(xsenslog)
+        fclose(xsenslog);
+        
     end
 
     function [devicesUsed, devIdUsed, nDevs] = checkConnectedSensors(devIdAll)

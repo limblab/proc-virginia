@@ -6,6 +6,7 @@
 
 % without cbmex
 
+
 function XsensCerebusRecordv2()
     
 
@@ -41,7 +42,7 @@ function XsensCerebusRecordv2()
     end
 
     logfile = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\IMUlog_test1.txt','wt');
-    fprintf(logfile,'CerebusTime\t Roll\t Pitch\t Yaw\n');
+    fprintf(logfile,'DevID\t Roll\t Pitch\t Yaw\n');
     
 %% Scanning connection ports
     % ports rescanned must be reopened
@@ -175,15 +176,20 @@ function XsensCerebusRecordv2()
         % callback function for event: onLiveDataAvailable
         dataPacket = varargin{3}{2};
         deviceFound = varargin{3}{1};
-
+        
         iDev = find(cellfun(@(x) x==deviceFound, devicesUsed));
+        
+        
         if dataPacket
-            if h.XsDataPacket_containsOrientation(dataPacket)
+            if h.XsDataPacket_containsOrientation(dataPacket) %&& h.XsDataPacket_containsrawAcceleration(dataPacket)
                 oriC = cell2mat(h.XsDataPacket_orientationEuler_1(dataPacket));
+               % timesamp = double(h.XsDataPacket_rawAcceleration(dataPacket));
+                %time = h.XsTimeStamp_secTime(dataPacket);
                 %fprintf(xsenslog,'%f\t %f\t %f\t %f\n',cbmex('time'),oriC(1),oriC(2),oriC(3));
-                fprintf(logfile,'%f\t %f\t %f\n',oriC(1),oriC(2),oriC(3));
+                fprintf(logfile,'%d\t %f\t %f\t %f\n',iDev,oriC(1),oriC(2),oriC(3));
             end
 
+           
             h.liveDataPacketHandled(deviceFound, dataPacket);
 
 
