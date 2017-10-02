@@ -16,7 +16,7 @@ FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20170928_Xs
 % cbmex('ccf','send','E:\Data-lab1\TestData\Wireless Transmitter\20170810 IMU noise tracking\20170810_SpikeAndContinuous.ccf');
 
 
-cbmex('fileconfig',FN,'',1);
+%cbmex('fileconfig',FN,'',1);
 xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20170928_Xsens_cbmex.txt','wt');
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
 
@@ -47,11 +47,11 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
     isStation = cellfun(@(x) h.XsDeviceId_isAwindaStation(x),p_br(:,1));
 
     if any(isDongle|isStation)
-        fprintf('\n Example dongle or station\n')
+        fprintf('\n Found dongle or station\n')
         dev = find(isDongle|isStation);
         isMtw = false; % if a station or a dongle is connected give priority to it.
     elseif any(isMtw)
-        fprintf('\n Example MTw\n')
+        fprintf('\n Found MTw\n')
         dev = find(isMtw);
     else
         fprintf('\n No device found. \n')
@@ -132,7 +132,7 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
         number = usedProfile{1};
         version = usedProfile{2};
         name = usedProfile{3};
-        fprintf('\n Used profile: %s(%.0f), version %.0f.\n',name,number,version)
+        fprintf(' Used profile: %s(%.0f), version %.0f.\n',name,number,version)
         if any([availableProfiles{:,1}] ~= number)
             fprintf('\n Other available profiles are: \n')
             for iP=1:size(availableProfiles,1)
@@ -142,25 +142,32 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
     end
 
     
-    input('Press ''enter'' when aligned with initial position')
     pause(1);
+    
+    cbmex('fileconfig',FN,'',1);
+    
     
     for i = 1:length(children)
     coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
     end
-    
+    input('\n Press ''enter'' when aligned with initial position')
+
     if output && all(coord_reset)
         % create log file
-%         h.XsDevice_createLogFile(device,'exampleLogfile.mtb');
-%         fprintf('\n Logfile: %s created\n',fullfile(cd,'exampleLogfile.mtb'));
-          
+        % h.XsDevice_createLogFile(device,'exampleLogfile.mtb');
+        % fprintf('\n Logfile: %s created\n',fullfile(cd,'exampleLogfile.mtb'));
+        
         % start recording
+        
+        %cbmex('fileconfig',FN,'',1);
+        
         h.XsDevice_startRecording(device);
+
         % register onLiveDataAvailable event
         h.registerevent({'onLiveDataAvailable',@handleData});
         h.setCallbackOption(h.XsComCallbackOptions_XSC_LivePacket, h.XsComCallbackOptions_XSC_None);
         % event handler will call stopAll when limit is reached
-        input('\n Press enter to stop measurement. \n');
+        input('\n Press enter to stop measurement');
 
     else
         fprintf('\n Problems with going to measurement\n')
@@ -233,20 +240,24 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
                 end
             end
             % show wich sensors are connected
-            fprintf('\n Devices rejected:\n')
             rejects = devIdAll(~childUsed);
+            if ~isempty(rejects)
+                fprintf('\n Devices rejected:\n')
             I=0;
             for i=1:length(rejects)
                 I = find(strcmp(devIdAll, rejects{i}));
                 fprintf(' %d - %s\n', I,rejects{i})
             end
-            fprintf('\n Devices accepted:\n')
-            accepted = devIdAll(childUsed);
-            for i=1:length(accepted)
-                I = find(strcmp(devIdAll, accepted{i}));
-                fprintf(' %d - %s\n', I,accepted{i})
             end
-            str = input('\n Keep current status?(y/n) \n','s');
+            accepted = devIdAll(childUsed);
+            if ~isempty(accepted)
+                fprintf('\n Devices accepted:\n')         
+                for i=1:length(accepted)
+                    I = find(strcmp(devIdAll, accepted{i}));
+                    fprintf(' %d - %s\n', I,accepted{i})
+                end
+            end
+            str = input('\n Keep current status?(y/n) ','s');
             change = [];
             if strcmp(str,'n')
                 str = input('\n Type the numbers of the sensors (csv list, e.g. "1,2,3") from which status should be changed \n (if accepted than reject or the other way around):\n','s');
