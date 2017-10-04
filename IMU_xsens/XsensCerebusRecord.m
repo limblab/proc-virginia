@@ -10,14 +10,14 @@ function XsensCerebusRecord()
 
 cbmex('open');
 cbmex('trialconfig',0) % turn off the data buffer
-FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20170928_Xsens_cbmex.nev'; % cerebus file name -- we'll use this as the base for the xsens
+FN = 'C:\Users\limblab\Desktop\GIT\proc-virginia\IMU_xsens\Data\20171004_IMU_test_elbsho.nev'; % cerebus file name -- we'll use this as the base for the xsens
 % ccf_old = 'E:\Data-lab1\TestData\Wireless Transmitter\20170903_Noise_tracking\20170903_temporary.ccf';
 % cbmex('ccf','save',ccf_old);
 % cbmex('ccf','send','E:\Data-lab1\TestData\Wireless Transmitter\20170810 IMU noise tracking\20170810_SpikeAndContinuous.ccf');
 
 
 %cbmex('fileconfig',FN,'',1);
-xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20170928_Xsens_cbmex.txt','wt');
+xsenslog = fopen('C:\Users\limblab\Desktop\GIT\proc-virginia\IMU_xsens\20171004_IMU_test_elbsho.txt','wt');
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
 
 %% Launching activex server

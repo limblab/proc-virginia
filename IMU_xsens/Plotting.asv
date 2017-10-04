@@ -1,6 +1,6 @@
 %% Plot
 
-data = dlmread('20171004_IMU_test_elbsho.txt','\t',2,0);
+data = dlmread('20171004_IMU_test_elbow.txt','\t',2,0);
 
 time1 = data(data(:,1)==1,2);
 time2 = data(data(:,1)==2,2);
@@ -12,4 +12,4 @@ plot(time1,dev1)
 hold on
 plot(time2,dev2)
 legend('Roll_1','Pitch_1','Yaw_1','Roll_2','Pitch_2','Yaw_2')
-xlabel('Time [s]'); ylabel('Angle [deg]');
+xlabel('Time (s)');
