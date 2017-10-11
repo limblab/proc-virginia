@@ -1,6 +1,6 @@
 %% Plot
 
-data = dlmread('20171004_IMU_test.txt','\t',2,0);
+data = dlmread('20171011_onarm.txt','\t',2,0);
 
 time1 = data(data(:,1)==1,2);
 time2 = data(data(:,1)==2,2);
