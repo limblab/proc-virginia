@@ -140,12 +140,10 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
             end
         end
     end
-
-    
+ 
     pause(1);
     
     cbmex('fileconfig',FN,'',1);
-    
     
     for i = 1:length(children)
     coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
