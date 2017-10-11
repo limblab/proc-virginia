@@ -11,4 +11,5 @@ figure
 plot(time1,dev1)
 hold on
 plot(time2,dev2)
-legend('Roll','Pitch','Yaw','Roll2','Pitch2','Yaw2')
+legend('Roll_1','Pitch_1','Yaw_1','Roll_2','Pitch_2','Yaw_2')
+xlabel('Time [s]'); ylabel('Angle [deg]');

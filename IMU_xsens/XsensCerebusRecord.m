@@ -11,6 +11,7 @@ function XsensCerebusRecord()
 cbmex('open');
 cbmex('trialconfig',0) % turn off the data buffer
 FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171011_Resetting.nev'; % cerebus file name -- we'll use this as the base for the xsens
+
 % ccf_old = 'E:\Data-lab1\TestData\Wireless Transmitter\20170903_Noise_tracking\20170903_temporary.ccf';
 % cbmex('ccf','save',ccf_old);
 % cbmex('ccf','send','E:\Data-lab1\TestData\Wireless Transmitter\20170810 IMU noise tracking\20170810_SpikeAndContinuous.ccf');
