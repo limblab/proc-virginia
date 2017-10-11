@@ -10,14 +10,15 @@ function XsensCerebusRecord()
 
 cbmex('open');
 cbmex('trialconfig',0) % turn off the data buffer
-FN = 'C:\Users\limblab\Desktop\GIT\proc-virginia\IMU_xsens\Data\20171004_IMU_test_elbsho.nev'; % cerebus file name -- we'll use this as the base for the xsens
+FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171011_Resetting.nev'; % cerebus file name -- we'll use this as the base for the xsens
+
 % ccf_old = 'E:\Data-lab1\TestData\Wireless Transmitter\20170903_Noise_tracking\20170903_temporary.ccf';
 % cbmex('ccf','save',ccf_old);
 % cbmex('ccf','send','E:\Data-lab1\TestData\Wireless Transmitter\20170810 IMU noise tracking\20170810_SpikeAndContinuous.ccf');
 
 
 %cbmex('fileconfig',FN,'',1);
-xsenslog = fopen('C:\Users\limblab\Desktop\GIT\proc-virginia\IMU_xsens\20171004_IMU_test_elbsho.txt','wt');
+xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171011_Resetting.txt','wt');
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
 
 %% Launching activex server
@@ -98,7 +99,7 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
     % Set radio to channel 11
     h.XsDevice_enableRadio(device, 15);
 
-    pause(3);
+    pause(3.5);
   
     % check which devices are found
     children = h.XsDevice_children(device);
@@ -140,28 +141,32 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
             end
         end
     end
- 
+
     pause(1);
     
+    %Start recording cerebus
     cbmex('fileconfig',FN,'',1);
+    
+    input('\n Press ''enter'' when aligned with initial position')
     
     for i = 1:length(children)
     coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
     end
-    input('\n Press ''enter'' when aligned with initial position')
-
+    
     if output && all(coord_reset)
         % create log file
         % h.XsDevice_createLogFile(device,'exampleLogfile.mtb');
         % fprintf('\n Logfile: %s created\n',fullfile(cd,'exampleLogfile.mtb'));
         
         % start recording
-        
         %cbmex('fileconfig',FN,'',1);
         
         h.XsDevice_startRecording(device);
 
         % register onLiveDataAvailable event
+        resetcount = 0;
+        resetcount1 = 0;
+        resetcount2 = 0;
         h.registerevent({'onLiveDataAvailable',@handleData});
         h.setCallbackOption(h.XsComCallbackOptions_XSC_LivePacket, h.XsComCallbackOptions_XSC_None);
         % event handler will call stopAll when limit is reached
@@ -184,9 +189,38 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
                 oriC = cell2mat(h.XsDataPacket_orientationEuler_1(dataPacket));
                 fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC(1),oriC(2),oriC(3));
             end
-
+            
             h.liveDataPacketHandled(deviceFound, dataPacket);
-
+            
+            if length(children)==1
+                if all(abs(oriC)<=2)
+                    resetcount = resetcount+1;
+                end
+                if resetcount==10
+                   h.XsDevice_resetOrientation(children{1}, h.XsResetMethod_XRM_Alignment());
+                   resetcount = 0;
+                end
+            else
+                if all(abs(oriC)<=2)&&(iDev==1)
+                    resetcount1 = resetcount1+1;
+                elseif all(abs(oriC)<=2)&&(iDev==2)
+                    resetcount2 = resetcount2+1;
+                end
+                if resetcount1==10
+                    h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
+                    resetcount1 = 0;
+                elseif resetcount2==10
+                    h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
+                    resetcount2 = 0;
+                end
+%                 if (resetcount1+resetcount2==50)&&((resetcount1>20)&&(resetcount2>20))
+%                     for i = 1:length(children)
+%                         h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+%                     end
+%                     resetcount1 = 0;
+%                     resetcount2 = 0;
+%                 end
+            end
         end
     end
 
@@ -194,7 +228,7 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
         % close everything in the right way
         if ~isempty(h.eventlisteners)
             h.unregisterevent({'onLiveDataAvailable',@handleData});
-        h.setCallbackOption(h.XsComCallbackOptions_XSC_None, h.XsComCallbackOptions_XSC_LivePacket);
+            h.setCallbackOption(h.XsComCallbackOptions_XSC_None, h.XsComCallbackOptions_XSC_LivePacket);
         end
         % stop recording, showing data
         fprintf('\n Stop recording, go to config mode \n');
@@ -205,8 +239,8 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
             h.XsDevice_disableRadio(device);
         end
         % close log file
-%         fprintf('\n Close log file \n');
-%         h.XsDevice_closeLogFile(device);
+        %         fprintf('\n Close log file \n');
+        %         h.XsDevice_closeLogFile(device);
         % on close, devices go to config mode.
         fprintf('\n Close port \n');
         % close port
@@ -218,7 +252,7 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
         
         % my added cbmex junk
         cbmex('fileconfig',FN,'',0)
-%       cbmex('ccf','send',ccf_old)
+        %       cbmex('ccf','send',ccf_old)
         cbmex('close')
         fclose(xsenslog);
         
@@ -241,15 +275,15 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
             rejects = devIdAll(~childUsed);
             if ~isempty(rejects)
                 fprintf('\n Devices rejected:\n')
-            I=0;
-            for i=1:length(rejects)
-                I = find(strcmp(devIdAll, rejects{i}));
-                fprintf(' %d - %s\n', I,rejects{i})
-            end
+                I=0;
+                for i=1:length(rejects)
+                    I = find(strcmp(devIdAll, rejects{i}));
+                    fprintf(' %d - %s\n', I,rejects{i})
+                end
             end
             accepted = devIdAll(childUsed);
             if ~isempty(accepted)
-                fprintf('\n Devices accepted:\n')         
+                fprintf('\n Devices accepted:\n')
                 for i=1:length(accepted)
                     I = find(strcmp(devIdAll, accepted{i}));
                     fprintf(' %d - %s\n', I,accepted{i})
@@ -260,6 +294,9 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
             if strcmp(str,'n')
                 str = input('\n Type the numbers of the sensors (csv list, e.g. "1,2,3") from which status should be changed \n (if accepted than reject or the other way around):\n','s');
                 change = str2double(regexp(str, ',', 'split'));
+                if isempty(str)
+                    stopAll;
+                else
                 for iR=1:length(change)
                     if childUsed(change(iR))
                         % reject sensors
@@ -271,6 +308,7 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
                         childUsed(change(iR)) = true;
                     end
                 end
+                end
             end
             % if no device is connected, give error
             if sum(childUsed) == 0
@@ -278,9 +316,9 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
                 error('MTw:example:devicdes','No devices connected')
             end
             % if sensors are rejected or accepted check blinking leds again
-            if ~isempty(change)
-                input('\n When sensors are connected (synced leds), press enter... \n');
-            end
+%             if ~isempty(change)
+%                 input('\n When sensors are connected (synced leds), press enter... \n');
+%             end
         end
         devicesUsed = children(childUsed);
         devIdUsed = devIdAll(childUsed);
@@ -290,11 +328,11 @@ end
 
 %% Helper function to create figure for display
 % function [t, dataPlot, linePlot, packetCounter] = createFigForDisplay(nDevs, deviceIds)
-% 
+%
 %         [dataPlot{1:nDevs}] = deal([]);
 %         [linePlot{1:nDevs}] = deal([]);
 %         [t{1:nDevs}] = deal([]);
-% 
+%
 %         %% not more than 6 devices per plot
 %         nFigs = ceil(nDevs/6);
 %         devPerFig = ceil(nDevs/nFigs);
