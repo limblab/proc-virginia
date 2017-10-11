@@ -1,3 +1,4 @@
+%% Sync check between IMUs and encoders
 %% Load data path
 datapath = 'C:\Users\vct1641\Documents\data-IMU\';
 addpath(datapath);

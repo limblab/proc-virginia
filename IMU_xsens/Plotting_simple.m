@@ -1,5 +1,4 @@
-%% Plot
-
+%% Plot of IMU data
 data = dlmread('20171011_onarm.txt','\t',2,0);
 
 time1 = data(data(:,1)==1,2);
