@@ -196,9 +196,9 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
                 if all(abs(oriC)<=2)
                     resetcount = resetcount+1;
                 end
-                if resetcount==5
+                if resetcount==10
                    h.XsDevice_resetOrientation(children{1}, h.XsResetMethod_XRM_Alignment());
-                    resetcount = 0;
+                   resetcount = 0;
                 end
             else
                 if all(abs(oriC)<=2)&&(iDev==1)
@@ -206,13 +206,20 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
                 elseif all(abs(oriC)<=2)&&(iDev==2)
                     resetcount2 = resetcount2+1;
                 end
-                if (resetcount1+resetcount2==50)&&((resetcount1>20)&&(resetcount2>20))
-                    for i = 1:length(children)
-                        h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
-                    end
+                if resetcount1==10
+                    h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
                     resetcount1 = 0;
+                elseif resetcount2==10
+                    h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
                     resetcount2 = 0;
                 end
+%                 if (resetcount1+resetcount2==50)&&((resetcount1>20)&&(resetcount2>20))
+%                     for i = 1:length(children)
+%                         h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+%                     end
+%                     resetcount1 = 0;
+%                     resetcount2 = 0;
+%                 end
             end
         end
     end
