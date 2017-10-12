@@ -8,8 +8,8 @@ timeIMU2 = data(data(:,1)==2,2);
 IMU1 = data(data(:,1)==1,3:end);
 IMU2 = data(data(:,1)==2,3:end);
 
-lelb = 7.5*2.54; % [cm] 
-lsho = []; % [cm]
+lelb = 7.5*2.54; % [cm] 7.5 to center IMU, 10 to wrist, 16.5 to end index
+lsho = []; % [cm] 7.5 to center IMU, 10.5 to elbow
 lenIMU = 4.7; % [cm]
 
 is2D = 1;
