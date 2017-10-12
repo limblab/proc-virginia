@@ -10,7 +10,7 @@ function XsensCerebusRecord()
 
 cbmex('open');
 cbmex('trialconfig',0) % turn off the data buffer
-FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171011_Resetting.nev'; % cerebus file name -- we'll use this as the base for the xsens
+FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171012_onarm_int.nev'; % cerebus file name -- we'll use this as the base for the xsens
 
 % ccf_old = 'E:\Data-lab1\TestData\Wireless Transmitter\20170903_Noise_tracking\20170903_temporary.ccf';
 % cbmex('ccf','save',ccf_old);
@@ -18,7 +18,7 @@ FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171011_Re
 
 
 %cbmex('fileconfig',FN,'',1);
-xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171011_Resetting.txt','wt');
+xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171012_onarm_int.txt','wt');
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
 
 %% Launching activex server
@@ -201,9 +201,9 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
                    resetcount = 0;
                 end
             else
-                if all(abs(oriC)<=2)&&(iDev==1)
+                if all(abs(oriC)<=3)&&(iDev==1)
                     resetcount1 = resetcount1+1;
-                elseif all(abs(oriC)<=2)&&(iDev==2)
+                elseif all(abs(oriC)<=3)&&(iDev==2)
                     resetcount2 = resetcount2+1;
                 end
                 if resetcount1==10
