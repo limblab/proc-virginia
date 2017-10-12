@@ -36,13 +36,13 @@ x_elb = lelb*cosd(ywe).*cosd(pte);
 y_elb = lelb*sind(ywe).*cosd(pte);
 z_elb = lelb*sind(rle);
 
-x_sho = lsho*cosd(yws).*cosd(pts);
-y_sho = lsho*sind(yws).*cosd(pts);
-z_sho = lsho*sind(rls);
-
-x_tot = x_elb+x_sho;
-y_tot = y_elb+y_sho;
-z_tot = z_elb+z_sho;
+% x_sho = lsho*cosd(yws).*cosd(pts);
+% y_sho = lsho*sind(yws).*cosd(pts);
+% z_sho = lsho*sind(rls);
+% 
+% x_tot = x_elb+x_sho;
+% y_tot = y_elb+y_sho;
+% z_tot = z_elb+z_sho;
 
 % y as unit vector
 % x_elb = lenelb*(-cosd(yw).*sind(pt).*sind(rl)-sind(yw).*cosd(rl));
