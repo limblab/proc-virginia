@@ -1,5 +1,5 @@
 %% Analysis IMU data on arm
-
+addpath('txt');
 filenameIMU = '20171011_onarm.txt';
 
 data = dlmread(filenameIMU,'\t',2,0);
