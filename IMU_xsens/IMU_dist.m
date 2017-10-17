@@ -2,7 +2,7 @@
 
 addpath('txt');
 
-filenameIMU = '20171012_onarm_int.txt';
+filenameIMU = '20171012_onarm_sup.txt';
 
 data = dlmread(filenameIMU,'\t',2,0);
 timeIMU1 = data(data(:,1)==1,2);
