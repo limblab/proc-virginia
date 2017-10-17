@@ -49,7 +49,7 @@ plot(timeenc/60,th1c)
 hold on
 plot(timeIMU1/60,IMU1(:,3))
 %xlim([4000 4700]);
-xlabel('Time [s]'); ylabel('Angle [deg]')
+xlabel('Time [min]'); ylabel('Angle [deg]')
 legend('Encoder','IMU')
 title('Shoulder')
 
