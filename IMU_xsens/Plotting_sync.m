@@ -74,6 +74,7 @@ tsth1 = timeseries(th1c,timeenc);
 time = stsIMU1.Time;
 IMU1s = stsIMU1.Data;
 th1s = ststh1.Data;
+
 bin = 60;
 nbin = floor(time(end)/bin);
 drift = [];
@@ -84,6 +85,16 @@ end
 figure
 plot((1:nbin+1),drift,'*')
 xlabel('Time [min]'); ylabel('RMSE [deg]');
+
+%% FFT
+IMU1fft = fft(IMU1s);
+encfft = fft(th1s);
+
+figure
+plot(abs(IMU1fft))
+hold on 
+plot(abs(encfft),'r')
+xlim([0 500])
 
 
 
