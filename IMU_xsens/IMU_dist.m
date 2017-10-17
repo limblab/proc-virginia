@@ -118,7 +118,6 @@ title('Total distance')
 legend('x','y','z')
 
 %% Maximum value intervals
-
 thr = 0.5;
 maxtime = timeIMU1(x_tot >= (max(x_tot)-thr));
 maxdist = x_tot(x_tot >= (max(x_tot)-thr));

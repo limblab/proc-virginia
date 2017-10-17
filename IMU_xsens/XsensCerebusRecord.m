@@ -163,7 +163,6 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n'); % xsens header
         h.XsDevice_startRecording(device);
 
         % register onLiveDataAvailable event
-        resetcount = 0;
         resetcount1 = 0;
         resetcount2 = 0;
         h.registerevent({'onLiveDataAvailable',@handleData});
@@ -193,11 +192,11 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n'); % xsens header
             
             if length(children)==1
                 if all(abs(oriC)<=2)
-                    resetcount = resetcount+1;
+                    resetcount1 = resetcount1+1;
                 end
-                if resetcount==10
+                if resetcount1==10
                    h.XsDevice_resetOrientation(children{1}, h.XsResetMethod_XRM_Alignment());
-                   resetcount = 0;
+                   resetcount1 = 0;
                 end
             else
                 if all(abs(oriC)<=3)&&(iDev==1)
