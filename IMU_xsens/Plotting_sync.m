@@ -7,11 +7,13 @@ addpath(datapath);
 filepath = 'C:\Users\vct1641\Documents\Data\data-IMU\cbmex\';
 filename = '20171017_onrobot';
 cds = commonDataStructure(); % Breakpt kinematicsFromNEV, line 85
-cds.file2cds([filepath,filename],'arrayIMU','taskCObump',6);
+cds.file2cds([filepath,filename],'arrayIMU','taskRW',6);
+x_h = cds.kin.x;
+y_h = cds.kin.y;
 
 %% Data loading
-filenameIMU = '20171005_IMU_elb.txt';
-filenameenc = '20171005_IMU_elb.mat';
+filenameIMU = '20171017_onrobot.txt';
+filenameenc = '20171017_onrobot.mat';
 
 data = dlmread(filenameIMU,'\t',2,0);
 timeIMU1 = data(data(:,1)==1,2);
@@ -46,14 +48,14 @@ figure
 subplot(121)
 plot(timeenc,th2-th2(1))
 hold on
-plot(timeIMU1,IMU1(:,3))
+plot(timeIMU2,IMU2(:,3))
 xlabel('Time [s]'); ylabel('Angle [deg]')
 legend('Encoder','IMU')
 title('Elbow')
 subplot(122)
 plot(timeenc,th1c)
 hold on
-plot(timeIMU2,IMU2(:,3))
+plot(timeIMU1,IMU1(:,3))
 xlabel('Time [s]'); ylabel('Angle [deg]')
 legend('Encoder','IMU')
 title('Shoulder')
