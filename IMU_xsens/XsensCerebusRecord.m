@@ -9,17 +9,14 @@ function XsensCerebusRecord()
 % open cbmex, load ccf, prep everything for recording
 
 cbmex('open');
+reccbmex = 0;
+if reccbmex 
 cbmex('trialconfig',0) % turn off the data buffer
-FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171012_onarm_int.nev'; % cerebus file name -- we'll use this as the base for the xsens
+FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171017_onarm_ref.nev'; % cerebus file name
+end
 
-% ccf_old = 'E:\Data-lab1\TestData\Wireless Transmitter\20170903_Noise_tracking\20170903_temporary.ccf';
-% cbmex('ccf','save',ccf_old);
-% cbmex('ccf','send','E:\Data-lab1\TestData\Wireless Transmitter\20170810 IMU noise tracking\20170810_SpikeAndContinuous.ccf');
-
-
-%cbmex('fileconfig',FN,'',1);
-xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171012_onarm_int.txt','wt');
-fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
+xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171017_onarm_ref.txt','wt'); % xsens file name
+fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n'); % xsens header
 
 %% Launching activex server
     switch computer
@@ -145,7 +142,9 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
     pause(1);
     
     %Start recording cerebus
+    if reccbmex
     cbmex('fileconfig',FN,'',1);
+    end
     
     input('\n Press ''enter'' when aligned with initial position')
     
@@ -251,8 +250,10 @@ fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
         delete(h);
         
         % my added cbmex junk
+        if reccbmex
         cbmex('fileconfig',FN,'',0)
-        %       cbmex('ccf','send',ccf_old)
+        end
+        % cbmex('ccf','send',ccf_old)
         cbmex('close')
         fclose(xsenslog);
         

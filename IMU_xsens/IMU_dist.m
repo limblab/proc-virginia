@@ -33,14 +33,6 @@ pts = IMU1(:,2);
 yws = IMU1(:,3);
 
 % x as unit vector
-% x_elb = lelb*cosd(ywe).*cosd(pte);
-% y_elb = lelb*sind(ywe).*cosd(pte);
-% z_elb = lelb*sind(rle);
-% 
-% x_sho = lsho*cosd(yws).*cosd(pts);
-% y_sho = lsho*sind(yws).*cosd(pts);
-% z_sho = lsho*sind(rls);
-
 x_elb = lelb*cosd(ywe).*cosd(pte);
 y_elb = lelb*sind(ywe).*cosd(pte);
 z_elb = -lelb*sind(pte);
@@ -52,11 +44,6 @@ z_sho = -lsho*sind(pts);
 x_tot = x_elb+x_sho;
 y_tot = y_elb+y_sho;
 z_tot = z_elb+z_sho;
-
-% y as unit vector
-% x_elb = lenelb*(-cosd(ywe).*sind(pte).*sind(rle)-sind(ywe).*cosd(rle));
-% y_elb = lenelb*(-sind(ywe).*sind(pte).*sind(rle)+cosd(ywe).*cosd(rle));
-% z_elb = lenelb*cosd(pte).*sind(rle);
 
 % Maximum value intervals
 thr = 2;
@@ -114,6 +101,21 @@ elseif strcmp(namespt{3},'sup.txt')
 elseif strcmp(namespt{3},'int.txt')
     title('Touch Shoulder')
 end
+
+%% With rotation matrix - NOT
+X_sho = [];
+X_elb = [];
+
+for i = 1:length(timeIMU1)
+    X_sho(:,i) = Rotypr(yws(i),pts(i),rls(i))*[lsho;0;0];
+    X_elb(:,i) = X_sho(:,i) + Rotypr(yws(i),pts(i),rls(i))*Rotypr(ywe(i),pte(i),rle(i))*[lelb;0;0];
+end
+
+figure 
+plot(timeIMU1,X_elb')
+line(get(gca,'xlim'),[larm larm],'Color','k')
+title('Total distance')
+legend('x','y','z')
 
 %% Maximum value intervals
 
