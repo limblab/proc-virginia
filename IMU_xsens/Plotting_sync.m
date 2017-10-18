@@ -1,6 +1,12 @@
 %% Sync check between IMUs and encoders
 %% Load data path
-datapath = 'C:\Users\vct1641\Documents\Data\data-IMU\';
+switch computer
+    case 'PCWIN64'
+        datapath = 'C:\Users\vct1641\Documents\Data\data-IMU\';
+    case 'MACI64'
+        datapath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data';
+end
+
 addpath(datapath);
 
 %% Handle 
@@ -91,7 +97,7 @@ title('Shoulder')
 
 %% Plot only elbow/shoulder angles
 figure
-plot(enc.stime/60,enc.scth1)
+plot(enc.stime/60,enc.scth2)
 hold on
 plot(IMU(1).stime/60,IMU(1).yw)
 %xlim([4000 4700]);
@@ -118,15 +124,15 @@ tsth1 = timeseries(th1c,timeenc);
 % IMU1s = stsIMU1.Data;
 % th1s = ststh1.Data;
 
-bin = 60;
-nbin = floor(IMU(1).stime(end)/bin);
+bin = find(IMU(1).stime>=60,1);
+nbin = floor(length(IMU(1).stime)/bin);
 
 drift_elb = zeros(1,nbin+1);
 drift_sho = zeros(1,nbin+1);
 
-for i = 0:nbin
-    drift_elb(i+1) = rms(IMU(2).yw(1+i*bin:bin+i*bin)-enc.scth2(1+i*bin:bin+i*bin));
-    drift_sho(i+1) = rms(IMU(1).yw(1+i*bin:bin+i*bin)-enc.scth1(1+i*bin:bin+i*bin));
+for i = 0:nbin-1
+    %drift_elb(i+1) = rms(IMU(2).yw(1+i*bin:bin+i*bin)-enc.scth2(1+i*bin:bin+i*bin));
+    drift_sho(i+1) = rms(IMU(1).yw(1+i*bin:bin+i*bin)-enc.scth2(1+i*bin:bin+i*bin));
 end
 
 figure
