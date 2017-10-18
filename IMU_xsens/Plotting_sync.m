@@ -22,71 +22,18 @@ filenameIMU = '20171017_onrobot.txt';
 filenameenc = '20171017_onrobot.mat';
 
 [IMU,enc] = loadsync(filenameIMU,filenameenc);
-%%
-dataIMU = dlmread(filenameIMU,'\t',2,0);
-% timeIMU1 = dataIMU(dataIMU(:,1)==1,2);
-% timeIMU2 = dataIMU(dataIMU(:,1)==2,2);
-% IMU1 = dataIMU(dataIMU(:,1)==1,3:end);
-% IMU2 = dataIMU(dataIMU(:,1)==2,3:end);
-
-for ii = 1:2
-    IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
-    IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
-    IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
-end
-
-% for ii = 1:2
-%     IMU(ii).stime = IMU(ii).sts.Time;
-%     IMU(ii).rl = IMU(ii).sts.Data(:,1);
-%     IMU(ii).pt = IMU(ii).sts.Data(:,2);
-%     IMU(ii).yw = IMU(ii).sts.Data(:,3);
-% end
-
-% loadenc = load(filenameenc);
-% enc = table2array(loadenc.enc);
-% timeenc = enc(:,1);
-% th1 = rad2deg(enc(:,2)); % shoulder
-% th2 = rad2deg(enc(:,3)); % elbow
-% th1c = -(th1-abs(th1(1)));
-% th2c = th2-abs(th2(1));
-
-loadenc = load(filenameenc);
-dataenc = table2array(loadenc.enc);
-enc.time = dataenc(:,1);
-enc.th1 = rad2deg(dataenc(:,2)); % shoulder
-enc.th2 = rad2deg(dataenc(:,3)); % elbow
-enc.th1c = -(enc.th1-abs(enc.th1(1)));
-enc.th2c = enc.th2-abs(enc.th2(1));
-enc.ts = timeseries([enc.th1c,enc.th2c],enc.time);
-
-% Synchronizing time vectors 
-[IMU(1).sts,IMU(2).sts] = synchronize(IMU(1).ts,IMU(2).ts,'Intersection');
-[IMU(1).ests,enc.ests] = synchronize(IMU(1).sts,enc.ts,'Intersection');
-[IMU(2).ests,enc.sts] = synchronize(IMU(2).sts,enc.sts,'Intersection');
-
-for ii = 1:2
-    IMU(ii).stime = IMU(ii).ests.Time;
-    IMU(ii).rl = IMU(ii).ests.Data(:,1);
-    IMU(ii).pt = IMU(ii).ests.Data(:,2);
-    IMU(ii).yw = IMU(ii).ests.Data(:,3);
-end
-
-enc.stime = enc.sts.Time;
-enc.scth1 = enc.sts.Data(:,1);
-enc.scth2 = enc.sts.Data(:,2);
-
 
 %% Plotting IMU and encoder angles
 figure
 subplot(121)
-plot(enc.stime,enc.scth2)
+plot(enc.stime,enc.scth1)
 hold on
 plot(IMU(1).stime,IMU(1).yw)
 xlabel('Time [s]'); ylabel('Angle [deg]')
 legend('Encoder','IMU')
 title('Elbow')
 subplot(122)
-plot(enc.stime,enc.scth1)
+plot(enc.stime,enc.scth2)
 hold on
 plot(IMU(2).stime,IMU(2).yw)
 xlabel('Time [s]'); ylabel('Angle [deg]')
@@ -122,21 +69,27 @@ tsth1 = timeseries(th1c,timeenc);
 % IMU1s = stsIMU1.Data;
 % th1s = ststh1.Data;
 
-bin = 60;
-nbin = floor(IMU(1).stime(end)/bin);
+bin = find(IMU(1).stime>=60,1);
+nbin = floor(length(IMU(1).stime)/bin);
 
-drift_elb = zeros(1,nbin+1);
-drift_sho = zeros(1,nbin+1);
+rmse_elb = zeros(1,nbin+1);
+rmse_sho = zeros(1,nbin+1);
+R_elb = zeros(1,nbin+1);
+R_sho = zeros(1,nbin+1);
 
-for i = 0:nbin
-    drift_elb(i+1) = rms(IMU(2).yw(1+i*bin:bin+i*bin)-enc.scth2(1+i*bin:bin+i*bin));
-    drift_sho(i+1) = rms(IMU(1).yw(1+i*bin:bin+i*bin)-enc.scth1(1+i*bin:bin+i*bin));
+for i = 0:nbin-1
+    rmse_elb(i+1) = rms(IMU(2).yw(1+i*bin:bin+i*bin)-enc.scth2(1+i*bin:bin+i*bin));
+    rmse_sho(i+1) = rms(IMU(1).yw(1+i*bin:bin+i*bin)-enc.scth1(1+i*bin:bin+i*bin));
+    R_elb(i+1) = sum((IMU(2).yw(1+i*bin:bin+i*bin)-mean(IMU(2).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth2(1+i*bin:bin+i*bin)-mean(enc.scth2(1+i*bin:bin+i*bin))).^2);
+    R_sho(i+1) = sum((IMU(1).yw(1+i*bin:bin+i*bin)-mean(IMU(1).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth1(1+i*bin:bin+i*bin)-mean(enc.scth1(1+i*bin:bin+i*bin))).^2);
 end
 
 figure
-plot((1:nbin+1),drift_elb,'*')
+plot((1:nbin+1),rmse_elb,'b*')
 hold on
-plot((1:nbin+1),drift_sho,'*')
+plot((1:nbin+1),rmse_sho,'r*')
+%plot((1:nbin+1),R_sho,'r-')
+%plot((1:nbin+1),R_elb,'b-')
 xlabel('Time [min]'); ylabel('RMSE [deg]');
 
 %% Position handle
@@ -146,8 +99,11 @@ lr = lrelb+lrsho;
 
 for i = 1:length(enc.stime)
     Xr_sho(:,i) = [cosd(enc.scth1(i)) -sind(enc.scth1(i)) 0; sind(enc.scth1(i)) cosd(enc.scth1(i)) 0; 0 0 1]*[0;lrsho;0];
-    Xr_elb(:,i) = Xr_sho(:,i) + [cosd(enc.scth2(i)) -sind(enc.scth2(i)) 0; sind(enc.scth2(i)) cosd(enc.scth2(i)) 0; 0 0 1]*[lrelb;0;0];
+    Xr_elb(:,i) = Xr_sho(:,i) + [cosd(-enc.scth2(i)) -sind(-enc.scth2(i)) 0; sind(-enc.scth2(i)) cosd(-enc.scth2(i)) 0; 0 0 1]*[lrelb;0;0];
 end
+
+x_rh = Xr_elb(1,:);
+y_rh = Xr_elb(2,:);
 
 %% Time start
 iniIMU = timeIMU1(find(diff(IMU(1).yw)>0.1,1));
