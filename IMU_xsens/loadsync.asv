@@ -38,6 +38,7 @@ if isenc
     xlabel('Time [s]'); ylabel('Angle [deg]')
     legend('Encoder','IMU')
     title('Shoulder')
+    else
     
     flip = input('\n Flip? (1/2/n) ','s');
     

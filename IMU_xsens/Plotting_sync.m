@@ -5,16 +5,20 @@ addpath(datapath);
 
 %% Handle 
 filepath = 'C:\Users\vct1641\Documents\Data\data-IMU\cbmex\';
-filename = '20171017_onrobot';
+filename = '20171018_onrobot';
 cds = commonDataStructure(); % Breakpt kinematicsFromNEV, line 85
 cds.file2cds([filepath,filename],'arrayIMU','taskRW',6);
+
+%% Handle position from cds.kin
 x_h = cds.kin.x;
 y_h = cds.kin.y;
 
 %% Data loading
-filenameIMU = '20171017_onrobot.txt';
-filenameenc = '20171017_onrobot.mat';
+filenameIMU = '20171018_onrobot.txt';
+filenameenc = '20171018_onrobot.mat';
+[IMU,enc] = loadsync(filenameIMU,filenameenc);
 
+%%
 dataIMU = dlmread(filenameIMU,'\t',2,0);
 % timeIMU1 = dataIMU(dataIMU(:,1)==1,2);
 % timeIMU2 = dataIMU(dataIMU(:,1)==2,2);
