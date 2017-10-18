@@ -19,27 +19,29 @@ if isenc
     loadenc = load(filenameenc);
     dataenc = table2array(loadenc.enc);
     enc.time = dataenc(:,1);
-    enc.th1 = rad2deg(dataenc(:,2)); % shoulder
-    enc.th2 = rad2deg(dataenc(:,3)); % elbow
+    enc.th1 = rad2deg(dataenc(:,3)); % shoulder
+    enc.th2 = rad2deg(dataenc(:,2)); % elbow
     
-    figure(h)
+    h = figure;
     subplot(121)
     plot(enc.time,enc.th2)
     hold on
-    plot(IMU(1).time,IMU(1).yw)
+    plot(IMU(1).time,IMU(1).data(:,3))
     xlabel('Time [s]'); ylabel('Angle [deg]')
     legend('Encoder','IMU')
     title('Elbow')
     subplot(122)
     plot(enc.time,enc.th1)
     hold on
-    plot(IMU(2).time,IMU(2).yw)
+    plot(IMU(2).time,IMU(2).data(:,3))
     xlabel('Time [s]'); ylabel('Angle [deg]')
     legend('Encoder','IMU')
     title('Shoulder')
-    close h
     
-    flip = input('\nFlip? (1/2/n)','s');
+    flip = input('\n Flip? (1/2/n) ','s');
+    
+    close(h)
+
     if strcmp(flip,'n')
         enc.th1c = enc.th1-abs(enc.th1(1));
         enc.th2c = enc.th2-abs(enc.th2(1));
@@ -55,7 +57,7 @@ if isenc
     % Synchronizing time vectors
     if nIMU > 1
         [IMU(1).sts,IMU(2).sts] = synchronize(IMU(1).ts,IMU(2).ts,'Intersection');
-        [IMU(1).ests,enc.ests] = synchronize(IMU(1).sts,enc.ts,'Intersection');
+        [IMU(1).ests,enc.sts] = synchronize(IMU(1).sts,enc.ts,'Intersection');
         [IMU(2).ests,enc.sts] = synchronize(IMU(2).sts,enc.sts,'Intersection');
     else
         [IMU.ests,enc.sts] = synchronize(IMU.sts,enc.sts,'Intersection');

@@ -13,7 +13,9 @@ addpath(datapath);
 filepath = 'C:\Users\vct1641\Documents\Data\data-IMU\cbmex\';
 filename = '20171017_onrobot';
 cds = commonDataStructure(); % Breakpt kinematicsFromNEV, line 85
-cds.file2cds([filepath,filename],'arrayIMU','taskCObump',6);
+cds.file2cds([filepath,filename],'arrayIMU','taskRW',6);
+x_h = cds.kin.x;
+y_h = cds.kin.y;
 
 %% Data loading
 filenameIMU = '20171017_onrobot.txt';
