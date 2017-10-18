@@ -1,6 +1,12 @@
 %% Sync check between IMUs and encoders
 %% Load data path
-datapath = 'C:\Users\vct1641\Documents\Data\data-IMU\';
+switch computer
+    case 'PCWIN64'
+        datapath = 'C:\Users\vct1641\Documents\Data\data-IMU\';
+    case 'MACI64'
+        datapath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data';
+end
+
 addpath(datapath);
 
 %% Handle 
@@ -10,9 +16,11 @@ cds = commonDataStructure(); % Breakpt kinematicsFromNEV, line 85
 cds.file2cds([filepath,filename],'arrayIMU','taskCObump',6);
 
 %% Data loading
-filenameIMU = '20171005_IMU_elb.txt';
-filenameenc = '20171005_IMU_elb.mat';
+filenameIMU = '20171017_onrobot.txt';
+filenameenc = '20171017_onrobot.mat';
 
+[IMU,enc] = loadsync(filenameIMU,filenameenc);
+%%
 dataIMU = dlmread(filenameIMU,'\t',2,0);
 % timeIMU1 = dataIMU(dataIMU(:,1)==1,2);
 % timeIMU2 = dataIMU(dataIMU(:,1)==2,2);
