@@ -117,15 +117,18 @@ line(get(gca,'xlim'),[larm larm],'Color','k')
 title('Total distance')
 legend('x','y','z')
 
-%% Maximum value intervals
-
-thr = 0.5;
-maxtime = timeIMU1(x_tot >= (max(x_tot)-thr));
-maxdist = x_tot(x_tot >= (max(x_tot)-thr));
-
+%% Plot 2D path
 figure
-plot(timeIMU1,x_tot)
-hold on
-plot(timeIMU1,y_tot)
-plot(maxtime,maxdist,'*')
+subplot(131)
+plot(x_tot,y_tot)
+xlabel('x'); ylabel('y');
+axis equal
+subplot(132)
+plot(y_tot,z_tot)
+xlabel('y'); ylabel('z');
+axis equal
+subplot(133)
+plot(x_tot,z_tot)
+xlabel('x'); ylabel('z');
+axis equal
 

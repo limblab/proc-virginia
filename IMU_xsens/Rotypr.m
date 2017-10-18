@@ -1,7 +1,13 @@
-function[Rmat] = Rotypr(yw,pt,rl)
+function[Rmat] = Rotypr(y,p,r)
 
-Rmat = [cosd(yw).*cosd(pt), -cosd(yw).*sind(pt).*sind(rl)-sind(yw).*cosd(rl), cosd(yw).*sind(pt).*cosd(rl)+sind(yw).*sind(rl);...
-    sind(yw).*cosd(pt), sind(yw).*sind(pt).*sind(rl)+cosd(yw).*cosd(rl), sind(yw).*sind(pt).*cosd(rl)-cosd(yw).*sind(rl);...
-    -sind(pt), cosd(pt).*sind(rl), cosd(pt).*sind(rl)];
+R_y = [cosd(y) -sind(y) 0; sind(y) cosd(y) 0; 0 0 1];
+R_p = [cosd(p) 0 sind(p); 0 1 0; -sind(p) 0 cosd(p)];
+R_r = [1 0 0; 0 cosd(r) -sind(r); 0 sind(r) cosd(r)];
+
+Rmat = R_y*R_p*R_r;
+
+% Rmat = [cosd(y).*cosd(p), cosd(y).*sind(p).*sind(r)-sind(y).*cosd(r), cosd(y).*sind(p).*cosd(r)+sind(y).*sind(r);...
+%     sind(y).*cosd(p), sind(y).*sind(p).*sind(r)+cosd(y).*cosd(r), sind(y).*sind(p).*cosd(r)-cosd(y).*sind(r);...
+%     -sind(p), cosd(p).*sind(r), cosd(p).*cosd(r)];
 
 end

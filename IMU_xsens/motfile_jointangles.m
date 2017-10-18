@@ -18,7 +18,7 @@ timeIMU = ts1s.Time;
 IMU1 = ts1s.Data;
 IMU2 = ts2s.Data;
 
-%%
+%% Write on file
 nRows = length(timeIMU);
 nCols = size(IMU1,2)+1;
 fprintf(fid,[motname,'\nnRows=%d\nnColumns=%d\n\nUnits are S.I. units (second, meters, Newtons, ...)\nAngles are in degrees.\n\nendheader\n'],nRows,nCols);
