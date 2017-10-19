@@ -18,8 +18,8 @@ x_h = cds.kin.x;
 y_h = cds.kin.y;
 
 %% Data loading
-filenameIMU = '20171017_onrobot.txt';
-filenameenc = '20171017_onrobot.mat';
+filenameIMU = '20171012_onrobot.txt';
+filenameenc = '20171012_onrobot.mat';
 
 [IMU,enc] = loadsync(filenameIMU,filenameenc);
 
@@ -52,7 +52,7 @@ title('Shoulder')
 
 %% Plot IMU angles
 figure
-for ii = 1:2
+for ii = 1:size(IMU,2)
 plot(IMU(ii).stime,IMU(ii).ests.Data)
 hold on
 end
@@ -60,14 +60,6 @@ legend('Roll_1','Pitch_1','Yaw_1','Roll_2','Pitch_2','Yaw_2')
 xlabel('Time [s]'); ylabel('Angle [deg]');
 
 %% Quantify drift
-tsIMU1 = timeseries(IMU1(:,3),timeIMU1);
-tsth1 = timeseries(th1c,timeenc);
-[stsIMU1,ststh1] = synchronize(IMU(1).sts,tsth1,'Intersection');
-
-%% 
-% time = stsIMU1.Time;
-% IMU1s = stsIMU1.Data;
-% th1s = ststh1.Data;
 
 bin = find(IMU(1).stime>=60,1);
 nbin = floor(length(IMU(1).stime)/bin);
@@ -78,9 +70,9 @@ R_elb = zeros(1,nbin+1);
 R_sho = zeros(1,nbin+1);
 
 for i = 0:nbin-1
-    rmse_elb(i+1) = rms(IMU(2).yw(1+i*bin:bin+i*bin)-enc.scth2(1+i*bin:bin+i*bin));
+    %rmse_elb(i+1) = rms(IMU(2).yw(1+i*bin:bin+i*bin)-enc.scth2(1+i*bin:bin+i*bin));
     rmse_sho(i+1) = rms(IMU(1).yw(1+i*bin:bin+i*bin)-enc.scth1(1+i*bin:bin+i*bin));
-    R_elb(i+1) = sum((IMU(2).yw(1+i*bin:bin+i*bin)-mean(IMU(2).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth2(1+i*bin:bin+i*bin)-mean(enc.scth2(1+i*bin:bin+i*bin))).^2);
+    %R_elb(i+1) = sum((IMU(2).yw(1+i*bin:bin+i*bin)-mean(IMU(2).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth2(1+i*bin:bin+i*bin)-mean(enc.scth2(1+i*bin:bin+i*bin))).^2);
     R_sho(i+1) = sum((IMU(1).yw(1+i*bin:bin+i*bin)-mean(IMU(1).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth1(1+i*bin:bin+i*bin)-mean(enc.scth1(1+i*bin:bin+i*bin))).^2);
 end
 

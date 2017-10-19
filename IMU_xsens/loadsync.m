@@ -95,7 +95,7 @@ if isenc
         [IMU(1).ests,enc.sts] = synchronize(IMU(1).sts,enc.ts,'Intersection');
         [IMU(2).ests,enc.sts] = synchronize(IMU(2).sts,enc.sts,'Intersection');
     else
-        [IMU.ests,enc.sts] = synchronize(IMU.sts,enc.sts,'Intersection');
+        [IMU.ests,enc.sts] = synchronize(IMU.ts,enc.ts,'Intersection');
     end
     
     for ii = 1:nIMU
