@@ -12,6 +12,8 @@ dataIMU = dlmread(filenameIMU,'\t',2,0);
 nIMU = max(dataIMU(:,1));
 
 flipIMU = 'n';
+whichIMU = '';
+
 if nIMU>1
     flipIMU = input('\n Flip IMU? (y/n) ','s');
 else
@@ -78,7 +80,13 @@ if isenc
     if strcmp(flip,'n')
         enc.th1c = enc.th1-enc.th1(1);
         enc.th2c = enc.th2-enc.th2(1);
-    elseif strcmp(flip,'1')
+    elseif strcmp(flip,'1')&&strcmp(whichIMU,'sho')
+        enc.th1c = -(enc.th1-enc.th1(1));
+        enc.th2c = enc.th2-enc.th2(1);
+    elseif strcmp(flip,'1')&&strcmp(whichIMU,'elb')
+        enc.th1c = enc.th1-enc.th1(1);
+        enc.th2c = -(enc.th2-enc.th2(1));
+    elseif strcmp(flip,'1')&&nIMU>1
         enc.th1c = -(enc.th1-enc.th1(1));
         enc.th2c = enc.th2-enc.th2(1);
     elseif strcmp(flip,'2')
