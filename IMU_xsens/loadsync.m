@@ -76,14 +76,14 @@ if isenc
     close(h)
     
     if strcmp(flip,'n')
-        enc.th1c = enc.th1-abs(enc.th1(1));
-        enc.th2c = enc.th2-abs(enc.th2(1));
+        enc.th1c = enc.th1-enc.th1(1);
+        enc.th2c = enc.th2-enc.th2(1);
     elseif strcmp(flip,'1')
-        enc.th1c = -(enc.th1-abs(enc.th1(1)));
-        enc.th2c = enc.th2-abs(enc.th2(1));
+        enc.th1c = -(enc.th1-enc.th1(1));
+        enc.th2c = enc.th2-enc.th2(1);
     elseif strcmp(flip,'2')
-        enc.th1c = enc.th1-abs(enc.th1(1));
-        enc.th2c = -(enc.th2-abs(enc.th2(1)));
+        enc.th1c = enc.th1-enc.th1(1);
+        enc.th2c = -(enc.th2-enc.th2(1));
     end
     enc.ts = timeseries([enc.th1c,enc.th2c],enc.time);
     
