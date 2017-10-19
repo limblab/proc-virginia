@@ -97,30 +97,55 @@ plot((1:nbin+1),rmse_sho,'r*')
 %plot((1:nbin+1),R_elb,'b-')
 xlabel('Time [min]'); ylabel('RMSE [deg]');
 
-%% Position handle
+%% Position handle with encoder and IMU 
 lrelb = 28;
 lrsho = 24;
 lr = lrelb+lrsho;
-Xr_sho = [];
-Xr_elb = [];
+XE_sho = [];
+Xe_elb = [];
 
 for i = 1:length(enc.stime)
-    Xr_sho(:,i) = Rotyaw(-enc.scth1(i))*[0;-lrsho;0];
-    Xr_elb(:,i) = Xr_sho(:,i) + Rotyaw(enc.scth2(i))*[lrelb;0;0];
+    Xe_sho(:,i) = Rotyaw(-enc.scth1(i))*[0;-lrsho;0];
+    Xe_elb(:,i) = Xe_sho(:,i) + Rotyaw(enc.scth2(i))*[lrelb;0;0];
 end
 
-x_rh = Xr_elb(1,:);
-y_rh = Xr_elb(2,:);
+for i = 1:length(enc.stime)
+    XI_sho(:,i) = Rotyaw(-IMU(1).yw(i))*[0;-lrsho;0];
+    XI_elb(:,i) = XI_sho(:,i) + Rotyaw(IMU(2).yw(i))*[lrelb;0;0];
+end
+
+xh_enc = Xe_elb(1,:);
+yh_enc = Xe_elb(2,:);
+
+xh_IMU = XI_elb(1,:);
+yh_IMU = XI_elb(2,:);
 
 figure
 %plot(x_h,y_h)
 hold on
-plot(x_rh,y_rh,'r')
+plot(xh_enc,yh_enc,'r')
+plot(xh_IMU,yh_IMU)
 axis equal
+xlabel('x_{handle}'); ylabel('y_{handle}');
+
+figure
+subplot(121)
+plot(enc.stime,xh_enc)
+hold on
+plot(enc.stime,xh_IMU)
+xlabel('Time [s]'); ylabel('x_{handle}');
+legend('Encoder','IMU')
+subplot(122)
+plot(enc.stime,yh_enc)
+hold on
+plot(enc.stime,yh_IMU)
+xlabel('Time [s]'); ylabel('y_{handle}');
+legend('Encoder','IMU')
+
 
 %% Time start
-iniIMU = timeIMU1(find(diff(IMU(1).yw)>0.1,1));
-inienc = timeenc(find(diff(enc.scth2)>0.1,1));
+iniIMU = IMU(1).stime(find(diff(IMU(1).yw)>0.1,1));
+inienc = enc.stime(find(diff(enc.scth2)>0.1,1));
 
 %% FFT
 IMU1fft = fft(IMU1s);
