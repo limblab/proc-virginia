@@ -101,10 +101,12 @@ xlabel('Time [min]'); ylabel('RMSE [deg]');
 lrelb = 28;
 lrsho = 24;
 lr = lrelb+lrsho;
+Xr_sho = [];
+Xr_elb = [];
 
 for i = 1:length(enc.stime)
-    Xr_sho(:,i) = Rotyaw(enc.scth1(i))*[lrsho;0;0];
-    Xr_elb(:,i) = Xr_sho(:,i) + Rotyaw(-enc.scth2(i))*[0;lrelb;0];
+    Xr_sho(:,i) = Rotyaw(-enc.scth1(i))*[0;-lrsho;0];
+    Xr_elb(:,i) = Xr_sho(:,i) + Rotyaw(enc.scth2(i))*[lrelb;0;0];
 end
 
 x_rh = Xr_elb(1,:);
