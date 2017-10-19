@@ -70,9 +70,7 @@ if isenc
         end
         legend('Encoder','IMU')
     end
-    
-    
-    
+        
     flip = input('\n Flip encoder? (1/2/n) ','s');
     
     close(h)

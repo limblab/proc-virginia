@@ -11,9 +11,11 @@ addpath(datapath);
 
 %% Handle 
 filepath = 'C:\Users\vct1641\Documents\Data\data-IMU\cbmex\';
-filename = '20171017_onrobot';
+filename = '20171018_onrobot';
 cds = commonDataStructure(); % Breakpt kinematicsFromNEV, line 85
 cds.file2cds([filepath,filename],'arrayIMU','taskRW',6);
+
+%% Handle position from cds.kin
 x_h = cds.kin.x;
 y_h = cds.kin.y;
 
@@ -22,6 +24,7 @@ filenameIMU = '20171012_onrobot.txt';
 filenameenc = '20171012_onrobot.mat';
 
 [IMU,enc] = loadsync(filenameIMU,filenameenc);
+iselb = 0;
 
 %% Plotting IMU and encoder angles
 figure
@@ -70,10 +73,20 @@ R_elb = zeros(1,nbin+1);
 R_sho = zeros(1,nbin+1);
 
 for i = 0:nbin-1
-    %rmse_elb(i+1) = rms(IMU(2).yw(1+i*bin:bin+i*bin)-enc.scth2(1+i*bin:bin+i*bin));
-    rmse_sho(i+1) = rms(IMU(1).yw(1+i*bin:bin+i*bin)-enc.scth1(1+i*bin:bin+i*bin));
-    %R_elb(i+1) = sum((IMU(2).yw(1+i*bin:bin+i*bin)-mean(IMU(2).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth2(1+i*bin:bin+i*bin)-mean(enc.scth2(1+i*bin:bin+i*bin))).^2);
-    R_sho(i+1) = sum((IMU(1).yw(1+i*bin:bin+i*bin)-mean(IMU(1).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth1(1+i*bin:bin+i*bin)-mean(enc.scth1(1+i*bin:bin+i*bin))).^2);
+    if size(IMU,2)>1
+        rmse_elb(i+1) = rms(IMU(2).yw(1+i*bin:bin+i*bin)-enc.scth2(1+i*bin:bin+i*bin));
+        rmse_sho(i+1) = rms(IMU(1).yw(1+i*bin:bin+i*bin)-enc.scth1(1+i*bin:bin+i*bin));
+        R_elb(i+1) = sum((IMU(2).yw(1+i*bin:bin+i*bin)-mean(IMU(2).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth2(1+i*bin:bin+i*bin)-mean(enc.scth2(1+i*bin:bin+i*bin))).^2);
+        R_sho(i+1) = sum((IMU(1).yw(1+i*bin:bin+i*bin)-mean(IMU(1).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth1(1+i*bin:bin+i*bin)-mean(enc.scth1(1+i*bin:bin+i*bin))).^2);
+    else
+        if iselb
+            rmse_sho(i+1) = rms(IMU(1).yw(1+i*bin:bin+i*bin)-enc.scth2(1+i*bin:bin+i*bin));
+            R_sho(i+1) = sum((IMU(1).yw(1+i*bin:bin+i*bin)-mean(IMU(1).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth2(1+i*bin:bin+i*bin)-mean(enc.scth2(1+i*bin:bin+i*bin))).^2);
+        else
+            rmse_sho(i+1) = rms(IMU(1).yw(1+i*bin:bin+i*bin)-enc.scth1(1+i*bin:bin+i*bin));
+            R_sho(i+1) = sum((IMU(1).yw(1+i*bin:bin+i*bin)-mean(IMU(1).yw(1+i*bin:bin+i*bin))).^2)./sum((enc.scth1(1+i*bin:bin+i*bin)-mean(enc.scth1(1+i*bin:bin+i*bin))).^2);
+        end
+    end
 end
 
 figure
@@ -90,12 +103,18 @@ lrsho = 24;
 lr = lrelb+lrsho;
 
 for i = 1:length(enc.stime)
-    Xr_sho(:,i) = [cosd(enc.scth1(i)) -sind(enc.scth1(i)) 0; sind(enc.scth1(i)) cosd(enc.scth1(i)) 0; 0 0 1]*[0;lrsho;0];
-    Xr_elb(:,i) = Xr_sho(:,i) + [cosd(-enc.scth2(i)) -sind(-enc.scth2(i)) 0; sind(-enc.scth2(i)) cosd(-enc.scth2(i)) 0; 0 0 1]*[lrelb;0;0];
+    Xr_sho(:,i) = Rotyaw(enc.scth1(i))*[lrsho;0;0];
+    Xr_elb(:,i) = Xr_sho(:,i) + Rotyaw(-enc.scth2(i))*[0;lrelb;0];
 end
 
 x_rh = Xr_elb(1,:);
 y_rh = Xr_elb(2,:);
+
+figure
+%plot(x_h,y_h)
+hold on
+plot(x_rh,y_rh,'r')
+axis equal
 
 %% Time start
 iniIMU = timeIMU1(find(diff(IMU(1).yw)>0.1,1));
