@@ -1,13 +1,20 @@
 %% Plot of IMU data
 addpath('txt');
-data = dlmread('20171017_onarm_ref.txt','\t',2,0);
+data = dlmread('20171019_moredata.txt','\t',2,0);
 
 time1 = data(data(:,1)==1,2);
 time2 = data(data(:,1)==2,2);
-dev1 = data(data(:,1)==1,3:end);
-dev2 = data(data(:,1)==2,3:end);
+dev1 = data(data(:,1)==1,3:5);
+dev2 = data(data(:,1)==2,3:5);
 
-% If IMU started recording before cerebus
+figure
+plot(time1,dev1)
+hold on
+plot(time2,dev2)
+legend('Roll_1','Pitch_1','Yaw_1','Roll_2','Pitch_2','Yaw_2')
+xlabel('Time [s]'); ylabel('Angle [deg]');
+
+%% If IMU started recording before cerebus
 timex1 = time1(find(time1<10,1):end,:);
 timex2 = time2(find(time2<10,1):end,:);
 devx1 = dev1(find(time1<10,1):end,:);
