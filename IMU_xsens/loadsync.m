@@ -12,6 +12,8 @@ dataIMU = dlmread(filenameIMU,'\t',2,0);
 nIMU = max(dataIMU(:,1));
 
 flipIMU = 'n';
+whichIMU = '';
+
 if nIMU>1
     flipIMU = input('\n Flip IMU? (y/n) ','s');
 else
@@ -70,9 +72,7 @@ if isenc
         end
         legend('Encoder','IMU')
     end
-    
-    
-    
+        
     flip = input('\n Flip encoder? (1/2/n) ','s');
     
     close(h)
@@ -80,7 +80,13 @@ if isenc
     if strcmp(flip,'n')
         enc.th1c = enc.th1-enc.th1(1);
         enc.th2c = enc.th2-enc.th2(1);
-    elseif strcmp(flip,'1')
+    elseif strcmp(flip,'1')&&strcmp(whichIMU,'sho')
+        enc.th1c = -(enc.th1-enc.th1(1));
+        enc.th2c = enc.th2-enc.th2(1);
+    elseif strcmp(flip,'1')&&strcmp(whichIMU,'elb')
+        enc.th1c = enc.th1-enc.th1(1);
+        enc.th2c = -(enc.th2-enc.th2(1));
+    elseif strcmp(flip,'1')&&nIMU>1
         enc.th1c = -(enc.th1-enc.th1(1));
         enc.th2c = enc.th2-enc.th2(1);
     elseif strcmp(flip,'2')
@@ -95,7 +101,7 @@ if isenc
         [IMU(1).ests,enc.sts] = synchronize(IMU(1).sts,enc.ts,'Intersection');
         [IMU(2).ests,enc.sts] = synchronize(IMU(2).sts,enc.sts,'Intersection');
     else
-        [IMU.ests,enc.sts] = synchronize(IMU.sts,enc.sts,'Intersection');
+        [IMU.ests,enc.sts] = synchronize(IMU.ts,enc.ts,'Intersection');
     end
     
     for ii = 1:nIMU
