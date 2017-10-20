@@ -11,7 +11,7 @@ addpath(datapath);
 
 %% Handle 
 filepath = 'C:\Users\vct1641\Documents\Data\data-IMU\cbmex\';
-filename = '20171018_onrobot';
+filename = '20171019_onrobot';
 cds = commonDataStructure(); % Breakpt kinematicsFromNEV, line 85
 cds.file2cds([filepath,filename],'arrayIMU','taskRW',6);
 
@@ -20,8 +20,8 @@ x_h = cds.kin.x;
 y_h = cds.kin.y;
 
 %% Data loading
-filenameIMU = '20171012_onrobot.txt';
-filenameenc = '20171012_onrobot.mat';
+filenameIMU = '20171019_onrobot.txt';
+filenameenc = '20171019_onrobot.mat';
 
 [IMU,enc] = loadsync(filenameIMU,filenameenc);
 iselb = 0;
@@ -45,19 +45,24 @@ title('Shoulder')
 
 %% Plot only elbow/shoulder angles
 figure
-plot(enc.stime/60,enc.scth1)
+if iselb
+    plot(enc.stime/60,enc.scth2)
+    title('Elbow')
+else
+    plot(enc.stime/60,enc.scth1)
+    title('Shoulder')
+end
 hold on
 plot(IMU(1).stime/60,IMU(1).yw)
 %xlim([4000 4700]);
 xlabel('Time [min]'); ylabel('Angle [deg]')
 legend('Encoder','IMU')
-title('Shoulder')
 
 %% Plot IMU angles
 figure
 for ii = 1:size(IMU,2)
-plot(IMU(ii).stime,IMU(ii).ests.Data)
-hold on
+    plot(IMU(ii).stime,IMU(ii).ests.Data)
+    hold on
 end
 legend('Roll_1','Pitch_1','Yaw_1','Roll_2','Pitch_2','Yaw_2')
 xlabel('Time [s]'); ylabel('Angle [deg]');
@@ -66,11 +71,12 @@ xlabel('Time [s]'); ylabel('Angle [deg]');
 
 bin = find(IMU(1).stime>=60,1);
 nbin = floor(length(IMU(1).stime)/bin);
+tbin = [bin:bin:bin*nbin];
 
-rmse_elb = zeros(1,nbin+1);
-rmse_sho = zeros(1,nbin+1);
-R_elb = zeros(1,nbin+1);
-R_sho = zeros(1,nbin+1);
+rmse_elb = zeros(1,nbin);
+rmse_sho = zeros(1,nbin);
+R_elb = zeros(1,nbin);
+R_sho = zeros(1,nbin);
 
 for i = 0:nbin-1
     if size(IMU,2)>1
@@ -90,12 +96,13 @@ for i = 0:nbin-1
 end
 
 figure
-plot((1:nbin+1),rmse_elb,'b*')
+plot(enc.stime(tbin)/60,rmse_elb,'b*')
 hold on
-plot((1:nbin+1),rmse_sho,'r*')
-%plot((1:nbin+1),R_sho,'r-')
+plot(enc.stime(tbin)/60,rmse_sho,'r*')
+%plot((1:nbin+1),R_sho,'r-')size(IMU,2)>1
 %plot((1:nbin+1),R_elb,'b-')
 xlabel('Time [min]'); ylabel('RMSE [deg]');
+legend('Elbow','Shoulder')
 
 %% Position handle with encoder and IMU 
 lrelb = 28;
@@ -120,6 +127,7 @@ yh_enc = Xe_elb(2,:);
 xh_IMU = XI_elb(1,:);
 yh_IMU = XI_elb(2,:);
 
+%%
 figure
 %plot(x_h,y_h)
 hold on
@@ -141,7 +149,6 @@ hold on
 plot(enc.stime,yh_IMU)
 xlabel('Time [s]'); ylabel('y_{handle}');
 legend('Encoder','IMU')
-
 
 %% Time start
 iniIMU = IMU(1).stime(find(diff(IMU(1).yw)>0.1,1));
