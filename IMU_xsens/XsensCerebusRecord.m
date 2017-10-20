@@ -10,7 +10,7 @@ function XsensCerebusRecord()
 
 cbmex('open');
 cbmex('trialconfig',0) % turn off the data buffer
-FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171012_onarm_int.nev'; % cerebus file name -- we'll use this as the base for the xsens
+FN = 'C:\data\IMU\20171019_onrobot.nev'; % cerebus file name -- we'll use this as the base for the xsens
 
 % ccf_old = 'E:\Data-lab1\TestData\Wireless Transmitter\20170903_Noise_tracking\20170903_temporary.ccf';
 % cbmex('ccf','save',ccf_old);
@@ -18,7 +18,7 @@ FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171012_on
 
 
 %cbmex('fileconfig',FN,'',1);
-xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171012_onarm_int.txt','wt');
+xsenslog = fopen('C:\data\IMU\20171019_onrobot.txt','wt');
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\n');
 
 %% Launching activex server
