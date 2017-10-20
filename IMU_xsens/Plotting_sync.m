@@ -188,9 +188,10 @@ xlabel('Time [s]'); ylabel('y_{handle}');
 legend('Encoder','IMU')
 
 %% Detrend
-dpt = find(IMU(1).stime>=40,1);
-mn = find(IMU(1).stime/60>=10,1);
-IMU(1).det = detrend(IMU(1).yw,'linear',dpt)+mean(IMU(1).yw(1:mn));
+n = 2;
+dpt = find(IMU(n).stime>=20,1);
+mn = find(IMU(n).stime/60>=10,1);
+IMU(n).det = detrend(IMU(n).yw,'linear',dpt)+mean(IMU(n).yw(1:mn));
 
 figure
 if iselb
@@ -201,7 +202,7 @@ else
     title('Shoulder')
 end
 hold on
-plot(IMU(1).stime/60,IMU(1).det)
+plot(IMU(n).stime/60,IMU(n).det)
 %xlim([4000 4700]);
 xlabel('Time [min]'); ylabel('Angle [deg]')
 legend('Encoder','IMU')
