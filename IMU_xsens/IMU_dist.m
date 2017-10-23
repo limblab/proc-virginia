@@ -4,33 +4,18 @@ addpath('txt');
 
 filenameIMU = '20171012_onarm_int.txt';
 
-data = dlmread(filenameIMU,'\t',2,0);
-timeIMU1 = data(data(:,1)==1,2);
-timeIMU2 = data(data(:,1)==2,2);
-IMU1 = data(data(:,1)==1,3:end);
-IMU2 = data(data(:,1)==2,3:end);
-
-ts1 = timeseries(IMU1,timeIMU1);
-ts2 = timeseries(IMU2,timeIMU2);
-[ts1s,ts2s]=synchronize(ts1,ts2,'Intersection');
-
-timeIMU1 = ts1s.Time;
-timeIMU2 = ts2s.Time;
-IMU1 = ts1s.Data;
-IMU2 = ts2s.Data;
+[IMU,~] = loadsync(filenameIMU);
+iselb = 0;
 
 lelb = 16.5*2.54; % [cm] 7.5 to center IMU, 10 to wrist, 16.5 to end index
 lsho = 10.5*2.54; % [cm] 7.5 to center IMU, 10.5 to elbow
 lenIMU = 4.7; % [cm]
 larm = lelb+lsho;
 
-rle = IMU2(:,1);
-pte = IMU2(:,2);
-ywe = IMU2(:,3);
-
-rls = IMU1(:,1);
-pts = IMU1(:,2);
-yws = IMU1(:,3);
+for i = 1:length(IMU(1).stime)
+    Xe_sho(:,i) = Rotypr(IMU(1).scth1(i))*[0;-lrsho;0];
+    Xe_elb(:,i) = Xe_sho(:,i) + Rotyaw(enc.scth2(i))*[lrelb;0;0];
+end
 
 % x as unit vector
 x_elb = lelb*cosd(ywe).*cosd(pte);
