@@ -555,3 +555,83 @@
 1508251508.493 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
 1508251508.597 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
 1508251508.597 <5540> [ALERT] AwindaBaseStation::sendDriverDisconnect Disconnect failed
+1508447549.190 <84424> [ERROR] NetworkScanner::initFunction Error browsing Bonjour services. Error code: -65537
+1508447550.042 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447550.052 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447550.054 <5540> [WRITE] DeviceFactory::createMasterDevice Created master device with id: 01210674 and firmware version: 4.0.1
+1508447553.572 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447553.677 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
+1508447553.677 <5540> [ALERT] AwindaBaseStation::sendDriverDisconnect Disconnect failed
+1508447555.825 <84714> [ERROR] NetworkScanner::initFunction Error browsing Bonjour services. Error code: -65537
+1508447556.432 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447556.442 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447556.446 <5540> [WRITE] DeviceFactory::createMasterDevice Created master device with id: 01210674 and firmware version: 4.0.1
+1508447558.603 <846EC> [WRITE] DeviceFactory::createChildDevice Created child device with id: 00B41FAC
+1508447558.603 <846EC> [WRITE] XsDevice::setFirmwareVersion Device 00B41FAC has firmware version 4.0.2
+1508447562.347 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447656.140 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447656.245 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
+1508447656.245 <5540> [ALERT] AwindaBaseStation::sendDriverDisconnect Disconnect failed
+1508447867.317 <84790> [ERROR] NetworkScanner::initFunction Error browsing Bonjour services. Error code: -65537
+1508447867.924 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447867.934 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447867.938 <5540> [WRITE] DeviceFactory::createMasterDevice Created master device with id: 01210674 and firmware version: 4.0.1
+1508447870.297 <842BC> [WRITE] DeviceFactory::createChildDevice Created child device with id: 00B41FAC
+1508447870.297 <842BC> [WRITE] XsDevice::setFirmwareVersion Device 00B41FAC has firmware version 4.0.2
+1508447876.449 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447886.980 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508447887.085 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
+1508447887.085 <5540> [ALERT] AwindaBaseStation::sendDriverDisconnect Disconnect failed
+1508792505.248 <C1A3C> [ERROR] NetworkScanner::initFunction Error browsing Bonjour services. Error code: -65537
+1508792505.859 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792505.869 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792505.873 <5540> [WRITE] DeviceFactory::createMasterDevice Created master device with id: 01210674 and firmware version: 4.0.1
+1508792509.182 <C1A58> [WRITE] DeviceFactory::createChildDevice Created child device with id: 00B42086
+1508792509.182 <C1A58> [WRITE] XsDevice::setFirmwareVersion Device 00B42086 has firmware version 4.0.2
+1508792513.812 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792513.917 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
+1508792513.917 <5540> [ALERT] AwindaBaseStation::sendDriverDisconnect Disconnect failed
+1508792519.310 <C1B08> [ERROR] NetworkScanner::initFunction Error browsing Bonjour services. Error code: -65537
+1508792519.936 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792519.946 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792519.948 <5540> [WRITE] DeviceFactory::createMasterDevice Created master device with id: 01210674 and firmware version: 4.0.1
+1508792521.782 <C1B24> [WRITE] DeviceFactory::createChildDevice Created child device with id: 00B42086
+1508792521.782 <C1B24> [WRITE] XsDevice::setFirmwareVersion Device 00B42086 has firmware version 4.0.2
+1508792526.782 <C1B24> [WRITE] DeviceFactory::createChildDevice Created child device with id: 00B41FAC
+1508792526.782 <C1B24> [WRITE] XsDevice::setFirmwareVersion Device 00B41FAC has firmware version 4.0.2
+1508792536.208 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792536.313 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
+1508792536.313 <5540> [ALERT] AwindaBaseStation::sendDriverDisconnect Disconnect failed
+1508792539.555 <C17A0> [ERROR] NetworkScanner::initFunction Error browsing Bonjour services. Error code: -65537
+1508792540.165 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792540.175 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792540.177 <5540> [WRITE] DeviceFactory::createMasterDevice Created master device with id: 01210674 and firmware version: 4.0.1
+1508792542.410 <C1844> [WRITE] DeviceFactory::createChildDevice Created child device with id: 00B42086
+1508792542.410 <C1844> [WRITE] XsDevice::setFirmwareVersion Device 00B42086 has firmware version 4.0.2
+1508792549.136 <C1844> [WRITE] DeviceFactory::createChildDevice Created child device with id: 00B41FAC
+1508792549.136 <C1844> [WRITE] XsDevice::setFirmwareVersion Device 00B41FAC has firmware version 4.0.2
+1508792552.588 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792552.694 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
+1508792552.694 <5540> [ALERT] AwindaBaseStation::sendDriverDisconnect Disconnect failed
+1508792554.646 <C19E8> [ERROR] NetworkScanner::initFunction Error browsing Bonjour services. Error code: -65537
+1508792555.252 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792555.262 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792555.264 <5540> [WRITE] DeviceFactory::createMasterDevice Created master device with id: 01210674 and firmware version: 4.0.1
+1508792557.297 <C19A0> [WRITE] DeviceFactory::createChildDevice Created child device with id: 00B42086
+1508792557.297 <C19A0> [WRITE] XsDevice::setFirmwareVersion Device 00B42086 has firmware version 4.0.2
+1508792563.133 <C19A4> [ALERT] SerialInterface::readData ReadFile returned windows error 5
+1508792565.516 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
+1508792565.517 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
+1508792565.517 <5540> [ALERT] AwindaBaseStation::sendDriverDisconnect Disconnect failed
+1508792565.517 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
+1508792565.517 <5540> [ALERT] AwindaBaseStation::sendDriverDisconnect Disconnect failed
+1508792569.464 <C1150> [ERROR] NetworkScanner::initFunction Error browsing Bonjour services. Error code: -65537
+1508792570.073 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792570.083 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792570.085 <5540> [WRITE] DeviceFactory::createMasterDevice Created master device with id: 01210674 and firmware version: 4.0.1
+1508792572.219 <C1B64> [WRITE] DeviceFactory::createChildDevice Created child device with id: 00B42086
+1508792572.219 <C1B64> [WRITE] XsDevice::setFirmwareVersion Device 00B42086 has firmware version 4.0.2
+1508792576.763 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792582.826 <5540> [WRITE] XsDevice::extractFirmwareVersion Device 01210674 has firmware version 4.0.1
+1508792582.932 <5540> [ALERT] DeviceCommunicator::doTransaction Failed to write message because XRV 288 
+1508792582.932 <5540> [ALERT] AwindaBaseStation::sendDriverDisconnect Disconnect failed

@@ -2,7 +2,7 @@
 
 addpath('txt');
 
-filenameIMU = '20171012_onarm_int.txt';
+filenameIMU = '20171012_onarm_lat.txt';
 
 [IMU,~] = loadsync(filenameIMU);
 iselb = 0;
@@ -12,53 +12,45 @@ lsho = 10.5*2.54; % [cm] 7.5 to center IMU, 10.5 to elbow
 lenIMU = 4.7; % [cm]
 larm = lelb+lsho;
 
+stime = IMU(1).stime;
+
+X_sho = [];
+X_elb = [];
+
 for i = 1:length(IMU(1).stime)
-    Xe_sho(:,i) = Rotypr(IMU(1).scth1(i))*[0;-lrsho;0];
-    Xe_elb(:,i) = Xe_sho(:,i) + Rotyaw(enc.scth2(i))*[lrelb;0;0];
+    X_sho(i,:) = Rotypr(IMU(1).yw(i),IMU(1).pt(i),IMU(1).rl(i))*[lsho;0;0];
+    X_elb(i,:) = X_sho(i,:)' + Rotypr(IMU(2).yw(i),IMU(2).pt(i),IMU(2).rl(i))*[lelb;0;0];
 end
 
-% x as unit vector
-x_elb = lelb*cosd(ywe).*cosd(pte);
-y_elb = lelb*sind(ywe).*cosd(pte);
-z_elb = -lelb*sind(pte);
+%% x as unit vector
+x_elb = X_elb(:,1);
+y_elb = X_elb(:,2);
+z_elb = X_elb(:,3);
 
-x_sho = lsho*cosd(yws).*cosd(pts);
-y_sho = lsho*sind(yws).*cosd(pts);
-z_sho = -lsho*sind(pts);
-
-x_tot = x_elb+x_sho;
-y_tot = y_elb+y_sho;
-z_tot = z_elb+z_sho;
+x_sho = X_sho(:,1);
+y_sho = X_sho(:,2);
+z_sho = X_sho(:,3);
 
 % Maximum value intervals
 thr = 2;
-maxtime = timeIMU1(x_tot >= (max(x_tot)-thr));
-maxdist = x_tot(x_tot >= (max(x_tot)-thr));
+maxtime = IMU(1).stime(x_elb >= (max(x_elb)-thr));
+maxdist = x_elb(x_elb >= (max(x_elb)-thr));
 
 %% Plot distances
 figure
-subplot(311)
-plot(timeIMU1,x_tot)
+subplot(211)
+plot(stime,x_elb)
 hold on
-plot(timeIMU1,y_tot)
-plot(timeIMU1,z_tot)
+plot(stime,y_elb)
+plot(stime,z_elb)
 line(get(gca,'xlim'),[larm larm],'Color','k')
-plot(maxtime,maxdist,'*')
-title('Total distance')
-legend('x','y','z')
-subplot(312)
-plot(timeIMU1,x_elb)
-hold on
-plot(timeIMU1,y_elb)
-plot(timeIMU1,z_elb)
-line(get(gca,'xlim'),[lelb lelb],'Color','k')
 title('Elbow distance')
 legend('x','y','z')
-subplot(313)
-plot(timeIMU1,x_sho)
+subplot(212)
+plot(stime,x_sho)
 hold on
-plot(timeIMU1,y_sho)
-plot(timeIMU1,z_sho)
+plot(stime,y_sho)
+plot(stime,z_sho)
 line(get(gca,'xlim'),[lsho lsho],'Color','k')
 title('Shoulder distance')
 legend('x','y','z')
@@ -74,9 +66,9 @@ end
 
 %% Plot angles 
 figure
-plot(timeIMU1,IMU1)
+plot(stime,IMU(1).sts.Data)
 hold on
-plot(timeIMU2,IMU2)
+plot(stime,IMU(2).sts.Data)
 legend('Roll_s','Pitch_s','Yaw_s','Roll_e','Pitch_e','Yaw_e')
 xlabel('Time [s]'); ylabel('Angle [deg]');
 if strcmp(namespt{3},'lat.txt')
@@ -87,33 +79,18 @@ elseif strcmp(namespt{3},'int.txt')
     title('Touch Shoulder')
 end
 
-%% With rotation matrix - NOT
-X_sho = [];
-X_elb = [];
-
-for i = 1:length(timeIMU1)
-    X_sho(:,i) = Rotypr(yws(i),pts(i),rls(i))*[lsho;0;0];
-    X_elb(:,i) = X_sho(:,i) + Rotypr(yws(i),pts(i),rls(i))*Rotypr(ywe(i),pte(i),rle(i))*[lelb;0;0];
-end
-
-figure 
-plot(timeIMU1,X_elb')
-line(get(gca,'xlim'),[larm larm],'Color','k')
-title('Total distance')
-legend('x','y','z')
-
 %% Plot 2D path
 figure
 subplot(131)
-plot(x_tot,y_tot)
+plot(x_elb,y_elb)
 xlabel('x'); ylabel('y');
 axis equal
 subplot(132)
-plot(y_tot,z_tot)
+plot(y_elb,z_elb)
 xlabel('y'); ylabel('z');
 axis equal
 subplot(133)
-plot(x_tot,z_tot)
+plot(x_elb,z_elb)
 xlabel('x'); ylabel('z');
 axis equal
 
