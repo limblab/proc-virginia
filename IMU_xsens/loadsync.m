@@ -147,9 +147,9 @@ elseif ~isenc && nIMU > 1
         IMU(ii).pt = IMU(ii).sts.Data(:,2);
         IMU(ii).yw = IMU(ii).sts.Data(:,3);
         if ndata>3
-            IMU(ii).acc = IMU(ii).ests.Data(:,4:6);
-            IMU(ii).gyro = rad2deg(IMU(ii).ests.Data(:,7:9));
-            IMU(ii).magn = IMU(ii).ests.Data(:,10:12);
+            IMU(ii).acc = IMU(ii).sts.Data(:,4:6);
+            IMU(ii).gyro = rad2deg(IMU(ii).sts.Data(:,7:9));
+            IMU(ii).magn = IMU(ii).sts.Data(:,10:12);
         end
     end
 end

@@ -12,10 +12,10 @@ cbmex('open');
 reccbmex = 1;
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
-    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171023_onarm_3D.nev'; % cerebus file name
+    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171024_onarm_3D.nev'; % cerebus file name
 end
 
-xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171023_onarm_3D.txt','wt'); % xsens file name
+xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171024_onarm_3D.txt','wt'); % xsens file name
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\n'); % xsens header
 
 %% Launching activex server

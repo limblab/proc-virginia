@@ -2,7 +2,7 @@
 
 addpath('txt');
 
-filenameIMU = '20171012_onarm_lat.txt';
+filenameIMU = '20171024_onarm_3D.txt';
 
 [IMU,~] = loadsync(filenameIMU);
 iselb = 0;
@@ -66,9 +66,9 @@ end
 
 %% Plot angles 
 figure
-plot(stime,IMU(1).sts.Data)
+plot(stime,IMU(1).sts.Data(:,1:3))
 hold on
-plot(stime,IMU(2).sts.Data)
+plot(stime,IMU(2).sts.Data(:,1:3))
 legend('Roll_s','Pitch_s','Yaw_s','Roll_e','Pitch_e','Yaw_e')
 xlabel('Time [s]'); ylabel('Angle [deg]');
 if strcmp(namespt{3},'lat.txt')
