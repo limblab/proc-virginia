@@ -1,6 +1,6 @@
 %% Plot of IMU data
 addpath('txt');
-data = dlmread('20171024_onarm_3D.txt','\t',2,0);
+data = dlmread('20171025_onarm_angid.txt','\t',2,0);
 
 time1 = data(data(:,1)==1,2);
 time2 = data(data(:,1)==2,2);
