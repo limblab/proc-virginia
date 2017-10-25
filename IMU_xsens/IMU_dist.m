@@ -1,5 +1,4 @@
 %% Analysis IMU data on arm
-
 addpath('txt');
 
 filenameIMU = '20171024_onarm_3D.txt';
@@ -7,6 +6,7 @@ filenameIMU = '20171024_onarm_3D.txt';
 [IMU,~] = loadsync(filenameIMU);
 iselb = 0;
 
+%% Position IMU 
 lelb = 16.5*2.54; % [cm] 7.5 to center IMU, 10 to wrist, 16.5 to end index
 lsho = 10.5*2.54; % [cm] 7.5 to center IMU, 10.5 to elbow
 lenIMU = 4.7; % [cm]

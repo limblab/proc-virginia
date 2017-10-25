@@ -116,6 +116,8 @@ if isenc
         IMU(ii).rl = IMU(ii).ests.Data(:,1);
         IMU(ii).pt = IMU(ii).ests.Data(:,2);
         IMU(ii).yw = IMU(ii).ests.Data(:,3);
+        IMU(ii).ori = [IMU(ii).yw,IMU(ii).pt,IMU(ii).rl];
+
         if ndata>3
             IMU(ii).acc = IMU(ii).ests.Data(:,4:6);
             IMU(ii).gyro = rad2deg(IMU(ii).ests.Data(:,7:9));
@@ -132,6 +134,8 @@ elseif ~isenc && nIMU == 1
     IMU.rl = IMU.data(:,1);
     IMU.pt = IMU.data(:,2);
     IMU.yw = IMU.data(:,3);
+    IMU.ori = [IMU.yw,IMU.pt,IMU.rl];
+    
     if ndata>3
         IMU.acc = IMU.ests.Data(:,4:6);
         IMU.gyro = rad2deg(IMU.ests.Data(:,7:9));
@@ -146,6 +150,8 @@ elseif ~isenc && nIMU > 1
         IMU(ii).rl = IMU(ii).sts.Data(:,1);
         IMU(ii).pt = IMU(ii).sts.Data(:,2);
         IMU(ii).yw = IMU(ii).sts.Data(:,3);
+        IMU(ii).ori = [IMU(ii).yw,IMU(ii).pt,IMU(ii).rl];
+        
         if ndata>3
             IMU(ii).acc = IMU(ii).sts.Data(:,4:6);
             IMU(ii).gyro = rad2deg(IMU(ii).sts.Data(:,7:9));
