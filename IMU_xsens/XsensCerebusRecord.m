@@ -12,11 +12,11 @@ cbmex('open');
 reccbmex = 1;
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
-    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171025_onarm_angid.nev'; % cerebus file name
+    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171026_onarm_angid.nev'; % cerebus file name
 end
 
-xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171025_onarm_angid.txt','wt'); % xsens file name
-fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\n'); % xsens header
+xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171026_onarm_angid.txt','wt'); % xsens file name
+fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
 switch computer
@@ -188,7 +188,8 @@ stopAll;
                 accC = cell2mat(h.XsDataPacket_calibratedAcceleration(dataPacket));
                 gyroC = cell2mat(h.XsDataPacket_calibratedGyroscopeData(dataPacket));
                 magnC = cell2mat(h.XsDataPacket_calibratedMagneticField(dataPacket));
-                fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC);
+                quat = cell2mat(h.XsDataPacket_orientationQuaternion_1(dataPacket));
+                fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
             end
             
             h.liveDataPacketHandled(deviceFound, dataPacket);
