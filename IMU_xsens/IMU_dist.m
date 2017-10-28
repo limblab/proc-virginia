@@ -1,7 +1,7 @@
 %% Analysis IMU data on arm
 addpath('txt');
 
-filenameIMU = '20171024_onarm_3D.txt';
+filenameIMU = '20171026_onarm_angid.txt';
 
 [IMU,~] = loadsync(filenameIMU);
 iselb = 0;
@@ -81,16 +81,69 @@ end
 
 %% Plot 2D path
 figure
-subplot(131)
+subplot(221)
 plot(x_elb,y_elb)
 xlabel('x'); ylabel('y');
-axis equal
-subplot(132)
+axis equal; grid on
+subplot(222)
 plot(y_elb,z_elb)
 xlabel('y'); ylabel('z');
-axis equal
-subplot(133)
+axis equal; grid on
+subplot(223)
 plot(x_elb,z_elb)
 xlabel('x'); ylabel('z');
-axis equal
+axis equal; grid on
+subplot(224)
+plot3(x_elb,y_elb,z_elb)
+xlabel('x'); ylabel('y'); zlabel('z');
+axis equal; grid on
+
+%% Get OpenSim angles
+clear OS
+
+OS.Eul.time = IMU(1).stime;
+
+OS.Eul.shoulder_flexion = IMU(1).pt;
+OS.Eul.shoulder_adduction = IMU(1).yw;
+OS.Eul.shoulder_rotation = IMU(1).rl;
+
+OS.Eul.elbow_flexion = IMU(2).pt-IMU(1).pt;
+OS.Eul.radial_pronation = IMU(2).rl-IMU(1).rl;
+
+header = fieldnames(OS.Eul);
+
+OS.Eul.all = [];
+for ii = 1:length(header)
+    OS.Eul.all = [OS.Eul.all OS.Eul.(header{ii})];
+end
+
+figure
+plot(OS.Eul.time,OS.Eul.all(:,2:end))
+legend(header{2:end})
+
+%% Quaternions 
+figure
+plot(stime,[IMU(1).q.rl,IMU(1).q.pt,IMU(1).q.yw])
+hold on
+plot(stime,[IMU(2).q.rl,IMU(2).q.pt,IMU(2).q.yw])
+legend('Roll_s','Pitch_s','Yaw_s','Roll_e','Pitch_e','Yaw_e')
+xlabel('Time [s]'); ylabel('Angle [deg]');
+
+OS.Quat.time = IMU(1).stime;
+
+OS.Quat.shoulder_flexion = IMU(1).q.yw;
+OS.Quat.shoulder_adduction = IMU(1).q.pt;
+OS.Quat.shoulder_rotation = IMU(1).q.rl;
+
+OS.Quat.elbow_flexion = IMU(2).q.yw-IMU(1).q.yw;
+OS.Quat.radial_pronation = IMU(2).q.rl-IMU(1).q.rl;
+
+OS.Quat.all = [];
+for ii = 1:length(header)
+    OS.Quat.all = [OS.Quat.all OS.Quat.(header{ii})];
+end
+
+figure
+plot(OS.Quat.time,OS.Quat.all(:,2:end))
+legend(header{2:end})
 

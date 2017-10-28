@@ -23,7 +23,7 @@ end
 if strcmp(flipIMU,'n')
     for ii = 1:nIMU
         IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
-        IMU(ii).data(:,1:3) = unwrap(IMU(ii).data(:,1:3),-180);
+        IMU(ii).data(:,1:3) = unwrap(IMU(ii).data(:,1:3),180);
         IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
         IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
     end
@@ -31,7 +31,7 @@ else
     jj = 1;
     for ii = nIMU:-1:1
         IMU(jj).data = dataIMU(dataIMU(:,1)==ii,3:end);
-        IMU(jj).data(:,1:3) = unwrap(IMU(jj).data(:,1:3),-180);
+        IMU(jj).data(:,1:3) = unwrap(IMU(jj).data(:,1:3),180);
         IMU(jj).time = dataIMU(dataIMU(:,1)==ii,2);
         IMU(jj).ts = timeseries(IMU(jj).data,IMU(jj).time);
         jj = jj+1;
@@ -122,6 +122,11 @@ if isenc
             IMU(ii).acc = IMU(ii).ests.Data(:,4:6);
             IMU(ii).gyro = rad2deg(IMU(ii).ests.Data(:,7:9));
             IMU(ii).magn = IMU(ii).ests.Data(:,10:12);
+            IMU(ii).q.q0 = IMU(ii).ests.Data(:,13);
+            IMU(ii).q.q1 = IMU(ii).ests.Data(:,14);
+            IMU(ii).q.q2 = IMU(ii).ests.Data(:,15);
+            IMU(ii).q.q3 = IMU(ii).ests.Data(:,16);   
+            IMU(ii) = EulerfromQuaternion(IMU(ii));
         end
     end
     
@@ -140,6 +145,11 @@ elseif ~isenc && nIMU == 1
         IMU.acc = IMU.ests.Data(:,4:6);
         IMU.gyro = rad2deg(IMU.ests.Data(:,7:9));
         IMU.magn = IMU.ests.Data(:,10:12);
+        IMU.q.q0 = IMU.ests.Data(:,13);
+        IMU.q.q1 = IMU.ests.Data(:,14);
+        IMU.q.q2 = IMU.ests.Data(:,15);
+        IMU.q.q3 = IMU.ests.Data(:,16);
+        IMU = EulerfromQuaternion(IMU);
     end
     
 elseif ~isenc && nIMU > 1
@@ -156,6 +166,11 @@ elseif ~isenc && nIMU > 1
             IMU(ii).acc = IMU(ii).sts.Data(:,4:6);
             IMU(ii).gyro = rad2deg(IMU(ii).sts.Data(:,7:9));
             IMU(ii).magn = IMU(ii).sts.Data(:,10:12);
+            IMU(ii).q.q0 = IMU(ii).sts.Data(:,13);
+            IMU(ii).q.q1 = IMU(ii).sts.Data(:,14);
+            IMU(ii).q.q2 = IMU(ii).sts.Data(:,15);
+            IMU(ii).q.q3 = IMU(ii).sts.Data(:,16); 
+            IMU(ii) = EulerfromQuaternion(IMU(ii));
         end
     end
 end

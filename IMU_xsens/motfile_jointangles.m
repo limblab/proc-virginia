@@ -17,12 +17,19 @@ clear OS
 
 OS.time = IMU(1).stime;
 
-OS.shoulder_flexion = IMU(1).yw;
-OS.shoulder_adduction = IMU(1).pt;
-OS.shoulder_rotation = IMU(1).rl;
+% OS.shoulder_flexion = IMU(1).yw;
+% OS.shoulder_adduction = IMU(1).pt;
+% OS.shoulder_rotation = IMU(1).rl;
+% 
+% OS.elbow_flexion = IMU(2).yw-IMU(1).yw;
+% OS.radial_pronation = IMU(2).rl-IMU(1).pt;
 
-OS.elbow_flexion = IMU(2).yw-IMU(1).yw;
-OS.radial_pronation = IMU(2).rl-IMU(1).pt;
+OS.shoulder_flexion = IMU(1).pt;
+OS.shoulder_adduction = IMU(1).rl-IMU(1).yw;
+OS.shoulder_rotation = IMU(1).yw-IMU(1).rl;
+
+OS.elbow_flexion = IMU(2).pt+IMU(1).pt;
+OS.radial_pronation = IMU(2).rl-IMU(1).yw+IMU(1).rl;
 
 header = fieldnames(OS);
 
@@ -30,3 +37,7 @@ OS.all = [];
 for ii = 1:length(header)
     OS.all = [OS.all OS.(header{ii})];
 end
+
+figure
+plot(OS.time,OS.all(:,2:end))
+legend(header{2:end})
