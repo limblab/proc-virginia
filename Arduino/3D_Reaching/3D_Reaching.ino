@@ -145,28 +145,31 @@ digitalWrite(Lout7,LOW);
 }
 
 if (analogRead(Pin0)>=512){
-analogWrite(Pout,0);
-}
-if (analogRead(Pin1)>=512){
 analogWrite(Pout,vrange);
 }
-if (analogRead(Pin2)>=512){
+else if (analogRead(Pin1)>=512){
 analogWrite(Pout,vrange*2);
 }
-if (analogRead(Pin3)>=512){
+else if (analogRead(Pin2)>=512){
 analogWrite(Pout,vrange*3);
 }
-if (analogRead(Pin4)>=512){
+else if (analogRead(Pin3)>=512){
 analogWrite(Pout,vrange*4);
 }
-if (analogRead(Pin5)>=512){
+else if (analogRead(Pin4)>=512){
 analogWrite(Pout,vrange*5);
 }
-if (analogRead(Pin6)>=512){
+else if (analogRead(Pin5)>=512){
 analogWrite(Pout,vrange*6);
 }
-if (analogRead(Pin7)>=512){
+else if (analogRead(Pin6)>=512){
+analogWrite(Pout,vrange*7);
+}
+else if (analogRead(Pin7)>=512){
 analogWrite(Pout,255);
 }
-
+else{
+  analogWrite(Pout,0);
 }
+}
+
