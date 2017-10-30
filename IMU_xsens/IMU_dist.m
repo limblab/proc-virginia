@@ -81,6 +81,7 @@ end
 
 %% Plot 2D path
 figure
+set(gcf, 'units', 'normalized', 'position', [0.1 0.1 0.8 0.8])
 subplot(221)
 plot(x_elb,y_elb)
 xlabel('x'); ylabel('y');
@@ -98,7 +99,7 @@ plot3(x_elb,y_elb,z_elb)
 xlabel('x'); ylabel('y'); zlabel('z');
 axis equal; grid on
 
-%% Get OpenSim angles
+%% OpenSim angles with Euler angles
 clear OS
 
 OS.Eul.time = IMU(1).stime;
@@ -121,7 +122,7 @@ figure
 plot(OS.Eul.time,OS.Eul.all(:,2:end))
 legend(header{2:end})
 
-%% Quaternions 
+%% OpenSim angles with Quaternions 
 figure
 plot(stime,[IMU(1).q.rl,IMU(1).q.pt,IMU(1).q.yw])
 hold on

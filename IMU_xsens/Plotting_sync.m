@@ -21,8 +21,8 @@ x_h = cds.kin.x;
 y_h = cds.kin.y;
 
 %% Data loading
-filenameIMU = '20171020_onrobot.txt';
-filenameenc = '20171020_onrobot.mat';
+filenameIMU = '20171017_onrobot.txt';
+filenameenc = '20171017_onrobot.mat';
 
 [IMU,enc] = loadsync(filenameIMU,filenameenc);
 iselb = 0;
