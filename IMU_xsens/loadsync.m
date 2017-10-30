@@ -20,10 +20,11 @@ else
     whichIMU = input('\n Placement IMU? (elb/sho) ','s');
 end
 
+
 if strcmp(flipIMU,'n')
     for ii = 1:nIMU
         IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
-        IMU(ii).data(:,1:3) = unwrap(IMU(ii).data(:,1:3),180);
+        %IMU(ii).data(:,1:3) = unwrap(IMU(ii).data(:,1:3),180);
         IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
         IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
     end
@@ -31,12 +32,28 @@ else
     jj = 1;
     for ii = nIMU:-1:1
         IMU(jj).data = dataIMU(dataIMU(:,1)==ii,3:end);
-        IMU(jj).data(:,1:3) = unwrap(IMU(jj).data(:,1:3),180);
+        %IMU(jj).data(:,1:3) = unwrap(IMU(jj).data(:,1:3),180);
         IMU(jj).time = dataIMU(dataIMU(:,1)==ii,2);
         IMU(jj).ts = timeseries(IMU(jj).data,IMU(jj).time);
         jj = jj+1;
     end
 end
+
+h = figure;
+for ii = 1:nIMU
+    plot(IMU(ii).time,IMU(ii).data(:,3))
+    hold on
+    xlabel('Time [s]'); ylabel('Angle [deg]');
+end
+
+unwrp = input('\n Unwrap IMU angles? (y/n) ','s');
+if strcmp(unwrp,'y')
+    unwrpan = input('\n Unwrap angle? (-180/180) ');
+    for ii = 1:nIMU
+        IMU(ii).data(:,1:3) = unwrap(IMU(ii).data(:,1:3),unwrpan);
+    end
+end
+close(h)
 
 ndata = size(IMU(1).data,2);
 

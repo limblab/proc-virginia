@@ -27,16 +27,6 @@ filenameenc = '20171017_onrobot.mat';
 [IMU,enc] = loadsync(filenameIMU,filenameenc);
 iselb = 0;
 
-%% Unwrap
-IMU(2).yw = unwrap(IMU(2).yw,-180);
-
-%% Get acc/gyro/magn
-for ii = 1:size(IMU,2)
-    IMU(ii).acc = IMU(ii).ests.Data(:,4:6);
-    IMU(ii).gyro = rad2deg(IMU(ii).ests.Data(:,7:9));
-    IMU(ii).magn = IMU(ii).ests.Data(:,10:12);
-end
-
 %% Plotting IMU and encoder angles
 figure
 subplot(121)
@@ -191,7 +181,7 @@ legend('Encoder','IMU')
 n = 2;
 dpt = find(IMU(n).stime>=20,1);
 mn = find(IMU(n).stime/60>=10,1);
-IMU(n).det = detrend(IMU(n).yw,'linear',dpt)+mean(IMU(n).yw(1:mn));
+IMU(n).det = detrend(IMU(n).yw,'linear',[dpt])+mean(IMU(n).yw(1:mn));
 
 figure
 if iselb
