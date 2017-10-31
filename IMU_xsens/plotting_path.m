@@ -1,4 +1,4 @@
-function[]=plotting_path(X_elb)
+function[]=Plotting_path(X_elb)
 
 x_elb = X_elb(1:5:end,1);
 y_elb = X_elb(1:5:end,2);

@@ -1,8 +1,8 @@
 // 3D Reaching Task
 // LEDs
-int Lin1 = 8;
-int Lin2 = 9;
-int Lin3 = 12;
+int Lin1 = LOW;
+int Lin2 = LOW;
+int Lin3 = LOW;
 
 int Lout1 = 6;
 int Lout6 = 1;
@@ -14,21 +14,23 @@ int Lout7 = 0;
 int Lout4 = 3;
 
 // Proximity Sensors
-int Pout = A0;
+int Pout = 11;
+ 
 int Pin0 = A1;
 int Pin1 = A2;
-int Pin2 = A3;
+int Pin2 = 13;
 int Pin3 = A4;
-int Pin4 = A5;
-int Pin5 = 10;
-int Pin6 = 11;
-int Pin7 = 13;
+int Pin4 = A0;
+int Pin5 = A5;
+int Pin6 = A3;
+int Pin7 = 12;
+
 int vrange = 32;
 
 void setup() {
-pinMode(Lin1,INPUT);
-pinMode(Lin2,INPUT);
-pinMode(Lin3,INPUT);
+//pinMode(Lin1,INPUT);
+//pinMode(Lin2,INPUT);
+//pinMode(Lin3,INPUT);
 pinMode(Lout0,OUTPUT);
 pinMode(Lout1,OUTPUT);
 pinMode(Lout2,OUTPUT);
@@ -144,32 +146,32 @@ digitalWrite(Lout6,HIGH);
 digitalWrite(Lout7,LOW);
 }
 
-if (analogRead(Pin0)>=512){
+if (digitalRead(Pin0)==LOW){
 analogWrite(Pout,vrange);
 }
-else if (analogRead(Pin1)>=512){
+else if (digitalRead(Pin1)==LOW){
 analogWrite(Pout,vrange*2);
 }
-else if (analogRead(Pin2)>=512){
+else if (digitalRead(Pin2)==LOW){
 analogWrite(Pout,vrange*3);
 }
-else if (analogRead(Pin3)>=512){
+else if (digitalRead(Pin3)==LOW){
 analogWrite(Pout,vrange*4);
 }
-else if (analogRead(Pin4)>=512){
+else if (digitalRead(Pin4)==LOW){
 analogWrite(Pout,vrange*5);
 }
-else if (analogRead(Pin5)>=512){
-analogWrite(Pout,vrange*6);
+else if (digitalRead(Pin5)==LOW){
+ analogWrite(Pout,vrange*6);
 }
-else if (analogRead(Pin6)>=512){
-analogWrite(Pout,vrange*7);
+else if (digitalRead(Pin6)==LOW){
+ analogWrite(Pout,vrange*7);
 }
-else if (analogRead(Pin7)>=512){
-analogWrite(Pout,255);
+else if (digitalRead(Pin7)==LOW){
+ analogWrite(Pout,255);
 }
 else{
-  analogWrite(Pout,0);
+ analogWrite(Pout,0);
 }
 }
 
