@@ -1,8 +1,8 @@
 // 3D Reaching Task
 // LEDs
-int Lin1 = LOW;
-int Lin2 = LOW;
-int Lin3 = LOW;
+int Lin1 = 8;
+int Lin2 = 9;
+int Lin3 = 10;
 
 int Lout1 = 6;
 int Lout6 = 1;
@@ -28,9 +28,19 @@ int Pin7 = 12;
 int vrange = 32;
 
 void setup() {
-//pinMode(Lin1,INPUT);
-//pinMode(Lin2,INPUT);
-//pinMode(Lin3,INPUT);
+TCCR0B = TCCR0B & 0b11111000 | 0x02;
+//TCCR0B = _BV(CS00);
+//Setting   Divisor   Frequency
+//0x01    1     31372.55
+//0x02    8     3921.16
+//0x03      32      980.39
+//0x04    64    490.20   <--DEFAULT
+//0x05    128     245.10
+//0x06      256     122.55
+//0x07    1024      30.64
+pinMode(Lin1,INPUT);
+pinMode(Lin2,INPUT);
+pinMode(Lin3,INPUT);
 pinMode(Lout0,OUTPUT);
 pinMode(Lout1,OUTPUT);
 pinMode(Lout2,OUTPUT);
