@@ -155,6 +155,16 @@ digitalWrite(Lout5,HIGH);
 digitalWrite(Lout6,HIGH);
 digitalWrite(Lout7,LOW);
 }
+else {
+digitalWrite(Lout0,HIGH);
+digitalWrite(Lout1,HIGH);
+digitalWrite(Lout2,HIGH);
+digitalWrite(Lout3,HIGH);
+digitalWrite(Lout4,HIGH);
+digitalWrite(Lout5,HIGH);
+digitalWrite(Lout6,HIGH);
+digitalWrite(Lout7,HIGH);
+}
 
 if (digitalRead(Pin0)==LOW){
 analogWrite(Pout,vrange);
