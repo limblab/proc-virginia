@@ -38,6 +38,7 @@ TCCR0B = TCCR0B & 0b11111000 | 0x02;
 //0x05    128     245.10
 //0x06      256     122.55
 //0x07    1024      30.64
+
 pinMode(Lin1,INPUT);
 pinMode(Lin2,INPUT);
 pinMode(Lin3,INPUT);
