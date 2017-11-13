@@ -12,7 +12,7 @@ cbmex('open');
 reccbmex = 1;
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
-    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171026_onarm_angid.nev'; % cerebus file name
+    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171106_testcmbex.nev'; % cerebus file name
 end
 
 xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171026_onarm_angid.txt','wt'); % xsens file name
