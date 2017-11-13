@@ -28,7 +28,7 @@ int Pin7 = 12;
 int vrange = 32;
 
 void setup() {
-TCCR0B = TCCR0B & 0b11111000 | 0x02;
+//TCCR0B = TCCR0B & 0b11111000 | 0x04;
 //TCCR0B = _BV(CS00);
 //Setting   Divisor   Frequency
 //0x01    1     31372.55
@@ -67,8 +67,11 @@ pinMode(Pin7,INPUT);
 }
 
 void loop() {
+int Lin1r = digitalRead(Lin1);
+int Lin2r = digitalRead(Lin2);
+int Lin3r = digitalRead(Lin3);
 
-if (Lin1==LOW && Lin2==LOW && Lin3==LOW){
+if (Lin1r==LOW && Lin2r==LOW && Lin3r==LOW){
 digitalWrite(Lout0,LOW);
 digitalWrite(Lout1,HIGH);
 digitalWrite(Lout2,HIGH);
@@ -79,7 +82,7 @@ digitalWrite(Lout6,HIGH);
 digitalWrite(Lout7,HIGH);
 }
 
-else if (Lin1==LOW && Lin2==LOW && Lin3==HIGH){
+else if (Lin1r==LOW && Lin2r==LOW && Lin3r==HIGH){
 digitalWrite(Lout0,HIGH);
 digitalWrite(Lout1,LOW);
 digitalWrite(Lout2,HIGH);
@@ -90,7 +93,7 @@ digitalWrite(Lout6,HIGH);
 digitalWrite(Lout7,HIGH);
 }
 
-else if (Lin1==LOW && Lin2==HIGH && Lin3==LOW){
+else if (Lin1r==LOW && Lin2r==HIGH && Lin3r==LOW){
 digitalWrite(Lout0,HIGH);
 digitalWrite(Lout1,HIGH);
 digitalWrite(Lout2,LOW);
@@ -101,7 +104,7 @@ digitalWrite(Lout6,HIGH);
 digitalWrite(Lout7,HIGH);
 }
 
-else if (Lin1==LOW && Lin2==HIGH && Lin3==HIGH){
+else if (Lin1r==LOW && Lin2r==HIGH && Lin3r==HIGH){
 digitalWrite(Lout0,HIGH);
 digitalWrite(Lout1,HIGH);
 digitalWrite(Lout2,HIGH);
@@ -112,7 +115,7 @@ digitalWrite(Lout6,HIGH);
 digitalWrite(Lout7,HIGH);
 }
 
-else if (Lin1==HIGH && Lin2==LOW && Lin3==LOW){
+else if (Lin1r==HIGH && Lin2r==LOW && Lin3r==LOW){
 digitalWrite(Lout0,HIGH);
 digitalWrite(Lout1,HIGH);
 digitalWrite(Lout2,HIGH);
@@ -123,7 +126,7 @@ digitalWrite(Lout6,HIGH);
 digitalWrite(Lout7,HIGH);
 }
 
-else if (Lin1==HIGH && Lin2==LOW && Lin3==HIGH){
+else if (Lin1r==HIGH && Lin2r==LOW && Lin3r==HIGH){
 digitalWrite(Lout0,HIGH);
 digitalWrite(Lout1,HIGH);
 digitalWrite(Lout2,HIGH);
@@ -134,7 +137,7 @@ digitalWrite(Lout6,HIGH);
 digitalWrite(Lout7,HIGH);
 }
 
-else if (Lin1==HIGH && Lin2==HIGH && Lin3==LOW){
+else if (Lin1r==HIGH && Lin2r==HIGH && Lin3r==LOW){
 digitalWrite(Lout0,HIGH);
 digitalWrite(Lout1,HIGH);
 digitalWrite(Lout2,HIGH);
@@ -145,7 +148,7 @@ digitalWrite(Lout6,LOW);
 digitalWrite(Lout7,HIGH);
 }
 
-else if (Lin1==HIGH && Lin2==HIGH && Lin3==HIGH){
+else if (Lin1r==HIGH && Lin2r==HIGH && Lin3r==HIGH){
 digitalWrite(Lout0,HIGH);
 digitalWrite(Lout1,HIGH);
 digitalWrite(Lout2,HIGH);
