@@ -195,17 +195,19 @@ static void mdlInitializeSizes(SimStruct *S)
      *  reward: 1
      *  tone: 2     ( 1: counter incemented for each new tone, 2: tone ID )
      *  version: 4 ( the cvs revision of the current .c file )
-     *  LEDs:  4, now 3 with ard (outputs to mux on board)
+     *  LEDs:  4, now 3 (outputs to mux on board)
      *  Target : 1
      */
-    if (!ssSetNumOutputPorts(S, 6)) return;
+    if (!ssSetNumOutputPorts(S, 7)) return;
     ssSetOutputPortWidth(S, 0, 5);   /* status  */
     ssSetOutputPortWidth(S, 1, 1);   /* word    */
     ssSetOutputPortWidth(S, 2, 1);   /* reward  */
     ssSetOutputPortWidth(S, 3, 2);   /* tone    */
     ssSetOutputPortWidth(S, 4, 4);   /* version */
     ssSetOutputPortWidth(S, 5, 3);   /* LEDs  Changed to 3   */
-    ssSetOutputPortWidth(S, 6, 1);
+    ssSetOutputPortWidth(S, 6, 1);   /* IMU reset*/
+    ssSetOutputPortWidth(S, 7, 1);
+
     
     ssSetNumSampleTimes(S, 1);
     
@@ -315,7 +317,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     real_T *databurst_outer_hold;
     real_T *databurst_intertrial;
     InputRealPtrsType uPtrs;
-    InputRealPtrsType uPtrs1;
+    /*InputRealPtrsType uPtrs1;*/
     real_T outerVoltage1;
     /*real_T outerVoltage2;*/
     real_T targetVoltageLow;
@@ -663,6 +665,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     real_T status[5];
     real_T version[4];
     real_T leds[3];
+    real_T IMUreset;
     
     /* pointers to output buffers */
     real_T *word_p;
@@ -671,6 +674,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     real_T *tone_p;
     real_T *version_p;
     real_T *leds_p;
+    real_T *IMUreset_p;
     
     int databurst_counter;
     byte *databurst;
@@ -796,31 +800,31 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             leds[0] = 0;
             leds[1] = 0;
             leds[2] = 0;
-        }else if (target == 1){
+        }else if (target ==1){
             leds[0] = 1;
             leds[1] = 0;
             leds[2] = 0;
-        }else if (target == 2){
+        }else if (target ==2){
             leds[0] = 0;
             leds[1] = 1;
             leds[2] = 0;
-        }else if (target == 3){
+        }else if (target ==3){
             leds[0] = 1;
             leds[1] = 1;
             leds[2] = 0;
-        }else if (target == 4){
+        }else if (target ==4){
             leds[0] = 0;
             leds[1] = 0;
             leds[2] = 1;
-        }else if (target == 5){
+        }else if (target ==5){
             leds[0] = 1;
             leds[1] = 0;
             leds[2] = 1;
-        }else if (target == 6){
+        }else if (target ==6){
             leds[0] = 1;
             leds[1] = 1;
             leds[2] = 0;
-        }else if (target == 7){
+        }else if (target ==7){
             leds[0] = 1;
             leds[1] = 1;
             leds[2] = 1;
@@ -828,7 +832,13 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     } else {
         leds[0] = 0;
         leds[1] = 0;
-        leds[2] = 0;
+        leds[2] = 1;
+    }
+    
+    if (target== 0 && reward==1){
+        IMUreset = 1;
+    } else {
+        IMUreset = 0;
     }
 
     
@@ -860,6 +870,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     leds_p[0] = leds[0];
     leds_p[1] = leds[1];
     leds_p[2] = leds[2];
+    
+    IMUreset_p = ssGetOutputPortRealSignal(S, 6);
+    IMUreset_p[0] = IMUreset;
     
     UNUSED_ARG(tid);
 }
