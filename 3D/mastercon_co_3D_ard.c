@@ -103,10 +103,10 @@ static real_T outer_hold_h = 1.0;
 #define param_outer_hold_h mxGetScalar(ssGetSFcnParam(S,7))
 
 #define param_intertrial mxGetScalar(ssGetSFcnParam(S,8))
-static real_T abort_timeout = 1.0;
-static real_T failure_timeout = 1.0;    /* delay after failure */
-static real_T incomplete_timeout = 1.0; /* delay after incomplete */
-static real_T reward_timeout  = 1.0;    /* delay after reward before starting next trial
+static real_T abort_timeout = 0;
+static real_T failure_timeout = 0;    /* delay after failure */
+static real_T incomplete_timeout = 0; /* delay after incomplete */
+static real_T reward_timeout  = 0;    /* delay after reward before starting next trial
                                          * This is NOT the reward pulse length */
 
 
@@ -795,27 +795,27 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     version[3] = BEHAVIOR_VERSION_BUILD;
     
     /* LEDs (6) */
-    if (state == STATE_CT_ON|| state == STATE_CENTER_HOLD || state == STATE_CENTER_DELAY|| state == STATE_MOVEMENT) {
+    //if (state == STATE_CT_ON|| state == STATE_CENTER_HOLD || state == STATE_CENTER_DELAY|| state == STATE_MOVEMENT) {
         if (target == 0) {
             leds[0] = 0;
             leds[1] = 0;
             leds[2] = 0;
         }else if (target ==1){
-            leds[0] = 1;
+            leds[0] = 0;
             leds[1] = 0;
-            leds[2] = 0;
+            leds[2] = 1;
         }else if (target ==2){
             leds[0] = 0;
             leds[1] = 1;
             leds[2] = 0;
         }else if (target ==3){
-            leds[0] = 1;
-            leds[1] = 1;
-            leds[2] = 0;
-        }else if (target ==4){
             leds[0] = 0;
-            leds[1] = 0;
+            leds[1] = 1;
             leds[2] = 1;
+        }else if (target ==4){
+            leds[0] = 1;
+            leds[1] = 0;
+            leds[2] = 0;
         }else if (target ==5){
             leds[0] = 1;
             leds[1] = 0;
@@ -829,13 +829,14 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             leds[1] = 1;
             leds[2] = 1;
         }
-    } else {
-        leds[0] = 0;
-        leds[1] = 0;
-        leds[2] = 1;
-    }
+//     } else {
+//         leds[0] = 0;
+//         leds[1] = 0;
+//         leds[2] = 0;
+//     }
     
-    if (target== 0 && reward==1){
+    /* IMU reset (7) */
+    if (target== 0 && (state == STATE_REWARD || state == STATE_CENTER_HOLD || state == STATE_OUTER_HOLD)){
         IMUreset = 1;
     } else {
         IMUreset = 0;
