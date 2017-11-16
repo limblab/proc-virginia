@@ -2,7 +2,7 @@
  *
  * Master Control block for behavior: center-out task 
  */
-#define S_FUNCTION_NAME mastercon_co_3D_ard
+#define S_FUNCTION_NAME mastercon_co_3D_ard2
 #define S_FUNCTION_LEVEL 2
 
 #include <math.h>
@@ -819,7 +819,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         leds[0] = 0;
         leds[1] = 0;
         leds[2] = 0;
-    }else{
+    }else if (state == STATE_MOVEMENT || state == STATE_OUTER_HOLD){
         ctarget = 0;
         if (target == 0){
             leds[0] = 0;
@@ -850,7 +850,44 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             leds[1] = 1;
             leds[2] = 1;
         }
+    } else {
+        if (ctarget == 1){
+            leds[0] = 0;
+            leds[1] = 0;
+            leds[2] = 0;
+        } else {
+            if (target == 0){
+                leds[0] = 0;
+                leds[1] = 0;
+                leds[2] = 1;
+            }else if (target == 1){
+                leds[0] = 0;
+                leds[1] = 1;
+                leds[2] = 0;
+            }else if (target == 2){
+                leds[0] = 0;
+                leds[1] = 1;
+                leds[2] = 1;
+            }else if (target == 3){
+                leds[0] = 1;
+                leds[1] = 0;
+                leds[2] = 0;
+            }else if (target == 4){
+                leds[0] = 1;
+                leds[1] = 0;
+                leds[2] = 1;
+            }else if (target == 5){
+                leds[0] = 1;
+                leds[1] = 1;
+                leds[2] = 0;
+            }else if (target == 6){
+                leds[0] = 1;
+                leds[1] = 1;
+                leds[2] = 1;
+            }
         }
+    }
+            
     //} else {
       //  leds[0] = 0;
       //  leds[1] = 0;
@@ -858,7 +895,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
    // }
     
     /* IMU reset (7) */
-    if (ctarget == 1) && (state == STATE_REWARD)){
+    if (ctarget == 1 && state == STATE_REWARD){
         IMUreset = 1;
     } else {
         IMUreset = 0;
