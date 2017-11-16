@@ -325,6 +325,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     real_T targetVoltageHigh;
     real_T targetVoltageLow0;
     real_T targetVoltageHigh0;
+    real_T ctarget = 0;
     
     /******************
      * Initialization *
@@ -539,6 +540,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             break;
         case STATE_CT_ON:
             /* center target on */
+            ctarget = 1;
                 if (reachedTarget(outerVoltage1, targetVoltageLow0, targetVoltageHigh0)) {
                     new_state = STATE_CENTER_HOLD;
                     reset_timer(); /* start center hold timer */
@@ -548,6 +550,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             break;
         case STATE_CENTER_HOLD:
             /* center hold */
+            ctarget = 1;
                 if (!reachedTarget(outerVoltage1, targetVoltageLow0, targetVoltageHigh0)) {
                     new_state = STATE_ABORT;
                     reset_timer(); /* abort timeout */
@@ -561,6 +564,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             break;
         case STATE_CENTER_DELAY:
             /* center delay (outer target on) */
+            ctarget = 1;
 			if (!reachedTarget(outerVoltage1, targetVoltageLow0, targetVoltageHigh0)) {
 				new_state = STATE_ABORT;
 				reset_timer(); /* abort timeout */
@@ -663,7 +667,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     int target;
     
     /* allocate holders for outputs */
-    real_T word, reward, tone_cnt, tone_id;
+    real_T word, reward, tone_cnt, tone_id, ctarget;
     real_T target_pos[10];
     real_T status[5];
     real_T version[4];
@@ -798,11 +802,10 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     version[3] = BEHAVIOR_VERSION_BUILD;
     
     /* LEDs (6) */
-    if (state == STATE_CT_ON|| state == STATE_CENTER_HOLD) {
+    if  ctarget = 1;{
         leds[0] = 0;
         leds[1] = 0;
         leds[2] = 0;
-        
     }else{
         if (target == 0){
             leds[0] = 0;
@@ -841,7 +844,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
    // }
     
     /* IMU reset (7) */
-    if (target == 0 && (state == STATE_REWARD || state == STATE_CENTER_HOLD)){
+    if (ctarget == 1 && (state == STATE_REWARD || state == STATE_CENTER_HOLD)){
         IMUreset = 1;
     } else {
         IMUreset = 0;
