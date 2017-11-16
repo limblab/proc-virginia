@@ -79,7 +79,7 @@ typedef unsigned char byte;
 /*
  * Until we implement tunable parameters, these will act as defaults
  */
-static real_T num_targets = 8;      /* number of peripheral targets */
+static real_T num_targets = 7;      /* number of peripheral targets */
 #define param_num_targets mxGetScalar(ssGetSFcnParam(S,0))
 static real_T center_hold;     /* dwell time in state 2 */
 static real_T center_hold_l = .5;     
@@ -323,6 +323,8 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     /*real_T outerVoltage2;*/
     real_T targetVoltageLow;
     real_T targetVoltageHigh;
+    real_T targetVoltageLow0;
+    real_T targetVoltageHigh0;
     
     /******************
      * Initialization *
@@ -343,28 +345,28 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     target_list = IWorkVector+2;
     if (mode == MODE_BLOCK_CATCH) {
         target = target_list[target_index];
-        if (target == 0) {
-            targetVoltageLow = 0.4;
-            targetVoltageHigh = 0.8;
-        } else if (target==1) {
+      //  if (target == 0) {
+            targetVoltageLow0 = 0.4;
+            targetVoltageHigh0 = 0.8;
+        if (target==0) {
             targetVoltageLow = 1;
             targetVoltageHigh = 1.5;
-        } else if (target==2) {
+        } else if (target==1) {
             targetVoltageLow = 1.7;
             targetVoltageHigh = 2.1;
-        } else if (target==3) {
+        } else if (target==2) {
             targetVoltageLow = 2.3;
             targetVoltageHigh = 2.7;
-        } else if (target==4) {
+        } else if (target==3) {
             targetVoltageLow = 3;
             targetVoltageHigh = 3.4;
-        } else if (target==5) {
+        } else if (target==4) {
             targetVoltageLow = 3.6;
             targetVoltageHigh = 4;
-        } else if (target==6) {
+        } else if (target==5) {
             targetVoltageLow = 4.2;
             targetVoltageHigh = 4.6;
-        } else if (target==7) {
+        } else if (target==6) {
             targetVoltageLow = 4.8;
             targetVoltageHigh = 5.2;
         } else {
@@ -537,7 +539,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             break;
         case STATE_CT_ON:
             /* center target on */
-                if (reachedTarget(outerVoltage1, targetVoltageLow, targetVoltageHigh)) {
+                if (reachedTarget(outerVoltage1, targetVoltageLow0, targetVoltageHigh0)) {
                     new_state = STATE_CENTER_HOLD;
                     reset_timer(); /* start center hold timer */
                     state_changed();
@@ -546,8 +548,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             break;
         case STATE_CENTER_HOLD:
             /* center hold */
-
-                if (!reachedTarget(outerVoltage1, targetVoltageLow, targetVoltageHigh)) {
+                if (!reachedTarget(outerVoltage1, targetVoltageLow0, targetVoltageHigh0)) {
                     new_state = STATE_ABORT;
                     reset_timer(); /* abort timeout */
                     state_changed();
@@ -560,7 +561,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             break;
         case STATE_CENTER_DELAY:
             /* center delay (outer target on) */
-			if (!reachedTarget(outerVoltage1, targetVoltageLow, targetVoltageHigh)) {
+			if (!reachedTarget(outerVoltage1, targetVoltageLow0, targetVoltageHigh0)) {
 				new_state = STATE_ABORT;
 				reset_timer(); /* abort timeout */
 				state_changed();
@@ -797,39 +798,41 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     version[3] = BEHAVIOR_VERSION_BUILD;
     
     /* LEDs (6) */
-    //if (state == STATE_CT_ON|| state == STATE_CENTER_HOLD || state == STATE_CENTER_DELAY|| state == STATE_MOVEMENT) {
-        if (target == 0) {
-            leds[0] = 0;
-            leds[1] = 0;
-            leds[2] = 0;
-        }else if (target ==1){
+    if (state == STATE_CT_ON|| state == STATE_CENTER_HOLD) {
+        leds[0] = 0;
+        leds[1] = 0;
+        leds[2] = 0;
+        
+    }else{
+        if (target == 0){
             leds[0] = 0;
             leds[1] = 0;
             leds[2] = 1;
-        }else if (target ==2){
+        }else if (target == 1){
             leds[0] = 0;
             leds[1] = 1;
             leds[2] = 0;
-        }else if (target ==3){
+        }else if (target == 2){
             leds[0] = 0;
             leds[1] = 1;
             leds[2] = 1;
-        }else if (target ==4){
+        }else if (target == 3){
             leds[0] = 1;
             leds[1] = 0;
             leds[2] = 0;
-        }else if (target ==5){
+        }else if (target == 4){
             leds[0] = 1;
             leds[1] = 0;
             leds[2] = 1;
-        }else if (target ==6){
+        }else if (target == 5){
             leds[0] = 1;
             leds[1] = 1;
             leds[2] = 0;
-        }else if (target ==7){
+        }else if (target == 6){
             leds[0] = 1;
             leds[1] = 1;
             leds[2] = 1;
+        }
         }
     //} else {
       //  leds[0] = 0;
@@ -838,7 +841,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
    // }
     
     /* IMU reset (7) */
-    if (target == 0 && (state == STATE_REWARD || state == STATE_CENTER_HOLD || state == STATE_OUTER_HOLD )){
+    if (target == 0 && (state == STATE_REWARD || state == STATE_CENTER_HOLD)){
         IMUreset = 1;
     } else {
         IMUreset = 0;
