@@ -191,7 +191,7 @@ static void mdlInitializeSizes(SimStruct *S)
     if (ssGetNumSFcnParams(S) != ssGetSFcnParamsCount(S)) {
         return; /* parameter number mismatch */
     }
-    for (i=0; i<ssGetNumSFcnParams(S); i++)
+    for (i=0; i<ssSFcnParams(S); i++)
         ssSetSFcnParamTunable(S,i, 1);
     mdlCheckParameters(S);
     
@@ -501,6 +501,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
                 }
                 /* and reset the counter */
                 ssSetIWorkValue(S, 1, 0);
+                
             } else if (mode == MODE_BUMP && (target_index == (num_targets+1)*(num_targets+1)-1 || reset_block)) {
                 /* initilize the targets and bump directions */
                 for (i=0; i<num_targets+1; i++) {

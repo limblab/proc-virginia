@@ -103,9 +103,9 @@ static real_T outer_hold_h = 1.0;
 #define param_outer_hold_h mxGetScalar(ssGetSFcnParam(S,7))
 
 #define param_intertrial mxGetScalar(ssGetSFcnParam(S,8))
-static real_T abort_timeout = 1.0;
-static real_T failure_timeout = 1.0;    /* delay after failure */
-static real_T incomplete_timeout = 1.0; /* delay after incomplete */
+static real_T abort_timeout = 0.5;
+static real_T failure_timeout = 0.5;    /* delay after failure */
+static real_T incomplete_timeout = 0.5; /* delay after incomplete */
 static real_T reward_timeout  = 1.0;    /* delay after reward before starting next trial
                                          * This is NOT the reward pulse length */
 
@@ -204,8 +204,8 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetOutputPortWidth(S, 2, 1);   /* reward  */
     ssSetOutputPortWidth(S, 3, 2);   /* tone    */
     ssSetOutputPortWidth(S, 4, 4);   /* version */
-    ssSetOutputPortWidth(S, 5, 3);   /* LEDs  Changed to 3   */
-    ssSetOutputPortWidth(S, 6, 1);   /* IMU reset*/
+    ssSetOutputPortWidth(S, 5, 3);   /* LEDs  Changed to 3 */
+    ssSetOutputPortWidth(S, 6, 1);   /* IMU reset */
     ssSetOutputPortWidth(S, 7, 1);
 
     
@@ -284,7 +284,7 @@ static void mdlInitializeConditions(SimStruct *S)
 
 static int reachedTarget(real_T voltage, real_T targetVoltageLow, real_T targetVoltageHigh)
 {
-    return ((voltage>targetVoltageLow)&& (voltage<targetVoltageHigh));
+    return ((voltage>targetVoltageLow) && (voltage<targetVoltageHigh));
 }
 
 #define MDL_UPDATE
@@ -331,10 +331,11 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     real_T *state_r = ssGetRealDiscStates(S);
     int state = (int)state_r[0];
     int new_state = state;
+    
+    /* current input voltage */
     uPtrs = ssGetInputPortRealSignalPtrs(S,0);
-    /*uPtrs1= ssGetInputPortRealSignalPtrs(S,1);*/
     outerVoltage1 = *uPtrs[0];
-    /*outerVoltage2 = *uPtrs1[0];*/
+    
     /* current target number */
     IWorkVector = ssGetIWork(S);
     target_index = IWorkVector[1];
@@ -441,7 +442,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             }
 
             /* if we do not have our targets initialized => new block */
-			/* check to see if the its in block catuch or it's reached the end of the target list*/ 
+			/* check to see if the its in block catch or it's reached the end of the target list*/ 
             if (mode == MODE_BLOCK_CATCH && (target_index == num_targets-1 || reset_block)) {
                 /* initialize the targets */
                 for (i=0; i<num_targets; i++) {
@@ -513,7 +514,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             databurst_movement[0] = movement_time;
             databurst_outer_hold[0] = outer_hold;
             databurst_intertrial[0] = param_intertrial;
-				/* reset counters */
+		    /* reset counters */
             ssSetIWorkValue(S, 585, 0); /* reset the databurst_counter */
 
             /* and advance */
@@ -795,27 +796,27 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     version[3] = BEHAVIOR_VERSION_BUILD;
     
     /* LEDs (6) */
-    if (state == STATE_CT_ON|| state == STATE_CENTER_HOLD || state == STATE_CENTER_DELAY|| state == STATE_MOVEMENT) {
+    if (state == STATE_CT_ON || state == STATE_CENTER_HOLD || state == STATE_CENTER_DELAY|| state == STATE_MOVEMENT) {
         if (target == 0) {
             leds[0] = 0;
             leds[1] = 0;
             leds[2] = 0;
         }else if (target ==1){
-            leds[0] = 1;
+            leds[0] = 0;
             leds[1] = 0;
-            leds[2] = 0;
+            leds[2] = 1;
         }else if (target ==2){
             leds[0] = 0;
             leds[1] = 1;
             leds[2] = 0;
         }else if (target ==3){
-            leds[0] = 1;
-            leds[1] = 1;
-            leds[2] = 0;
-        }else if (target ==4){
             leds[0] = 0;
-            leds[1] = 0;
+            leds[1] = 1;
             leds[2] = 1;
+        }else if (target ==4){
+            leds[0] = 1;
+            leds[1] = 0;
+            leds[2] = 0;
         }else if (target ==5){
             leds[0] = 1;
             leds[1] = 0;
@@ -832,10 +833,11 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     } else {
         leds[0] = 0;
         leds[1] = 0;
-        leds[2] = 1;
+        leds[2] = 0;
     }
     
-    if (target== 0 && reward==1){
+    /* IMU reset (7) */
+    if (target == 0 && (state == STATE_REWARD || state == STATE_CENTER_HOLD || state == STATE_OUTER_HOLD )){
         IMUreset = 1;
     } else {
         IMUreset = 0;
