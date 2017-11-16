@@ -144,6 +144,7 @@ pause(1);
 %Start recording cerebus
 if reccbmex
     cbmex('fileconfig',FN,'',1);
+    cbmex('trialconfig',1) % Turn on the data buffer to cbmex
 end
 
 input('\n Press ''enter'' when aligned with initial position')
@@ -194,8 +195,15 @@ stopAll;
             
             h.liveDataPacketHandled(deviceFound, dataPacket);
             
+%             event_data = cbmex('trialdata', 1); % Read some event data, reset time for the next trialdata/flush buffer
+%             if ~isempty(event_data{151, 3}) % Digitalin channel = 151
+%                 for i = 1:length(children)
+%                     h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+%                 end
+%             end
+            
             if length(children)==1
-                if all(abs(oriC)<=2) 
+                if all(abs(oriC)<=2)
                     resetcount1 = resetcount1+1;
                 end
                 if resetcount1==10
@@ -222,6 +230,7 @@ stopAll;
                 %                     resetcount1 = 0;
                 %                     resetcount2 = 0;
                 %                 end
+                
             end
         end
     end

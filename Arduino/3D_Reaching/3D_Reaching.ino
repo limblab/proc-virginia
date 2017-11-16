@@ -28,6 +28,7 @@ int Pin7 = 12;
 int vrange = 32;
 
 void setup() {
+   
 //TCCR0B = TCCR0B & 0b11111000 | 0x04;
 //TCCR0B = _BV(CS00);
 //Setting   Divisor   Frequency
@@ -50,9 +51,6 @@ pinMode(Lout4,OUTPUT);
 pinMode(Lout5,OUTPUT);
 pinMode(Lout6,OUTPUT);
 pinMode(Lout7,OUTPUT);
-//digitalWrite(Lin1,LOW);
-//digitalWrite(Lin2,LOW);
-//digitalWrite(Lin3,LOW);
 
 pinMode(Pout,OUTPUT);
 pinMode(Pin0,INPUT);
