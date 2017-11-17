@@ -81,7 +81,7 @@ typedef unsigned char byte;
  */
 static real_T num_targets = 3;      /* number of peripheral targets */
 #define param_num_targets mxGetScalar(ssGetSFcnParam(S,0))
-static real_T num_LEDs = 7;   /* number of peripheral LEDs */
+static int num_LEDs = 7;   /* number of peripheral LEDs */
 static real_T center_hold;     /* dwell time in state 2 */
 static real_T center_hold_l = .5;     
 #define param_center_hold_l mxGetScalar(ssGetSFcnParam(S,1))
@@ -307,7 +307,12 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     int tmp_tgts[256];
     int tmp_sort[256];
     int i, j, tmp;
+    
+    int num_LEDs = 7;
+    int LED_vec[7];
+    //srand(time(NULL));
 
+    
     int databurst_counter;
     byte *databurst;
     float *databurst_offsets;
@@ -405,7 +410,9 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     /************************
      * Calculate next state *
      ************************/
-    
+        for (i=0; i < (num_LEDs-1); i++){
+        LED_vec[i] = rand() %(num_LEDs+1);
+    }
     /* execute one step of state machine */
     switch (state) {
         case STATE_PRETRIAL:
@@ -450,7 +457,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             if (mode == MODE_BLOCK_CATCH && (target_index == num_targets-1 || reset_block)) {
                 /* initialize the targets */
                 for (i=0; i<num_targets; i++) {
-                    tmp_tgts[i] = rand() % num_targets;
+                    tmp_tgts[i] = i;
                     tmp_sort[i] = rand();
                 }
                 for (i=0; i<num_targets-1; i++) {
