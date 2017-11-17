@@ -2,7 +2,7 @@
  *
  * Master Control block for behavior: center-out task 
  */
-#define S_FUNCTION_NAME mastercon_co_3D_ard2
+#define S_FUNCTION_NAME mastercon_co_3D
 #define S_FUNCTION_LEVEL 2
 
 #include <math.h>
@@ -79,9 +79,8 @@ typedef unsigned char byte;
 /*
  * Until we implement tunable parameters, these will act as defaults
  */
-static real_T num_targets = 3;      /* number of peripheral targets */
+static real_T num_targets = 8;      /* number of peripheral targets */
 #define param_num_targets mxGetScalar(ssGetSFcnParam(S,0))
-static real_T num_LEDs = 7;   /* number of peripheral LEDs */
 static real_T center_hold;     /* dwell time in state 2 */
 static real_T center_hold_l = .5;     
 #define param_center_hold_l mxGetScalar(ssGetSFcnParam(S,1))
@@ -104,11 +103,10 @@ static real_T outer_hold_h = 1.0;
 #define param_outer_hold_h mxGetScalar(ssGetSFcnParam(S,7))
 
 #define param_intertrial mxGetScalar(ssGetSFcnParam(S,8))
-
-static real_T abort_timeout = 0;
-static real_T failure_timeout = 0;    /* delay after failure */
-static real_T incomplete_timeout = 0; /* delay after incomplete */
-static real_T reward_timeout  = 0;    /* delay after reward before starting next trial
+static real_T abort_timeout = 1.0;
+static real_T failure_timeout = 1.0;    /* delay after failure */
+static real_T incomplete_timeout = 1.0; /* delay after incomplete */
+static real_T reward_timeout  = 1.0;    /* delay after reward before starting next trial
                                          * This is NOT the reward pulse length */
 
 
@@ -181,34 +179,32 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetNumDiscStates(S, 1);
     
     /*
-     * Block has 1 input ports (sensors)
+     * Block has 2 input ports (sensors)
      *      input port 0: Target hand sensor of width 1
+     *      input port 1: Target hand sensor 2 of width 1
      */
-    if (!ssSetNumInputPorts(S, 1)) return;
+    if (!ssSetNumInputPorts(S, 2)) return;
     ssSetInputPortWidth(S, 0, 1);
-    
+    ssSetInputPortWidth(S, 1, 1);
     
     /* 
-     * Block has 8 output ports (status, word, reward, tone, version, LEDs, IMUreset) of widths:
-     *  status:     5 ( block counter, successes, aborts, failures, incompletes )
-     *  word:       1 (8 bits)
-     *  reward:     1
-     *  tone:       2 ( 1: counter incemented for each new tone, 2: tone ID )
-     *  version:    4 ( the cvs revision of the current .c file )
-     *  LEDs:       3 (outputs to arduino)
-     *  Target:     1
-     *  IMUreset:   1
+     * Block has 7 output ports (status, word, reward, tone, version, LEDs) of widths:
+     *  status: 5 ( block counter, successes, aborts, failures, incompletes )
+     *  word:  1 (8 bits)
+     *  reward: 1
+     *  tone: 2     ( 1: counter incemented for each new tone, 2: tone ID )
+     *  version: 4 ( the cvs revision of the current .c file )
+     *  LEDs:  4 (outputs to mux on board)
+     *  Target : 1
      */
-    if (!ssSetNumOutputPorts(S, 7)) return;
+    if (!ssSetNumOutputPorts(S, 6)) return;
     ssSetOutputPortWidth(S, 0, 5);   /* status  */
     ssSetOutputPortWidth(S, 1, 1);   /* word    */
     ssSetOutputPortWidth(S, 2, 1);   /* reward  */
     ssSetOutputPortWidth(S, 3, 2);   /* tone    */
     ssSetOutputPortWidth(S, 4, 4);   /* version */
-    ssSetOutputPortWidth(S, 5, 3);   /* LEDs  Changed to 3 */
-    ssSetOutputPortWidth(S, 6, 1);   /* IMU reset */
-    ssSetOutputPortWidth(S, 7, 1);
-
+    ssSetOutputPortWidth(S, 5, 4);   /* LEDs     */
+    ssSetOutputPortWidth(S, 6, 1);
     
     ssSetNumSampleTimes(S, 1);
     
@@ -285,7 +281,7 @@ static void mdlInitializeConditions(SimStruct *S)
 
 static int reachedTarget(real_T voltage, real_T targetVoltageLow, real_T targetVoltageHigh)
 {
-    return ((voltage>targetVoltageLow) && (voltage<targetVoltageHigh));
+    return ((voltage>targetVoltageLow)&& (voltage<targetVoltageHigh));
 }
 
 #define MDL_UPDATE
@@ -295,7 +291,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
      * Declarations     *
      ********************/
     
-    /* Declare all variables at the begining of the function */
+    /* stupidly declare all variables at the begining of the function */
     int *IWorkVector; 
     int target_index;
     int *target_list;
@@ -303,7 +299,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     real_T elapsed_timer_time;
     int reset_block = 0;
         
-    /* Block initialization working variables */
+    /* block initialization working variables */
     int tmp_tgts[256];
     int tmp_sort[256];
     int i, j, tmp;
@@ -318,11 +314,11 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     real_T *databurst_outer_hold;
     real_T *databurst_intertrial;
     InputRealPtrsType uPtrs;
-    real_T outerVoltage;
+    InputRealPtrsType uPtrs1;
+    real_T outerVoltage1;
+    real_T outerVoltage2;
     real_T targetVoltageLow;
     real_T targetVoltageHigh;
-    real_T targetVoltageLow0;
-    real_T targetVoltageHigh0;
     
     /******************
      * Initialization *
@@ -332,44 +328,40 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     real_T *state_r = ssGetRealDiscStates(S);
     int state = (int)state_r[0];
     int new_state = state;
-    
-    /* current input voltage */
     uPtrs = ssGetInputPortRealSignalPtrs(S,0);
-    outerVoltage = *uPtrs[0];
-    
+    uPtrs1= ssGetInputPortRealSignalPtrs(S,1);
+    outerVoltage1 = *uPtrs[0];
+    outerVoltage2 = *uPtrs1[0];
     /* current target number */
     IWorkVector = ssGetIWork(S);
     target_index = IWorkVector[1];
-    target_list = IWorkVector+2;  
-    
-    /* center sensor voltage limits */
-    targetVoltageLow0 = 0.4;
-    targetVoltageHigh0 = 0.8;
-    
-    /* outer sensor voltage limits */
+    target_list = IWorkVector+2;
     if (mode == MODE_BLOCK_CATCH) {
         target = target_list[target_index];
-        if (target==0) {
-            targetVoltageLow = 1;
-            targetVoltageHigh = 1.5;
+        if (target == 0) {
+            targetVoltageLow = 1.0;
+            targetVoltageHigh = 1.2;
         } else if (target==1) {
-            targetVoltageLow = 1.7;
-            targetVoltageHigh = 2.1;
+            targetVoltageLow = 2.1;
+            targetVoltageHigh = 2.5;
         } else if (target==2) {
-            targetVoltageLow = 2.3;
-            targetVoltageHigh = 2.7;
+            targetVoltageLow = .45;
+            targetVoltageHigh = .65;
         } else if (target==3) {
-            targetVoltageLow = 3;
-            targetVoltageHigh = 3.4;
+            targetVoltageLow = .45;
+            targetVoltageHigh = .65;
         } else if (target==4) {
-            targetVoltageLow = 3.6;
-            targetVoltageHigh = 4;
+            targetVoltageLow = .2;
+            targetVoltageHigh = .32;
         } else if (target==5) {
-            targetVoltageLow = 4.2;
-            targetVoltageHigh = 4.6;
+            targetVoltageLow = 1.0;
+            targetVoltageHigh = 1.2;
         } else if (target==6) {
-            targetVoltageLow = 4.8;
-            targetVoltageHigh = 5.2;
+            targetVoltageLow = 2.1;
+            targetVoltageHigh = 2.5;
+        } else if (target==7) {
+            targetVoltageLow = .18;
+            targetVoltageHigh = .4;
         } else {
             targetVoltageLow = -11;
             targetVoltageHigh = -10;
@@ -446,11 +438,11 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             }
 
             /* if we do not have our targets initialized => new block */
-			/* check to see if the its in block catch or it's reached the end of the target list*/ 
+			/* check to see if the its in block catuch or it's reached the end of the target list*/ 
             if (mode == MODE_BLOCK_CATCH && (target_index == num_targets-1 || reset_block)) {
                 /* initialize the targets */
                 for (i=0; i<num_targets; i++) {
-                    tmp_tgts[i] = rand() % num_targets;
+                    tmp_tgts[i] = i;
                     tmp_sort[i] = rand();
                 }
                 for (i=0; i<num_targets-1; i++) {
@@ -473,19 +465,18 @@ static void mdlUpdate(SimStruct *S, int_T tid)
                 }
                 /* and reset the counter */
                 ssSetIWorkValue(S, 1, 0);
-            } 
-//             else {
-//                 /* just advance the counter */
-//                 target_index++;
-//                 /* and write it back */
-//                 ssSetIWorkValue(S, 1, target_index);
-//                 if (mode == MODE_BLOCK_CATCH) {
-//                     target = target_list[target_index];
-//                 } else {
-//                     /* mode == MODE_BUMP */
-//                     target = target_list[target_index*2];
-//                 }
-//             }
+            } else {
+                /* just advance the counter */
+                target_index++;
+                /* and write it back */
+                ssSetIWorkValue(S, 1, target_index);
+                if (mode == MODE_BLOCK_CATCH) {
+                    target = target_list[target_index];
+                } else {
+                    /* mode == MODE_BUMP */
+                    target = target_list[target_index*2];
+                }
+            }
             
 
             /* In all cases, we need to decide on the random timer durations */
@@ -519,7 +510,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             databurst_movement[0] = movement_time;
             databurst_outer_hold[0] = outer_hold;
             databurst_intertrial[0] = param_intertrial;
-		    /* reset counters */
+				/* reset counters */
             ssSetIWorkValue(S, 585, 0); /* reset the databurst_counter */
 
             /* and advance */
@@ -541,29 +532,47 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             break;
         case STATE_CT_ON:
             /* center target on */
-                if (reachedTarget(outerVoltage, targetVoltageLow0, targetVoltageHigh0)) {
+            if (target == 1 || target == 3 || target == 5 || target == 7) {
+                if (reachedTarget(outerVoltage2, targetVoltageLow, targetVoltageHigh)) {
                     new_state = STATE_CENTER_HOLD;
                     reset_timer(); /* start center hold timer */
                     state_changed();
                 }
-           
+            } else if (target == 0 || target == 2 || target == 4 || target == 6) {
+                if (reachedTarget(outerVoltage1, targetVoltageLow, targetVoltageHigh)) {
+                    new_state = STATE_CENTER_HOLD;
+                    reset_timer(); /* start center hold timer */
+                    state_changed();
+                }
+            }
             break;
         case STATE_CENTER_HOLD:
             /* center hold */
-                if (!reachedTarget(outerVoltage, targetVoltageLow0, targetVoltageHigh0)) {
+            if (target == 1 || target == 3 || target == 5 || target ==7) {
+                if (!reachedTarget(outerVoltage2, targetVoltageLow, targetVoltageHigh)) {
                     new_state = STATE_ABORT;
                     reset_timer(); /* abort timeout */
                     state_changed();
                 } else if (elapsed_timer_time > center_hold && target != -1) {
-                    new_state = STATE_MOVEMENT;
+                    new_state = STATE_REWARD;
                     reset_timer(); /* delay timer */
                     state_changed();
                 }
-            
+            } else if (target == 0 || target == 2 || target == 4 || target ==6) {
+                if (!reachedTarget(outerVoltage1, targetVoltageLow, targetVoltageHigh)) {
+                    new_state = STATE_ABORT;
+                    reset_timer(); /* abort timeout */
+                    state_changed();
+                } else if (elapsed_timer_time > center_hold && target != -1) {
+                    new_state = STATE_REWARD;
+                    reset_timer(); /* delay timer */
+                    state_changed();
+                }
+            }
             break;
         case STATE_CENTER_DELAY:
             /* center delay (outer target on) */
-			if (!reachedTarget(outerVoltage, targetVoltageLow0, targetVoltageHigh0)) {
+			if (!reachedTarget(outerVoltage1, targetVoltageLow, targetVoltageHigh)) {
 				new_state = STATE_ABORT;
 				reset_timer(); /* abort timeout */
 				state_changed();
@@ -575,7 +584,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             break;
         case STATE_MOVEMENT:
             /* movement phase (go tone on entry) */
-            if (reachedTarget(outerVoltage, targetVoltageLow, targetVoltageHigh)) {
+            if (reachedTarget(outerVoltage1, targetVoltageLow, targetVoltageHigh)) {
                 new_state = STATE_OUTER_HOLD;
                 reset_timer(); /* outer hold timer */
                 state_changed();
@@ -587,30 +596,14 @@ static void mdlUpdate(SimStruct *S, int_T tid)
             break;
         case STATE_OUTER_HOLD:
             /* outer target hold phase */
-            if (!reachedTarget(outerVoltage, targetVoltageLow, targetVoltageHigh)) {
+            if (!reachedTarget(outerVoltage1, targetVoltageLow, targetVoltageHigh)) {
                 new_state = STATE_INCOMPLETE;
                 reset_timer(); /* failure timeout */
                 state_changed();
             } else if (elapsed_timer_time > outer_hold) {
-                //new_state = STATE_REWARD;
-               // reset_timer(); /* reward (inter-trial) timeout */
-                //state_changed();
-               
-                // check if there are more targets
-                if (target_index == num_targets-1) {
-                    // no more targets
-                    new_state = STATE_REWARD;
-                    reset_timer();
-                    state_changed();
-                } else {
-                    // more targets
-                    target_index++;
-                    ssSetIWorkValue(S, 1, target_index);
-
-                    new_state = STATE_MOVEMENT;
-                    reset_timer();
-                    state_changed();
-                }
+                new_state = STATE_REWARD;
+                reset_timer(); /* reward (inter-trial) timeout */
+                state_changed();
             }
             break;
         case STATE_ABORT:
@@ -679,15 +672,13 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     int_T *target_list;
     real_T elapsed_timer_time;
     int target;
-    int ctarget;
     
     /* allocate holders for outputs */
     real_T word, reward, tone_cnt, tone_id;
-    //real_T target_pos[10];
+    real_T target_pos[10];
     real_T status[5];
     real_T version[4];
-    real_T leds[3];
-    real_T IMUreset;
+    real_T leds[4];
     
     /* pointers to output buffers */
     real_T *word_p;
@@ -696,7 +687,6 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     real_T *tone_p;
     real_T *version_p;
     real_T *leds_p;
-    real_T *IMUreset_p;
     
     int databurst_counter;
     byte *databurst;
@@ -787,6 +777,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         /* not a new state, but maybe we have a mid-state event */
         word = 0;
     }
+    
         
     /* reward (3) */
     if (new_state && state==STATE_REWARD) {
@@ -816,53 +807,55 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     version[3] = BEHAVIOR_VERSION_BUILD;
     
     /* LEDs (6) */
-    
-    if (state == STATE_MOVEMENT || state == STATE_OUTER_HOLD){
-        ctarget = 0;
-        if (target == 0){
+    if (state == STATE_CT_ON|| state == STATE_CENTER_HOLD || state == STATE_CENTER_DELAY|| state == STATE_MOVEMENT) {
+        if (target == 0) {
             leds[0] = 0;
             leds[1] = 0;
-            leds[2] = 1;
-        }else if (target == 1){
-            leds[0] = 0;
-            leds[1] = 1;
             leds[2] = 0;
-        }else if (target == 2){
-            leds[0] = 0;
-            leds[1] = 1;
-            leds[2] = 1;
-        }else if (target == 3){
+            leds[3] = 0;
+        }else if (target ==1){
             leds[0] = 1;
             leds[1] = 0;
             leds[2] = 0;
-        }else if (target == 4){
-            leds[0] = 1;
-            leds[1] = 0;
-            leds[2] = 1;
-        }else if (target == 5){
+            leds[3] = 0;
+        }else if (target ==2){
+            leds[0] = 0;
+            leds[1] = 1;
+            leds[2] = 0;
+            leds[3] = 0;
+        }else if (target ==3){
             leds[0] = 1;
             leds[1] = 1;
             leds[2] = 0;
-        }else if (target == 6){
+            leds[3] = 0;
+        }else if (target ==4){
+            leds[0] = 0;
+            leds[1] = 0;
+            leds[2] = 0;
+            leds[3] = 1;
+        }else if (target ==5){
+            leds[0] = 1;
+            leds[1] = 0;
+            leds[2] = 0;
+            leds[3] = 1;
+        }else if (target ==6){
+            leds[0] = 0;
+            leds[1] = 1;
+            leds[2] = 0;
+            leds[3] = 1;
+        }else if (target ==7){
             leds[0] = 1;
             leds[1] = 1;
-            leds[2] = 1;
+            leds[2] = 0;
+            leds[3] = 1;
         }
-        
     } else {
-        ctarget = 1;
         leds[0] = 0;
         leds[1] = 0;
-        leds[2] = 0;
+        leds[2] = 1;
+        leds[3] = 0;
     }
-    
 
-    /* IMU reset (7) */
-    if (ctarget == 1 && (state == STATE_CENTER_HOLD)){
-        IMUreset = 1;
-    } else {
-        IMUreset = 0;
-    }
     
     /**********************************
      * Write outputs back to SimStruct
@@ -892,9 +885,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     leds_p[0] = leds[0];
     leds_p[1] = leds[1];
     leds_p[2] = leds[2];
-    
-    IMUreset_p = ssGetOutputPortRealSignal(S, 6);
-    IMUreset_p[0] = IMUreset;
+    leds_p[3] = leds[3];
     
     UNUSED_ARG(tid);
 }
