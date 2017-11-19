@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "simstruc.h"
+#include <time.h>
 
 #define TASK_CO 1
 #include "words.h"
@@ -309,7 +310,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     int i, j, tmp;
     
     int num_LEDs = 7;
-    int LED_vec[7];
+//     int LED_vec[7];
     //srand(time(NULL));
 
     
@@ -410,9 +411,12 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     /************************
      * Calculate next state *
      ************************/
-        for (i=0; i < (num_LEDs-1); i++){
-        LED_vec[i] = rand() %(num_LEDs+1);
-    }
+        
+    
+//     for (i=0; i < (num_LEDs-1); i++){
+//         LED_vec[i] = rand() %(num_LEDs+1);
+//     }
+    
     /* execute one step of state machine */
     switch (state) {
         case STATE_PRETRIAL:
@@ -456,8 +460,9 @@ static void mdlUpdate(SimStruct *S, int_T tid)
 			/* check to see if the its in block catch or it's reached the end of the target list*/ 
             if (mode == MODE_BLOCK_CATCH && (target_index == num_targets-1 || reset_block)) {
                 /* initialize the targets */
+                srand(time(NULL));
                 for (i=0; i<num_targets; i++) {
-                    tmp_tgts[i] = i;
+                    tmp_tgts[i] = (num_LEDs+1) * ((double)rand()) / ((double)RAND_MAX);
                     tmp_sort[i] = rand();
                 }
                 for (i=0; i<num_targets-1; i++) {
