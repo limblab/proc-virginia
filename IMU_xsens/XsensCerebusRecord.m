@@ -12,10 +12,10 @@ cbmex('open');
 reccbmex = 1;
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
-    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171106_testcmbex.nev'; % cerebus file name
+    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171120_testcmbex.nev'; % cerebus file name
 end
 
-xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171026_onarm_angid.txt','wt'); % xsens file name
+xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171120_testcmbex3.txt','wt'); % xsens file name
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
@@ -143,8 +143,10 @@ pause(1);
 
 %Start recording cerebus
 if reccbmex
+    cbmex('mask', 0, 0);
+    cbmex('mask', 151, 1)
     cbmex('fileconfig',FN,'',1);
-    cbmex('trialconfig',1) % Turn on the data buffer to cbmex
+    cbmex('trialconfig',1,'event',10) % Turn on the data buffer to cbmex
 end
 
 input('\n Press ''enter'' when aligned with initial position')
@@ -166,11 +168,11 @@ if output && all(coord_reset)
     % register onLiveDataAvailable event
     resetcount1 = 0;
     resetcount2 = 0;
+    sampnum = 0; 
     h.registerevent({'onLiveDataAvailable',@handleData});
     h.setCallbackOption(h.XsComCallbackOptions_XSC_LivePacket, h.XsComCallbackOptions_XSC_None);
     % event handler will call stopAll when limit is reached
     input('\n Press enter to stop measurement');
-    
 else
     fprintf('\n Problems with going to measurement\n')
 end
@@ -193,36 +195,40 @@ stopAll;
                 fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
             end
             
+            sampnum = sampnum+1;
+            if sampnum == 50
+                event_data = cbmex('trialdata', 1); % Read some event data, reset time for the next trialdata/flush buffer
+                if ~isempty(event_data{151, 3})
+                    for i = 1:length(children)
+                        h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+                    end
+                end
+                sampnum = 0;               
+            end
+            
             h.liveDataPacketHandled(deviceFound, dataPacket);
-            
-%             event_data = cbmex('trialdata', 1); % Read some event data, reset time for the next trialdata/flush buffer
-%             if ~isempty(event_data{151, 3}) % Digitalin channel = 151
-%                 for i = 1:length(children)
-%                     h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+       
+%             if length(children)==1
+%                 if all(abs(oriC)<=2)
+%                     resetcount1 = resetcount1+1;
 %                 end
-%             end
-            
-            if length(children)==1
-                if all(abs(oriC)<=2)
-                    resetcount1 = resetcount1+1;
-                end
-                if resetcount1==10
-                    h.XsDevice_resetOrientation(children{1}, h.XsResetMethod_XRM_Alignment());
-                    resetcount1 = 0;
-                end
-            else
-                if all(abs(oriC)<=3)&&(iDev==1)
-                    resetcount1 = resetcount1+1;
-                elseif all(abs(oriC)<=3)&&(iDev==2)
-                    resetcount2 = resetcount2+1;
-                end
-                if resetcount1==10
-                    h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
-                    resetcount1 = 0;
-                elseif resetcount2==10
-                    h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
-                    resetcount2 = 0;
-                end
+%                 if resetcount1==10
+%                     h.XsDevice_resetOrientation(children{1}, h.XsResetMethod_XRM_Alignment());
+%                     resetcount1 = 0;
+%                 end
+%             else
+%                 if all(abs(oriC)<=3)&&(iDev==1)
+%                     resetcount1 = resetcount1+1;
+%                 elseif all(abs(oriC)<=3)&&(iDev==2)
+%                     resetcount2 = resetcount2+1;
+%                 end
+%                 if resetcount1==10
+%                     h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
+%                     resetcount1 = 0;
+%                 elseif resetcount2==10
+%                     h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
+%                     resetcount2 = 0;
+%                 end
                 %                 if (resetcount1+resetcount2==50)&&((resetcount1>20)&&(resetcount2>20))
                 %                     for i = 1:length(children)
                 %                         h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
@@ -231,7 +237,7 @@ stopAll;
                 %                     resetcount2 = 0;
                 %                 end
                 
-            end
+%             end
         end
     end
 

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "simstruc.h"
+#include <time.h>
 
 #define TASK_CO 1
 #include "words.h"
@@ -288,6 +289,16 @@ static int reachedTarget(real_T voltage, real_T targetVoltageLow, real_T targetV
     return ((voltage>targetVoltageLow) && (voltage<targetVoltageHigh));
 }
 
+#define MDL_START /* Change to #undef to remove function */
+
+#if defined(MDL_START)
+static void mdlStart(SimStruct *S)
+{
+srand (time(NULL));
+}
+#endif /* MDL_START */
+
+
 #define MDL_UPDATE
 static void mdlUpdate(SimStruct *S, int_T tid) 
 {
@@ -307,7 +318,9 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     int tmp_tgts[256];
     int tmp_sort[256];
     int i, j, tmp;
-
+    
+    int num_LEDs = 7;
+    
     int databurst_counter;
     byte *databurst;
     float *databurst_offsets;
@@ -405,8 +418,8 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     /************************
      * Calculate next state *
      ************************/
-    
-    /* execute one step of state machine */
+        
+  /* execute one step of state machine */
     switch (state) {
         case STATE_PRETRIAL:
             /* pretrial initilization */
@@ -449,8 +462,9 @@ static void mdlUpdate(SimStruct *S, int_T tid)
 			/* check to see if the its in block catch or it's reached the end of the target list*/ 
             if (mode == MODE_BLOCK_CATCH && (target_index == num_targets-1 || reset_block)) {
                 /* initialize the targets */
+                srand(time(NULL));
                 for (i=0; i<num_targets; i++) {
-                    tmp_tgts[i] = i;
+                    tmp_tgts[i] = num_LEDs * ((double)rand()) / ((double)RAND_MAX);
                     tmp_sort[i] = rand();
                 }
                 for (i=0; i<num_targets-1; i++) {
