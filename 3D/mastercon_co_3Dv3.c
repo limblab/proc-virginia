@@ -1,6 +1,8 @@
 /* $Id: mastercon_co.c 1217 2014-06-25 21:51:10Z bdek $
  *
- * Master Control block for behavior: center-out task 
+ * Master Control block for behavior: 3D center-out task 
+ *                                    v2: analog circuit controlled, no center target
+ *                                    v3: arduino controlled, center target 0
  */
 #define S_FUNCTION_NAME mastercon_co_3Dv3
 #define S_FUNCTION_LEVEL 2
