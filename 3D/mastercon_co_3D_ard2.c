@@ -462,7 +462,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
                 /* initialize the targets */
                 srand(time(NULL));
                 for (i=0; i<num_targets; i++) {
-                    tmp_tgts[i] = (num_LEDs+1) * ((double)rand()) / ((double)RAND_MAX);
+                    tmp_tgts[i] = num_LEDs * ((double)rand()) / ((double)RAND_MAX);
                     tmp_sort[i] = rand();
                 }
                 for (i=0; i<num_targets-1; i++) {
@@ -678,7 +678,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     state_r[0] = new_state;
     
     UNUSED_ARG(tid);
-}
+} 
 
 static void mdlOutputs(SimStruct *S, int_T tid)
 {
