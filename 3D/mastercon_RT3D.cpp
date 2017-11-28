@@ -76,8 +76,8 @@ struct LocalParams {
 	real_T master_reset;
 
     // location of first target
-    real_T ft_location_row;
-    real_T ft_location_col;
+    int ft_location_row;
+    int ft_location_col;
 
 	// Time Bounds for various timers
     real_T ft_hold_lo;
@@ -178,18 +178,18 @@ void RandomTarget3D::doPreTrial(SimStruct *S) {
     /* uniform random positions */
     targets[0]->trow = params->ft_location_row;
     targets[0]->tcol = params->ft_location_col;
+    
     for (i = 1; i<params->num_targets; i++) {
         targets[i]->trow = random->getInteger(1,3); //or getDouble?
         targets[i]->tcol = random->getInteger(1,3);
-        if (trow == 2 && tcol == 2){
-            targets[i]->trow = trow+1;
+        if (targets[i]->trow == 2 && targets[i]->tcol == 2){
+            targets[i]->trow = targets[i]->trow+1;
         }
     }
 
     // Randomized Timers
 	targ_hold_time		= random->getDouble(params->targ_hold_lo, params->targ_hold_hi);
 	ft_hold_time		= random->getDouble(params->ft_hold_lo, params->ft_hold_hi);
-    this->ch_timer->stop(S);
 
 
     // Reset target index
@@ -206,8 +206,8 @@ void RandomTarget3D::doPreTrial(SimStruct *S) {
 	db->addByte((BEHAVIOR_VERSION_MICRO & 0xFF00) >> 8);
 	db->addByte(BEHAVIOR_VERSION_MICRO & 0x00FF);
 	db->addFloat((float)(params->num_targets));
-    db->addFloat((float)(params->ft_hold_time));
-    db->addFloat((float)(params->targ_hold_time));
+    db->addFloat((float)(ft_hold_time));
+    db->addFloat((float)(targ_hold_time));
 	for (i = 0; i<params->num_targets; i++) {
 		db->addFloat((float)targets[i]->trow);
 		db->addFloat((float)targets[i]->tcol);
@@ -229,27 +229,25 @@ void RandomTarget3D::update(SimStruct *S) {
        case STATE_DATA_BLOCK:
            if (db->isDone()) {
                
-               setState(STATE_FT_ON);
+               setState(STATE_FIRST_TARG_ON);
            }
-		case STATE_FT_ON:
+		case STATE_FIRST_TARG_ON:
 			/* target on */
 			if (targets[target_index]->voltageInTarget(inputs->targetStaircase)) {
                 target_index++;
-                this->ch_timer->stop(S);
-                this->ch_timer->start(S);
-				setState(STATE_FT_HOLD);
+				setState(STATE_FIRST_TARG_HOLD);
 			} else if (stateTimer->elapsedTime(S) > params->initial_movement_time) {
                 setState(STATE_INCOMPLETE);
             }
 			break;
-        case STATE_FT_HOLD:
+        case STATE_FIRST_TARG_HOLD:
             // center target hold
 			if (!targets[target_index]->voltageInTarget(inputs->targetStaircase)){
                 playTone(TONE_ABORT);
                 // setState(STATE_ABORT);
                 // idiot mode, go back to start
-                setState(STATE_FT_ON);
-            } else if (this->ch_timer->elapsedTime(S) >= ft_hold_time) {
+                setState(STATE_FIRST_TARG_ON);
+            } else if (stateTimer->elapsedTime(S) >= ft_hold_time) {
                 // check if there are more targets
                 if (target_index == params->num_targets-1) {
                     // no more targets - this shouldn't happen on the center target, but just in case
@@ -329,10 +327,10 @@ void RandomTarget3D::calculateOutputs(SimStruct *S) {
 			case STATE_PRETRIAL:
 				outputs->word = WORD_START_TRIAL;
 				break;
-			case STATE_FT_ON:
+			case STATE_FIRST_TARG_ON:
 				outputs->word = WORD_CT_ON;
 				break;
-			case STATE_FT_HOLD:
+			case STATE_FIRST_TARG_HOLD:
 				outputs->word = WORD_CENTER_TARGET_HOLD;
 				break;
 			case STATE_MOVEMENT:
@@ -375,35 +373,35 @@ void RandomTarget3D::calculateOutputs(SimStruct *S) {
     outputs->version[3] = BEHAVIOR_VERSION_BUILD;
     
     /* leds (5) */
-    if (trow == 1 && tcol == 1){
+    if (targets[target_index]->trow == 1 && targets[target_index]->tcol == 1){
         outputs->leds[0] = 0;
         outputs->leds[1] = 0;
         outputs->leds[2] = 0;
-    } else if (trow == 1 && tcol == 2){
+    } else if (targets[target_index]->trow == 1 && targets[target_index]->tcol == 2){
         outputs->leds[0] = 0;
         outputs->leds[1] = 0;
         outputs->leds[2] = 1;
-    } else if (trow == 1 && tcol == 3){
+    } else if (targets[target_index]->trow == 1 && targets[target_index]->tcol == 3){
         outputs->leds[0] = 0;
         outputs->leds[1] = 1;
         outputs->leds[2] = 0;
-    } else if (trow == 2 && tcol == 1){
+    } else if (targets[target_index]->trow == 2 && targets[target_index]->tcol == 1){
         outputs->leds[0] = 0;
         outputs->leds[1] = 1;
         outputs->leds[2] = 1;
-    } else if (trow == 2 && tcol == 3){
+    } else if (targets[target_index]->trow == 2 && targets[target_index]->tcol == 3){
         outputs->leds[0] = 1;
         outputs->leds[1] = 0;
         outputs->leds[2] = 0;
-    } else if (trow == 3 && tcol == 1){
+    } else if (targets[target_index]->trow == 3 && targets[target_index]->tcol == 1){
         outputs->leds[0] = 1;
         outputs->leds[1] = 0;
         outputs->leds[2] = 1;
-    } else if (trow == 3 && tcol == 2){
+    } else if (targets[target_index]->trow == 3 && targets[target_index]->tcol == 2){
         outputs->leds[0] = 1;
         outputs->leds[1] = 1;
         outputs->leds[2] = 0;
-    } else if (trow == 3 && tcol == 3){
+    } else if (targets[target_index]->trow == 3 && targets[target_index]->tcol == 3){
         outputs->leds[0] = 1;
         outputs->leds[1] = 1;
         outputs->leds[2] = 1;
@@ -411,8 +409,8 @@ void RandomTarget3D::calculateOutputs(SimStruct *S) {
     
     
     /* IMU reset (6) */
-    if (getState() == STATE_FT_HOLD){
-        outputs->IMUreset = 1
+    if (getState() == STATE_FIRST_TARG_HOLD){
+        outputs->IMUreset = 1;
     } else {
         outputs->IMUreset = 0;
     };

@@ -77,7 +77,7 @@ public:
 	 */
 	virtual bool cursorInTarget(Point p) = 0;
     
-    virtual bool voltageInTarget(float targetStaircase, float targetVoltageLow, float targetVoltageHigh) = 0;
+    virtual bool voltageInTarget(float targetStaircase) = 0;
 
 	/* See definition below */
 	static int Color(int red, int green, int blue);
@@ -776,9 +776,9 @@ public:
     
     int trow;
     int tcol;
-    float targetVoltageLow;
-    float targetVoltageHigh;
-};
+//     float targetVoltageLow;
+//     float targetVoltageHigh;
+}
 
 /**
  * Default constructor sets all values to zero.
@@ -786,12 +786,12 @@ public:
 VoltageTarget::VoltageTarget() {
     this->trow = 0;
     this->tcol = 0;
-};
+}
 
 VoltageTarget::VoltageTarget(int trow, int tcol) {
     this->trow = trow;
     this->tcol = tcol;
-};
+}
 /**
  * Determines if the specified input voltage is within the voltage range.
  * This function will return whether the input voltage is
@@ -804,31 +804,31 @@ VoltageTarget::VoltageTarget(int trow, int tcol) {
  */
 bool VoltageTarget::voltageInTarget(float targetStaircase) {
     
-    float targetVoltageLow;
-    float targetVoltageHigh;
+    double targetVoltageLow;
+    double targetVoltageHigh;
     
-    if (trow == 1 && tcol == 1){
+    if (this->trow == 1 && this->tcol == 1){
         targetVoltageLow = 0.4;
         targetVoltageHigh = 0.8;
-    } else if (trow == 1 && tcol == 2){
+    } else if (this->trow == 1 && this->tcol == 2){
         targetVoltageLow = 1;
         targetVoltageHigh = 1.5;
-    } else if (trow == 1 && tcol == 3){
+    } else if (this->trow == 1 && this->tcol == 3){
         targetVoltageLow = 1.7;
         targetVoltageHigh = 2.1;
-    } else if (trow == 2 && tcol == 1){
+    } else if (this->trow == 2 && this->tcol == 1){
         targetVoltageLow = 2.3;
         targetVoltageHigh = 2.7;
-    } else if (trow == 2 && tcol == 3){
+    } else if (this->trow == 2 && this->tcol == 3){
         targetVoltageLow = 3;
         targetVoltageHigh = 3.4;
-    } else if (trow == 3 && tcol == 1){
+    } else if (this->trow == 3 && this->tcol == 1){
         targetVoltageLow = 3.6;
         targetVoltageHigh = 4;
-    } else if (trow == 3 && tcol == 2){
+    } else if (this->trow == 3 && this->tcol == 2){
         targetVoltageLow = 4.2;
         targetVoltageHigh = 4.6;
-    } else if (trow == 3 && tcol == 3){
+    } else if (this->trow == 3 && this->tcol == 3){
         targetVoltageLow = 4.8;
         targetVoltageHigh = 5.2;
     } else {
