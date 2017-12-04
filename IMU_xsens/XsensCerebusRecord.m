@@ -9,13 +9,13 @@ function XsensCerebusRecord()
 % open cbmex, load ccf, prep everything for recording
 
 cbmex('open');
-reccbmex = 1;
+reccbmex = 0;
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
-    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171120_testcmbex.nev'; % cerebus file name
+    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171127_testcmbex.nev'; % cerebus file name
 end
 
-xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171120_testcmbex3.txt','wt'); % xsens file name
+xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171127_testsync.txt','wt'); % xsens file name
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
@@ -108,6 +108,11 @@ devIdAll = cellfun(@(x) dec2hex(h.XsDevice_deviceId(x)),children,'uniformOutput'
 [devicesUsed, devIdUsed, nDevs] = checkConnectedSensors(devIdAll);
 fprintf(' Used device: %s \n',devIdUsed{:});
 
+%% Sync settings for awinda station	
+if  strcmp(devTypeStr,'station')
+    syncSettings = {h.XsSyncLine_XSL_In1, h.XsSyncFunction_XSF_TriggerIndication, h.XsSyncPolarity_XSP_RisingEdge, 0, 0, 0, 0, 0};
+    h.XsDevice_setSyncSettings(device, syncSettings);
+end
 
 %% Entering measurement mode
 fprintf('\n Activate measurement mode \n');
@@ -161,13 +166,15 @@ if output && all(coord_reset)
     % fprintf('\n Logfile: %s created\n',fullfile(cd,'exampleLogfile.mtb'));
     
     % start recording
-    %cbmex('fileconfig',FN,'',1);
+    % cbmex('fileconfig',FN,'',1);
     
     h.XsDevice_startRecording(device);
     
     % register onLiveDataAvailable event
     resetcount1 = 0;
     resetcount2 = 0;
+    trig = 0;
+    trig2 = 0;
     sampnum = 0; 
     h.registerevent({'onLiveDataAvailable',@handleData});
     h.setCallbackOption(h.XsComCallbackOptions_XSC_LivePacket, h.XsComCallbackOptions_XSC_None);
@@ -194,16 +201,27 @@ stopAll;
                 quat = cell2mat(h.XsDataPacket_orientationQuaternion_1(dataPacket));
                 fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
             end
-            
-            sampnum = sampnum+1;
-            if sampnum == 50
-                event_data = cbmex('trialdata', 1); % Read some event data, reset time for the next trialdata/flush buffer
-                if ~isempty(event_data{151, 3})
-                    for i = 1:length(children)
-                        h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+            trigg = {1,1,0,0};
+            contt=h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
+            %contt1=h.XsDataPacket_triggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1)
+%             contt2 = h.XsStatusFlag_XSF_SyncIn()
+            if contt
+                trig=trig+1
+            end
+%             if any(contt1{:})
+%                 trig2 = trig2+1
+%             end
+            if reccbmex
+                sampnum = sampnum+1;
+                if sampnum == 50
+                    event_data = cbmex('trialdata', 1); % Read some event data, reset time for the next trialdata/flush buffer
+                    if ~isempty(event_data{151, 3})
+                        for i = 1:length(children)
+                            h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+                        end
                     end
+                    sampnum = 0;
                 end
-                sampnum = 0;               
             end
             
             h.liveDataPacketHandled(deviceFound, dataPacket);
