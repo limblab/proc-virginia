@@ -9,19 +9,22 @@ function XsensCerebusRecord()
 % open cbmex, load ccf, prep everything for recording
 
 cbmex('open');
-reccbmex = 1;
+reccbmex = 0;
 lab = 3;
+
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
-    switch lab
-        case 1
-            FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171120_testcmbex.nev'; % cerebus file name
-            xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171120_testcmbex3.txt','wt'); % xsens file name
-        case 3
-            FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171204_testsync.nev'; % cerebus file name
-            xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\2017204_testsync.txt','wt'); % xsens file name
-        case 6
-    end
+end
+
+switch lab
+    case 1
+        FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171120_testcmbex.nev'; % cerebus file name
+        xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171120_testcmbex3.txt','wt'); % xsens file name
+    case 3
+        FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171204_testsync.nev'; % cerebus file name
+        xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\20171204_testsync.txt','wt'); % xsens file name
+    case 6
+        
 end
 
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
@@ -116,6 +119,11 @@ devIdAll = cellfun(@(x) dec2hex(h.XsDevice_deviceId(x)),children,'uniformOutput'
 [devicesUsed, devIdUsed, nDevs] = checkConnectedSensors(devIdAll);
 fprintf(' Used device: %s \n',devIdUsed{:});
 
+%% Sync settings for awinda station	
+if  strcmp(devTypeStr,'station')
+    syncSettings = {h.XsSyncLine_XSL_In1, h.XsSyncFunction_XSF_TriggerIndication, h.XsSyncPolarity_XSP_RisingEdge, 0, 0, 0, 0, 0};
+    h.XsDevice_setSyncSettings(device, syncSettings);
+end
 
 %% Entering measurement mode
 fprintf('\n Activate measurement mode \n');
@@ -151,10 +159,7 @@ pause(1);
 
 %Start recording cerebus
 if reccbmex
-    cbmex('mask', 0, 0);
-    cbmex('mask', 151, 1)
     cbmex('fileconfig',FN,'',1);
-    cbmex('trialconfig',1,'event',10) % Turn on the data buffer to cbmex
 end
 
 input('\n Press ''enter'' when aligned with initial position')
@@ -169,14 +174,13 @@ if output && all(coord_reset)
     % fprintf('\n Logfile: %s created\n',fullfile(cd,'exampleLogfile.mtb'));
     
     % start recording
-    %cbmex('fileconfig',FN,'',1);
+    % cbmex('fileconfig',FN,'',1);
     
     h.XsDevice_startRecording(device);
     
     % register onLiveDataAvailable event
-    resetcount1 = 0;
-    resetcount2 = 0;
-    sampnum = 0; 
+%     resetcount1 = 0;
+%     resetcount2 = 0;
     h.registerevent({'onLiveDataAvailable',@handleData});
     h.setCallbackOption(h.XsComCallbackOptions_XSC_LivePacket, h.XsComCallbackOptions_XSC_None);
     % event handler will call stopAll when limit is reached
@@ -203,19 +207,15 @@ stopAll;
                 fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
             end
             
-            sampnum = sampnum+1;
-            if sampnum == 50
-                event_data = cbmex('trialdata', 1); % Read some event data, reset time for the next trialdata/flush buffer
-                if ~isempty(event_data{151, 3})
-                    for i = 1:length(children)
-                        h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
-                    end
+            trig = h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
+            if trig
+                for i = 1:length(children)
+                    h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
                 end
-                sampnum = 0;               
             end
             
             h.liveDataPacketHandled(deviceFound, dataPacket);
-       
+            
 %             if length(children)==1
 %                 if all(abs(oriC)<=2)
 %                     resetcount1 = resetcount1+1;
@@ -237,14 +237,6 @@ stopAll;
 %                     h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
 %                     resetcount2 = 0;
 %                 end
-                %                 if (resetcount1+resetcount2==50)&&((resetcount1>20)&&(resetcount2>20))
-                %                     for i = 1:length(children)
-                %                         h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
-                %                     end
-                %                     resetcount1 = 0;
-                %                     resetcount2 = 0;
-                %                 end
-                
 %             end
         end
     end
