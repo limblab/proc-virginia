@@ -10,12 +10,20 @@ function XsensCerebusRecord()
 
 cbmex('open');
 reccbmex = 1;
+lab = 3;
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
-    FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171120_testcmbex.nev'; % cerebus file name
+    switch lab
+        case 1
+            FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171120_testcmbex.nev'; % cerebus file name
+            xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171120_testcmbex3.txt','wt'); % xsens file name
+        case 3
+            FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171204_testsync.nev'; % cerebus file name
+            xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\2017204_testsync.txt','wt'); % xsens file name
+        case 6
+    end
 end
 
-xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171120_testcmbex3.txt','wt'); % xsens file name
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
