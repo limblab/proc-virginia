@@ -9,7 +9,7 @@ function XsensCerebusRecord()
 % open cbmex, load ccf, prep everything for recording
 
 cbmex('open');
-reccbmex = 0;
+reccbmex = 1;
 lab = 3;
 
 if reccbmex
@@ -21,8 +21,8 @@ switch lab
         FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171120_testcmbex.nev'; % cerebus file name
         xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171120_testcmbex3.txt','wt'); % xsens file name
     case 3
-        FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171204_testsync.nev'; % cerebus file name
-        xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\20171204_testsync.txt','wt'); % xsens file name
+        FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171208_stability_reset.nev'; % cerebus file name
+        xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\20171208_stability_reset.txt','wt'); % xsens file name
     case 6
         
 end
@@ -120,10 +120,10 @@ devIdAll = cellfun(@(x) dec2hex(h.XsDevice_deviceId(x)),children,'uniformOutput'
 fprintf(' Used device: %s \n',devIdUsed{:});
 
 %% Sync settings for awinda station	
-if  strcmp(devTypeStr,'station')
-    syncSettings = {h.XsSyncLine_XSL_In1, h.XsSyncFunction_XSF_TriggerIndication, h.XsSyncPolarity_XSP_RisingEdge, 0, 0, 0, 0, 0};
-    h.XsDevice_setSyncSettings(device, syncSettings);
-end
+% if  strcmp(devTypeStr,'station')
+%     syncSettings = {h.XsSyncLine_XSL_In1, h.XsSyncFunction_XSF_TriggerIndication, h.XsSyncPolarity_XSP_RisingEdge, 0, 0, 0, 0, 0};
+%     h.XsDevice_setSyncSettings(device, syncSettings);
+% end
 
 %% Entering measurement mode
 fprintf('\n Activate measurement mode \n');
