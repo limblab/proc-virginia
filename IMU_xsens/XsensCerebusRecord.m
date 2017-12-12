@@ -3,13 +3,12 @@
 % antenna switching issues due to rotation in terms of the antenna or
 % switching between antennas
 
-
 function XsensCerebusRecord()
 %% cbmex intitialization
 % open cbmex, load ccf, prep everything for recording
-
+addpath(genpath('cbmex'));
 cbmex('open');
-reccbmex = 1;
+reccbmex = 0;
 lab = 3;
 
 if reccbmex
@@ -21,8 +20,8 @@ switch lab
         FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171120_testcmbex.nev'; % cerebus file name
         xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171120_testcmbex3.txt','wt'); % xsens file name
     case 3
-        FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171208_stability_reset.nev'; % cerebus file name
-        xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\20171208_stability_reset.txt','wt'); % xsens file name
+        FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171212_stability_noreset.nev'; % cerebus file name
+        xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\20171212_stability_moreset.txt','wt'); % xsens file name
     case 6
         
 end
@@ -208,7 +207,8 @@ stopAll;
             end
             
             trig = h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
-            if trig
+            tel = cbmex('time');
+            if trig && (rem(tel,300)<=1)
                 for i = 1:length(children)
                     h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
                 end
