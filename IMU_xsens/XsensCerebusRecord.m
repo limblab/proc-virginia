@@ -9,7 +9,7 @@ function XsensCerebusRecord()
 addpath(genpath('cbmex'));
 cbmex('open');
 reccbmex = 0;
-lab = 3;
+lab = 1;
 
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
@@ -17,8 +17,8 @@ end
 
 switch lab
     case 1
-        FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171120_testcmbex.nev'; % cerebus file name
-        xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171120_testcmbex3.txt','wt'); % xsens file name
+        FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171213_stability_noreset_L1.nev'; % cerebus file name
+        xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171213_stability_noreset_L1.txt','wt'); % xsens file name
     case 3
         FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171212_stability_noreset.nev'; % cerebus file name
         xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\20171212_stability_moreset.txt','wt'); % xsens file name
