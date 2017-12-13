@@ -19,6 +19,7 @@ if nIMU>1
         IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
         IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
         IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
+        IMU(ii).sts = IMU(ii).ts;
     end
 end
 
@@ -62,12 +63,10 @@ if nIMU == 1
     
 elseif nIMU > 1
     
-    [IMU(1).sts,IMU(2).sts] = synchronize(IMU(1).ts,IMU(2).ts,'Intersection');
-
-    for ii = 2:nIMU-1
-        for jj = 2:nIMU-1
-            [IMU(ii-1).sts,IMU(jj+1).sts] = synchronize(IMU(ii-1).sts,IMU(jj+1).ts,'Intersection');
-            [IMU(ii).sts,IMU(jj+1).sts] = synchronize(IMU(ii).sts,IMU(jj+1).sts,'Intersection');
+    for ii = 1:nIMU-1
+        for jj = ii+1:nIMU
+            [IMU(ii).sts,IMU(jj).sts] = synchronize(IMU(ii).sts,IMU(jj).sts,'Intersection');
+%             [IMU(ii).sts,IMU(jj+1).sts] = synchronize(IMU(ii).sts,IMU(jj+1).sts,'Intersection');
         end
     end
 
@@ -113,6 +112,14 @@ elseif nIMU > 1
     
     OS.elbow_flexion = IMU(nelb).pt+IMU(nsho).pt;
     OS.radial_pronation = IMU(nelb).rl-IMU(nsho).yw+IMU(nsho).rl;
+    
+    OS.header = fieldnames(OS);
+    
+    OS.all = [];
+    
+    for ii = 1:length(OS.header)
+        OS.all = [OS.all OS.(OS.header{ii})];
+    end  
     
 end
 
