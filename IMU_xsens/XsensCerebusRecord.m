@@ -3,19 +3,35 @@
 % antenna switching issues due to rotation in terms of the antenna or
 % switching between antennas
 
-
 function XsensCerebusRecord()
 %% cbmex intitialization
 % open cbmex, load ccf, prep everything for recording
-
+addpath(genpath('cbmex'));
 cbmex('open');
-reccbmex = 1;
+reccbmex = 0;
+lab = 1;
+
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
+<<<<<<< HEAD
     FN = 'C:\data\IMU\20171020_onrobot.nev'; % cerebus file name
 end
 
 xsenslog = fopen('C:\data\IMU\20171020_onrobot.txt','wt'); % xsens file name
+=======
+end
+
+switch lab
+    case 1
+        FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171213_stability_noreset_L1.nev'; % cerebus file name
+        xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171213_stability_noreset_L1.txt','wt'); % xsens file name
+    case 3
+        FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171212_stability_noreset.nev'; % cerebus file name
+        xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\20171212_stability_moreset.txt','wt'); % xsens file name
+    case 6
+        
+end
+>>>>>>> 8bf918ae49d94da937ade0dfb7f9d69b108ef0ad
 
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
 
@@ -109,6 +125,11 @@ devIdAll = cellfun(@(x) dec2hex(h.XsDevice_deviceId(x)),children,'uniformOutput'
 [devicesUsed, devIdUsed, nDevs] = checkConnectedSensors(devIdAll);
 fprintf(' Used device: %s \n',devIdUsed{:});
 
+%% Sync settings for awinda station	
+% if  strcmp(devTypeStr,'station')
+%     syncSettings = {h.XsSyncLine_XSL_In1, h.XsSyncFunction_XSF_TriggerIndication, h.XsSyncPolarity_XSP_RisingEdge, 0, 0, 0, 0, 0};
+%     h.XsDevice_setSyncSettings(device, syncSettings);
+% end
 
 %% Entering measurement mode
 fprintf('\n Activate measurement mode \n');
@@ -145,7 +166,6 @@ pause(1);
 %Start recording cerebus
 if reccbmex
     cbmex('fileconfig',FN,'',1);
-    cbmex('trialconfig',1) % Turn on the data buffer to cbmex
 end
 
 input('\n Press ''enter'' when aligned with initial position')
@@ -160,18 +180,17 @@ if output && all(coord_reset)
     % fprintf('\n Logfile: %s created\n',fullfile(cd,'exampleLogfile.mtb'));
     
     % start recording
-    %cbmex('fileconfig',FN,'',1);
+    % cbmex('fileconfig',FN,'',1);
     
     h.XsDevice_startRecording(device);
     
     % register onLiveDataAvailable event
-    resetcount1 = 0;
-    resetcount2 = 0;
+%     resetcount1 = 0;
+%     resetcount2 = 0;
     h.registerevent({'onLiveDataAvailable',@handleData});
     h.setCallbackOption(h.XsComCallbackOptions_XSC_LivePacket, h.XsComCallbackOptions_XSC_None);
     % event handler will call stopAll when limit is reached
     input('\n Press enter to stop measurement');
-    
 else
     fprintf('\n Problems with going to measurement\n')
 end
@@ -194,45 +213,38 @@ stopAll;
                 fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
             end
             
+            trig = h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
+            tel = cbmex('time');
+            if trig && (rem(tel,300)<=1)
+                for i = 1:length(children)
+                    h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+                end
+            end
+            
             h.liveDataPacketHandled(deviceFound, dataPacket);
             
-%             event_data = cbmex('trialdata', 1); % Read some event data, reset time for the next trialdata/flush buffer
-%             if ~isempty(event_data{151, 3}) % Digitalin channel = 151
-%                 for i = 1:length(children)
-%                     h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+%             if length(children)==1
+%                 if all(abs(oriC)<=2)
+%                     resetcount1 = resetcount1+1;
+%                 end
+%                 if resetcount1==10
+%                     h.XsDevice_resetOrientation(children{1}, h.XsResetMethod_XRM_Alignment());
+%                     resetcount1 = 0;
+%                 end
+%             else
+%                 if all(abs(oriC)<=3)&&(iDev==1)
+%                     resetcount1 = resetcount1+1;
+%                 elseif all(abs(oriC)<=3)&&(iDev==2)
+%                     resetcount2 = resetcount2+1;
+%                 end
+%                 if resetcount1==10
+%                     h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
+%                     resetcount1 = 0;
+%                 elseif resetcount2==10
+%                     h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
+%                     resetcount2 = 0;
 %                 end
 %             end
-            
-            if length(children)==1
-                if all(abs(oriC)<=2)
-                    resetcount1 = resetcount1+1;
-                end
-                if resetcount1==10
-                    h.XsDevice_resetOrientation(children{1}, h.XsResetMethod_XRM_Alignment());
-                    resetcount1 = 0;
-                end
-            else
-                if all(abs(oriC)<=3)&&(iDev==1)
-                    resetcount1 = resetcount1+1;
-                elseif all(abs(oriC)<=3)&&(iDev==2)
-                    resetcount2 = resetcount2+1;
-                end
-                if resetcount1==10
-                    h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
-                    resetcount1 = 0;
-                elseif resetcount2==10
-                    h.XsDevice_resetOrientation(children{iDev}, h.XsResetMethod_XRM_Alignment());
-                    resetcount2 = 0;
-                end
-                %                 if (resetcount1+resetcount2==50)&&((resetcount1>20)&&(resetcount2>20))
-                %                     for i = 1:length(children)
-                %                         h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
-                %                     end
-                %                     resetcount1 = 0;
-                %                     resetcount2 = 0;
-                %                 end
-                
-            end
         end
     end
 
