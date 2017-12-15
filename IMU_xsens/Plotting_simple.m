@@ -1,7 +1,7 @@
 %% Plot of IMU data
-addpath('txt');
+addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
 
-data = dlmread('20171212_stability_noreset.txt','\t',2,0);
+data = dlmread('20171213_stability_noreset_L1.txt','\t',2,0);
 
 time1 = data(data(:,1)==1,2);
 time2 = data(data(:,1)==2,2);

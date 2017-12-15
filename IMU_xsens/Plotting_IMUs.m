@@ -1,6 +1,6 @@
 %% Data loading
-addpath('txt');
-filenames = {'20171212_stability_reset.txt','20171212_stability_noreset.txt'};
+addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
+filenames = {'20171213_stability_noreset_L1.txt'};
 isrst = [1,0];
 
 %%
