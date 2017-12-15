@@ -1,79 +1,56 @@
 %% Analysis IMU data on arm
-
 addpath('txt');
 
-filenameIMU = '20171012_onarm_int.txt';
+filenameIMU = '20171026_onarm_angid.txt';
 
-data = dlmread(filenameIMU,'\t',2,0);
-timeIMU1 = data(data(:,1)==1,2);
-timeIMU2 = data(data(:,1)==2,2);
-IMU1 = data(data(:,1)==1,3:end);
-IMU2 = data(data(:,1)==2,3:end);
+[IMU,~] = loadsync(filenameIMU);
+iselb = 0;
 
-ts1 = timeseries(IMU1,timeIMU1);
-ts2 = timeseries(IMU2,timeIMU2);
-[ts1s,ts2s]=synchronize(ts1,ts2,'Intersection');
-
-timeIMU1 = ts1s.Time;
-timeIMU2 = ts2s.Time;
-IMU1 = ts1s.Data;
-IMU2 = ts2s.Data;
-
+%% Position IMU 
 lelb = 16.5*2.54; % [cm] 7.5 to center IMU, 10 to wrist, 16.5 to end index
 lsho = 10.5*2.54; % [cm] 7.5 to center IMU, 10.5 to elbow
 lenIMU = 4.7; % [cm]
 larm = lelb+lsho;
 
-rle = IMU2(:,1);
-pte = IMU2(:,2);
-ywe = IMU2(:,3);
+stime = IMU(1).stime;
 
-rls = IMU1(:,1);
-pts = IMU1(:,2);
-yws = IMU1(:,3);
+X_sho = [];
+X_elb = [];
 
-% x as unit vector
-x_elb = lelb*cosd(ywe).*cosd(pte);
-y_elb = lelb*sind(ywe).*cosd(pte);
-z_elb = -lelb*sind(pte);
+for i = 1:length(IMU(1).stime)
+    X_sho(i,:) = Rotypr(IMU(1).yw(i),IMU(1).pt(i),IMU(1).rl(i))*[lsho;0;0];
+    X_elb(i,:) = X_sho(i,:)' + Rotypr(IMU(2).yw(i),IMU(2).pt(i),IMU(2).rl(i))*[lelb;0;0];
+end
 
-x_sho = lsho*cosd(yws).*cosd(pts);
-y_sho = lsho*sind(yws).*cosd(pts);
-z_sho = -lsho*sind(pts);
+%% x as unit vector
+x_elb = X_elb(:,1);
+y_elb = X_elb(:,2);
+z_elb = X_elb(:,3);
 
-x_tot = x_elb+x_sho;
-y_tot = y_elb+y_sho;
-z_tot = z_elb+z_sho;
+x_sho = X_sho(:,1);
+y_sho = X_sho(:,2);
+z_sho = X_sho(:,3);
 
 % Maximum value intervals
 thr = 2;
-maxtime = timeIMU1(x_tot >= (max(x_tot)-thr));
-maxdist = x_tot(x_tot >= (max(x_tot)-thr));
+maxtime = IMU(1).stime(x_elb >= (max(x_elb)-thr));
+maxdist = x_elb(x_elb >= (max(x_elb)-thr));
 
 %% Plot distances
 figure
-subplot(311)
-plot(timeIMU1,x_tot)
+subplot(211)
+plot(stime,x_elb)
 hold on
-plot(timeIMU1,y_tot)
-plot(timeIMU1,z_tot)
+plot(stime,y_elb)
+plot(stime,z_elb)
 line(get(gca,'xlim'),[larm larm],'Color','k')
-plot(maxtime,maxdist,'*')
-title('Total distance')
-legend('x','y','z')
-subplot(312)
-plot(timeIMU1,x_elb)
-hold on
-plot(timeIMU1,y_elb)
-plot(timeIMU1,z_elb)
-line(get(gca,'xlim'),[lelb lelb],'Color','k')
 title('Elbow distance')
 legend('x','y','z')
-subplot(313)
-plot(timeIMU1,x_sho)
+subplot(212)
+plot(stime,x_sho)
 hold on
-plot(timeIMU1,y_sho)
-plot(timeIMU1,z_sho)
+plot(stime,y_sho)
+plot(stime,z_sho)
 line(get(gca,'xlim'),[lsho lsho],'Color','k')
 title('Shoulder distance')
 legend('x','y','z')
@@ -89,9 +66,9 @@ end
 
 %% Plot angles 
 figure
-plot(timeIMU1,IMU1)
+plot(stime,IMU(1).sts.Data(:,1:3))
 hold on
-plot(timeIMU2,IMU2)
+plot(stime,IMU(2).sts.Data(:,1:3))
 legend('Roll_s','Pitch_s','Yaw_s','Roll_e','Pitch_e','Yaw_e')
 xlabel('Time [s]'); ylabel('Angle [deg]');
 if strcmp(namespt{3},'lat.txt')
@@ -102,33 +79,72 @@ elseif strcmp(namespt{3},'int.txt')
     title('Touch Shoulder')
 end
 
-%% With rotation matrix - NOT
-X_sho = [];
-X_elb = [];
-
-for i = 1:length(timeIMU1)
-    X_sho(:,i) = Rotypr(yws(i),pts(i),rls(i))*[lsho;0;0];
-    X_elb(:,i) = X_sho(:,i) + Rotypr(yws(i),pts(i),rls(i))*Rotypr(ywe(i),pte(i),rle(i))*[lelb;0;0];
-end
-
-figure 
-plot(timeIMU1,X_elb')
-line(get(gca,'xlim'),[larm larm],'Color','k')
-title('Total distance')
-legend('x','y','z')
-
 %% Plot 2D path
 figure
-subplot(131)
-plot(x_tot,y_tot)
+set(gcf, 'units', 'normalized', 'position', [0.1 0.1 0.8 0.8])
+subplot(221)
+plot(x_elb,y_elb)
 xlabel('x'); ylabel('y');
-axis equal
-subplot(132)
-plot(y_tot,z_tot)
+axis equal; grid on
+subplot(222)
+plot(y_elb,z_elb)
 xlabel('y'); ylabel('z');
-axis equal
-subplot(133)
-plot(x_tot,z_tot)
+axis equal; grid on
+subplot(223)
+plot(x_elb,z_elb)
 xlabel('x'); ylabel('z');
-axis equal
+axis equal; grid on
+subplot(224)
+plot3(x_elb,y_elb,z_elb)
+xlabel('x'); ylabel('y'); zlabel('z');
+axis equal; grid on
+
+%% OpenSim angles with Euler angles
+clear OS
+
+OS.Eul.time = IMU(1).stime;
+
+OS.Eul.shoulder_flexion = IMU(1).pt;
+OS.Eul.shoulder_adduction = IMU(1).yw;
+OS.Eul.shoulder_rotation = IMU(1).rl;
+
+OS.Eul.elbow_flexion = IMU(2).pt-IMU(1).pt;
+OS.Eul.radial_pronation = IMU(2).rl-IMU(1).rl;
+
+header = fieldnames(OS.Eul);
+
+OS.Eul.all = [];
+for ii = 1:length(header)
+    OS.Eul.all = [OS.Eul.all OS.Eul.(header{ii})];
+end
+
+figure
+plot(OS.Eul.time,OS.Eul.all(:,2:end))
+legend(header{2:end})
+
+%% OpenSim angles with Quaternions 
+figure
+plot(stime,[IMU(1).q.rl,IMU(1).q.pt,IMU(1).q.yw])
+hold on
+plot(stime,[IMU(2).q.rl,IMU(2).q.pt,IMU(2).q.yw])
+legend('Roll_s','Pitch_s','Yaw_s','Roll_e','Pitch_e','Yaw_e')
+xlabel('Time [s]'); ylabel('Angle [deg]');
+
+OS.Quat.time = IMU(1).stime;
+
+OS.Quat.shoulder_flexion = IMU(1).q.yw;
+OS.Quat.shoulder_adduction = IMU(1).q.pt;
+OS.Quat.shoulder_rotation = IMU(1).q.rl;
+
+OS.Quat.elbow_flexion = IMU(2).q.yw-IMU(1).q.yw;
+OS.Quat.radial_pronation = IMU(2).q.rl-IMU(1).q.rl;
+
+OS.Quat.all = [];
+for ii = 1:length(header)
+    OS.Quat.all = [OS.Quat.all OS.Quat.(header{ii})];
+end
+
+figure
+plot(OS.Quat.time,OS.Quat.all(:,2:end))
+legend(header{2:end})
 

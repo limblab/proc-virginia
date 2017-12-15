@@ -1,29 +1,43 @@
 %% Create .mot file with joint angles
-
-filenameIMU = '20171012_onarm_lat.txt';
 motname = '20171012_jointangles.mot';
+delete motname
 fid = fopen(motname,'wt');
 
-data = dlmread(filenameIMU,'\t',2,0);
-timeIMU1 = data(data(:,1)==1,2);
-timeIMU2 = data(data(:,1)==2,2);
-IMU1 = data(data(:,1)==1,3:end);
-IMU2 = data(data(:,1)==2,3:end);
-
-ts1 = timeseries(IMU1,timeIMU1);
-ts2 = timeseries(IMU2,timeIMU2);
-[ts1s,ts2s]=synchronize(ts1,ts2,'Intersection');
-
-timeIMU = ts1s.Time;
-IMU1 = ts1s.Data;
-IMU2 = ts2s.Data;
-
 %% Write on file
-nRows = length(timeIMU);
-nCols = size(IMU1,2)+1;
+nRows = length(IMU(1).stime);
+nCols = size(IMU,2)+1;
+
 fprintf(fid,[motname,'\nnRows=%d\nnColumns=%d\n\nUnits are S.I. units (second, meters, Newtons, ...)\nAngles are in degrees.\n\nendheader\n'],nRows,nCols);
-fprintf(fid,'time\n');
-dlmwrite(motname,[timeIMU,IMU1,IMU2],'-append','delimiter','\t');
+fprintf(fid,'%s\t %s\t %s\t %s\t %s\t %s\n',header{:});
+dlmwrite(motname,OS.all,'-append','delimiter','\t','precision','%.6f');
+fclose(fid);
 
+%% Get OpenSim angles
+clear OS
 
+OS.time = IMU(1).stime;
 
+% OS.shoulder_flexion = IMU(1).yw;
+% OS.shoulder_adduction = IMU(1).pt;
+% OS.shoulder_rotation = IMU(1).rl;
+% 
+% OS.elbow_flexion = IMU(2).yw-IMU(1).yw;
+% OS.radial_pronation = IMU(2).rl-IMU(1).pt;
+
+OS.shoulder_flexion = IMU(1).pt;
+OS.shoulder_adduction = IMU(1).rl-IMU(1).yw;
+OS.shoulder_rotation = IMU(1).yw-IMU(1).rl;
+
+OS.elbow_flexion = IMU(2).pt+IMU(1).pt;
+OS.radial_pronation = IMU(2).rl-IMU(1).yw+IMU(1).rl;
+
+header = fieldnames(OS);
+
+OS.all = [];
+for ii = 1:length(header)
+    OS.all = [OS.all OS.(header{ii})];
+end
+
+figure
+plot(OS.time,OS.all(:,2:end))
+legend(header{2:end})

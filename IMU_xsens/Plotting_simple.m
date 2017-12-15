@@ -1,16 +1,16 @@
 %% Plot of IMU data
 addpath('txt');
-data = dlmread('20171019_moredata.txt','\t',2,0);
+data = dlmread('20171026_onarm_angid.txt','\t',2,0);
 
 time1 = data(data(:,1)==1,2);
 time2 = data(data(:,1)==2,2);
-ori1 = data(data(:,1)==1,3:5);
-ori2 = data(data(:,1)==2,3:5);
+ori1 = (data(data(:,1)==1,3:5));
+ori2 = (data(data(:,1)==2,3:5));
 agm1 = data(data(:,1)==1,6:end);
 agm2 = data(data(:,1)==2,6:end);
 
 figure
-plot(time1,ori1)
+plot(time1,ori1) 
 hold on
 plot(time2,ori2)
 legend('Roll_1','Pitch_1','Yaw_1','Roll_2','Pitch_2','Yaw_2')

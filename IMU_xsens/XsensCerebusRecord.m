@@ -16,7 +16,8 @@ if reccbmex
 end
 
 xsenslog = fopen('C:\data\IMU\20171020_onrobot.txt','wt'); % xsens file name
-fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\n'); % xsens header
+
+fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
 switch computer
@@ -144,6 +145,7 @@ pause(1);
 %Start recording cerebus
 if reccbmex
     cbmex('fileconfig',FN,'',1);
+    cbmex('trialconfig',1) % Turn on the data buffer to cbmex
 end
 
 input('\n Press ''enter'' when aligned with initial position')
@@ -188,10 +190,18 @@ stopAll;
                 accC = cell2mat(h.XsDataPacket_calibratedAcceleration(dataPacket));
                 gyroC = cell2mat(h.XsDataPacket_calibratedGyroscopeData(dataPacket));
                 magnC = cell2mat(h.XsDataPacket_calibratedMagneticField(dataPacket));
-                fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC);
+                quat = cell2mat(h.XsDataPacket_orientationQuaternion_1(dataPacket));
+                fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
             end
             
             h.liveDataPacketHandled(deviceFound, dataPacket);
+            
+%             event_data = cbmex('trialdata', 1); % Read some event data, reset time for the next trialdata/flush buffer
+%             if ~isempty(event_data{151, 3}) % Digitalin channel = 151
+%                 for i = 1:length(children)
+%                     h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+%                 end
+%             end
             
             if length(children)==1
                 if all(abs(oriC)<=2)
@@ -221,6 +231,7 @@ stopAll;
                 %                     resetcount1 = 0;
                 %                     resetcount2 = 0;
                 %                 end
+                
             end
         end
     end
