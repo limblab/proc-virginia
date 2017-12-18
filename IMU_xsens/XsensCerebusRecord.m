@@ -13,12 +13,6 @@ lab = 1;
 
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
-<<<<<<< HEAD
-    FN = 'C:\data\IMU\20171020_onrobot.nev'; % cerebus file name
-end
-
-xsenslog = fopen('C:\data\IMU\20171020_onrobot.txt','wt'); % xsens file name
-=======
 end
 
 switch lab
@@ -31,7 +25,6 @@ switch lab
     case 6
         
 end
->>>>>>> 8bf918ae49d94da937ade0dfb7f9d69b108ef0ad
 
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
 
