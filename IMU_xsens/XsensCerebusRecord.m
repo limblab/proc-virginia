@@ -1,4 +1,4 @@
-%% function xsensCerebusRecord()
+ %% function xsensCerebusRecord()
 % syncs the recording from the cerebus and the xsens so that we can look at
 % antenna switching issues due to rotation in terms of the antenna or
 % switching between antennas
@@ -6,7 +6,7 @@
 function XsensCerebusRecord()
 %% cbmex intitialization
 % open cbmex, load ccf, prep everything for recording
-addpath(genpath('cbmex'));
+% addpath(genpath('cbmex'));
 cbmex('open');
 reccbmex = 0;
 lab = 1;
@@ -17,8 +17,8 @@ end
 
 switch lab
     case 1
-        FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171213_stability_noreset_L1.nev'; % cerebus file name
-        xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171213_stability_noreset_L1.txt','wt'); % xsens file name
+        FN = 'E:\Data-lab1\IMU Data\txt\20171214_stability_noreset_L1_nometal_2.nev'; % cerebus file name
+        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20171214_stability_noreset_L1_nometal_2.txt','wt'); % xsens file name
     case 3
         FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171212_stability_noreset.nev'; % cerebus file name
         xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\20171212_stability_moreset.txt','wt'); % xsens file name
