@@ -4,12 +4,14 @@ reset = 0;
 cbmex('open');
 cbmex('trialconfig',0) % Turn off the data buffer to cbmex ?
 
-cbmex('ccf', 'send', 'testIMU.ccf'); % Send .ccf to the NSP
+% cbmex('ccf', 'send', 'testIMU.ccf'); % Send .ccf to the NSP
 
 % cbmex('mask', 0, 0);
 % cbmex('mask', 152, 1);
 
-FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171115_IMUreset.nev'; % Cerebus file name
+% FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171115_IMUreset.nev'; % Cerebus file name
+FN = 'C:\data\IMU\20171120_resettest.txt';
+
 cbmex('fileconfig',FN,'',1); % Start file recording the specified file
 
 cbmex('trialconfig',1) % Turn on the data buffer to cbmex

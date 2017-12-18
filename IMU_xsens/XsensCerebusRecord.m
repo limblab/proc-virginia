@@ -208,7 +208,7 @@ stopAll;
             
             trig = h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
             tel = cbmex('time');
-            if trig && (rem(tel,300)<=1)
+            if trig && (rem(tel,300)<=3)
                 for i = 1:length(children)
                     h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
                 end
