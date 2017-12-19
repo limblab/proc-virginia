@@ -9,7 +9,8 @@ function XsensCerebusRecord()
 addpath(genpath('cbmex'));
 cbmex('open');
 reccbmex = 0;
-lab = 1;
+lab = 3;
+alignrst = 0;
 
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
@@ -20,13 +21,14 @@ switch lab
         FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171213_stability_noreset_L1.nev'; % cerebus file name
         xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171213_stability_noreset_L1.txt','wt'); % xsens file name
     case 3
-        FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171212_stability_noreset.nev'; % cerebus file name
-        xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\20171212_stability_moreset.txt','wt'); % xsens file name
+        FN = 'E:\IMU data\20171219_elbFE.nev'; % cerebus file name
+        xsenslog = fopen('E:\IMU data\20171219_elbFE.txt','wt'); % xsens file name
     case 6
         
 end
 
 fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
+%fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
 switch computer
@@ -163,23 +165,21 @@ end
 
 input('\n Press ''enter'' when aligned with initial position')
 
-for i = 1:length(children)
-    coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+if alignrst == 1
+    for i = 1:length(children)
+        coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+    end
 end
 
-if output && all(coord_reset)
+if output %% && all(coord_reset)
     % create log file
     % h.XsDevice_createLogFile(device,'exampleLogfile.mtb');
     % fprintf('\n Logfile: %s created\n',fullfile(cd,'exampleLogfile.mtb'));
     
-    % start recording
-    % cbmex('fileconfig',FN,'',1);
-    
     h.XsDevice_startRecording(device);
     
     % register onLiveDataAvailable event
-%     resetcount1 = 0;
-%     resetcount2 = 0;
+
     h.registerevent({'onLiveDataAvailable',@handleData});
     h.setCallbackOption(h.XsComCallbackOptions_XSC_LivePacket, h.XsComCallbackOptions_XSC_None);
     % event handler will call stopAll when limit is reached
@@ -204,11 +204,13 @@ stopAll;
                 magnC = cell2mat(h.XsDataPacket_calibratedMagneticField(dataPacket));
                 quat = cell2mat(h.XsDataPacket_orientationQuaternion_1(dataPacket));
                 fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
+                %fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,quat);
+                
             end
             
             trig = h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
             tel = cbmex('time');
-            if trig && (rem(tel,300)<=1)
+            if trig && (rem(tel,300)<=3)
                 for i = 1:length(children)
                     h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
                 end
