@@ -10,7 +10,8 @@ addpath(genpath('cbmex'));
 cbmex('open');
 reccbmex = 0;
 lab = 3;
-alignrst = 0;
+alignrst = 1;
+headrst = 0;
 
 if reccbmex
     cbmex('trialconfig',0) % turn off the data buffer
@@ -21,8 +22,8 @@ switch lab
         FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171213_stability_noreset_L1.nev'; % cerebus file name
         xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171213_stability_noreset_L1.txt','wt'); % xsens file name
     case 3
-        FN = 'E:\IMU data\20171219_elbFE.nev'; % cerebus file name
-        xsenslog = fopen('E:\IMU data\20171219_elbFE.txt','wt'); % xsens file name
+        FN = 'E:\IMU data\20171222_acalibration_movem.nev'; % cerebus file name
+        xsenslog = fopen('E:\IMU data\20171222_acalibration_movem.txt','wt'); % xsens file name
     case 6
         
 end
@@ -171,6 +172,12 @@ if alignrst == 1
     end
 end
 
+if headrst == 1
+    for i = 1:length(children)
+        coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Heading());
+    end
+end
+
 if output %% && all(coord_reset)
     % create log file
     % h.XsDevice_createLogFile(device,'exampleLogfile.mtb');
@@ -316,7 +323,7 @@ stopAll;
                 str = input('\n Type the numbers of the sensors (csv list, e.g. "1,2,3") from which status should be changed \n (if accepted than reject or the other way around):\n','s');
                 change = str2double(regexp(str, ',', 'split'));
                 if isempty(str)
-                    stopAll;
+                    stopAll
                 else
                     for iR=1:length(change)
                         if childUsed(change(iR))
