@@ -1,4 +1,4 @@
-function[IMU,OS] = loadIMU_toOS(filenameIMU,isrst)
+function[IMU,OS] = loadIMU(filenameIMU,isrst)
 
 clear IMU OS
 
@@ -34,6 +34,7 @@ end
 
 for ii = 1:nIMU
     IMU(ii).stime = IMU(ii).sts.Time;
+    IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
     
     if any(strcmp(header,'Roll'))
         irl = find(strcmp(header,'Roll'))-2;

@@ -1,4 +1,4 @@
-function[Rmat] = qtoR(q0,q1,q2,q3)
+function[Rmat] = qtoR(q0,q1,q2,q3) % Obtain rotation matrix from quaternion
 
 qw = q0;
 qx = q1;

@@ -1,4 +1,4 @@
-function[yw,pt,rl] = qtoEul(q)
+function[yw,pt,rl] = qtoEul(q) % Obtain Euler angles from quaternion
 
 q1.w = q.q0;
 q1.x = q.q1;
@@ -14,11 +14,11 @@ sqz = q1.z*q1.z;
 
 unit = sqx + sqy + sqz + sqw;
 
-if (test > 0.499*unit) %% singularity at north pole
+if (test > 0.499*unit) % singularity at north pole
     yw = 2 * atan2(q1.x,q1.w);
     pt = pi/2;
     rl = 0;
-elseif (test < -0.499*unit) %% singularity at south pole
+elseif (test < -0.499*unit) % singularity at south pole
     yw = -2 * atan2(q1.x,q1.w);
     pt = - pi/2;
     rl = 0;
