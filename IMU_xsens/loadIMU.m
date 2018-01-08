@@ -1,4 +1,4 @@
-function[IMU,OS] = loadIMU_toOS(filenameIMU,isrst)
+function[IMU,OS] = loadIMU(filenameIMU,isrst)
 
 clear IMU OS
 
@@ -10,11 +10,7 @@ dataIMU = dlmread(filenameIMU,'\t',2,0);
 nIMU = max(dataIMU(:,1));
 
 order = [];
-
-if nIMU>1
-    order = input('\n Order IMUs? [back/sho/elb/wrst] ','s');
-end
-
+order = input('\n Order IMUs? [back/sho/elb/wrst] ','s');
 strspl = strsplit(order,'/');
 
 for ii = 1:nIMU
@@ -38,17 +34,18 @@ end
 
 for ii = 1:nIMU
     IMU(ii).stime = IMU(ii).sts.Time;
+    IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
     
     if any(strcmp(header,'Roll'))
-        irl = find(strcmp(header,'Roll'));
+        irl = find(strcmp(header,'Roll'))-2;
         IMU(ii).rl = IMU(ii).sts.Data(:,irl);
     end
     if any(strcmp(header,'Pitch'))
-        ipt = find(strcmp(header,'Pitch'));
+        ipt = find(strcmp(header,'Pitch'))-2;
         IMU(ii).pt = IMU(ii).sts.Data(:,ipt);
     end
     if any(strcmp(header,'Yaw'))
-        iyw = find(strcmp(header,'Yaw'));
+        iyw = find(strcmp(header,'Yaw'))-2;
         IMU(ii).yw = IMU(ii).sts.Data(:,iyw);
     end
     if any(strcmp(header,'Yaw')) && any(strcmp(header,'Pitch')) && any(strcmp(header,'Roll'))
@@ -56,24 +53,24 @@ for ii = 1:nIMU
     end
     
     if any(strcmp(header,'xAcc'))
-        iac = find(strcmp(header,'xAcc'));
+        iac = find(strcmp(header,'xAcc'))-2;
         IMU(ii).acc = IMU(ii).sts.Data(:,iac:iac+2);
     end
     if any(strcmp(header,'xGyro'))
-        igy = find(strcmp(header,'xGyro'));
+        igy = find(strcmp(header,'xGyro'))-2;
         IMU(ii).gyro = rad2deg(IMU(ii).sts.Data(:,igy:igy+2));
     end
     if any(strcmp(header,'xMagn'))
-        img = find(strcmp(header,'xMagn'));
+        img = find(strcmp(header,'xMagn'))-2;
         IMU(ii).magn = IMU(ii).sts.Data(:,img:img+2);
     end
     if any(strcmp(header,'q0'))
-        iq = find(strcmp(header,'q0'));
+        iq = find(strcmp(header,'q0'))-2;
         IMU(ii).q.q0 = IMU(ii).sts.Data(:,iq);
         IMU(ii).q.q1 = IMU(ii).sts.Data(:,iq+1);
         IMU(ii).q.q2 = IMU(ii).sts.Data(:,iq+2);
         IMU(ii).q.q3 = IMU(ii).sts.Data(:,iq+3);
-        IMU(ii) = EulerfromQuaternion(IMU(ii));
+        IMU(ii) = EulerfromQuaternionIMUload(IMU(ii));
     end
 end
 
