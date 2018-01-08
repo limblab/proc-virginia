@@ -1,7 +1,16 @@
 %% Plot of IMU data
-addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
+lab = 3;
 
-data = dlmread('20171213_stability_noreset_L1.txt','\t',2,0);
+switch lab
+    case 0
+        addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');   
+    case 1       
+    case 3
+        addpath('E:\IMU data\');     
+    case 6      
+end
+
+data = dlmread('20180108_stability_g1_1.txt','\t',2,0);
 
 time1 = data(data(:,1)==1,2);
 time2 = data(data(:,1)==2,2);
