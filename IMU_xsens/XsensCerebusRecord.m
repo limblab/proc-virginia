@@ -17,8 +17,8 @@ end
 
 switch lab
     case 1
-        FN = 'E:\Data-lab1\IMU Data\txt\20171214_stability_noreset_L1_nometal_2.nev'; % cerebus file name
-        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20171214_stability_noreset_L1_nometal_2.txt','wt'); % xsens file name
+        FN = 'E:\Data-lab1\IMU Data\txt\20171218_resetmat.nev'; % cerebus file name
+        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20171218_resetmat.txt','wt'); % xsens file name
     case 3
         FN = 'C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\20171212_stability_noreset.nev'; % cerebus file name
         xsenslog = fopen('C:\Users\system administrator\Desktop\GIT\proc-virginia\IMU_xsens\txt\20171212_stability_moreset.txt','wt'); % xsens file name
@@ -162,12 +162,12 @@ if reccbmex
 end
 
 input('\n Press ''enter'' when aligned with initial position')
+% 
+% for i = 1:length(children)
+%     coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+% end
 
-for i = 1:length(children)
-    coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
-end
-
-if output && all(coord_reset)
+if output%% && all(coord_reset)
     % create log file
     % h.XsDevice_createLogFile(device,'exampleLogfile.mtb');
     % fprintf('\n Logfile: %s created\n',fullfile(cd,'exampleLogfile.mtb'));
