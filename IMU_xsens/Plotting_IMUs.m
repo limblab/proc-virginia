@@ -1,12 +1,12 @@
 %% File selection
 addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
-filenames = {'20171222_hcalibration_movem.txt'};%,'20171221_calibrationT.txt','20171221_shoelbFE.txt'};
+filenames = {'20180108_stability_g2_2.txt'};%,'20171221_calibrationT.txt','20171221_shoelbFE.txt'};
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
-    
-    [IMU,OS] = loadIMU(filenames{jj},isrst(jj));
+   
+    %[IMU,OS] = loadIMU(filenames{jj},isrst(jj));
     %IMU = IMU_nometal2;
     
     % Plot IMU angles from Euler
