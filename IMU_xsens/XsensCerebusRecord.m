@@ -22,8 +22,8 @@ switch lab
         FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171213_stability_noreset_L1.nev'; % Cerebus file name
         xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171213_stability_noreset_L1.txt','wt'); % Xsens file name
     case 3
-        FN = 'E:\IMU data\20180108_stability_g1_2.nev'; % cerebus file name
-        xsenslog = fopen('E:\IMU data\20180108_stability_g1_2.txt','wt'); % xsens file name
+        FN = 'E:\IMU data\20180108_calibration_AA.nev'; % cerebus file name
+        xsenslog = fopen('E:\IMU data\20180108_calibration_AA.txt','wt'); % xsens file name
     case 6
         
 end

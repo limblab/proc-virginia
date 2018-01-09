@@ -1,6 +1,8 @@
 %% File selection
-addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
-filenames = {'20171222_hcalibration_movem.txt'};%,'20171221_calibrationT.txt','20171221_shoelbFE.txt'};
+%addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
+addpath('E:\IMU data');
+
+filenames = {'20180108_stability_g2_2.txt'};%,'20171221_calibrationT.txt','20171221_shoelbFE.txt'};
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
