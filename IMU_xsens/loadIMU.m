@@ -6,7 +6,8 @@ fid = fopen(filenameIMU,'rt');
 header = strsplit(fgets(fid));
 fclose(fid);
 
-dataIMU = dlmread(filenameIMU,'\t',2,0);
+idnIMU = dlmread(filenameIMU,'\t',[1 1 end 1]);
+dataIMU = dlmread(filenameIMU,'\t',1,2);
 nIMU = max(dataIMU(:,1));
 
 order = [];

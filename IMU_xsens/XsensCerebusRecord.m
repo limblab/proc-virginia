@@ -28,8 +28,8 @@ switch lab
         
 end
 
-fprintf(xsenslog,'DevID\t DevIDd\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
-%fprintf(xsenslog,'DevID\t DevIDd\t CerebusTime\t Roll\t Pitch\t Yaw\t q0\t q1\t q2\t q3\n'); % xsens header
+fprintf(xsenslog,'DevIDd\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
+%fprintf(xsenslog,'DevIDd\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
 switch computer
@@ -213,8 +213,8 @@ stopAll;
                 gyroC = cell2mat(h.XsDataPacket_calibratedGyroscopeData(dataPacket));
                 magnC = cell2mat(h.XsDataPacket_calibratedMagneticField(dataPacket));
                 quat = cell2mat(h.XsDataPacket_orientationQuaternion_1(dataPacket));
-                fprintf(xsenslog,'%d\t %s\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',nDev,IDDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
-                %fprintf(xsenslog,'%d\t %s\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',nDev,IDDev,cbmex('time'),oriC,quat);
+                fprintf(xsenslog,'%s\t %d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',IDDev,nDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
+                %fprintf(xsenslog,'%s\t %d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',IDDev,nDev,cbmex('time'),oriC,quat);
                 
             end
             
