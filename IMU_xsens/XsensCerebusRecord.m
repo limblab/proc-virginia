@@ -28,8 +28,8 @@ switch lab
         
 end
 
-fprintf(xsenslog,'DevIDn\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
-%fprintf(xsenslog,'DevID\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t q0\t q1\t q2\t q3\n'); % xsens header
+fprintf(xsenslog,'DevID\t DevIDd\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
+%fprintf(xsenslog,'DevID\t DevIDd\t CerebusTime\t Roll\t Pitch\t Yaw\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
 switch computer
@@ -203,7 +203,7 @@ stopAll;
         dataPacket = varargin{3}{2};
         deviceFound = varargin{3}{1};
         
-        iDev = find(cellfun(@(x) x==deviceFound, devicesUsed));
+        nDev = find(cellfun(@(x) x==deviceFound, devicesUsed));
         IDDev = dec2hex(h.XsDevice_deviceId(deviceFound));
         
         if dataPacket
@@ -213,8 +213,8 @@ stopAll;
                 gyroC = cell2mat(h.XsDataPacket_calibratedGyroscopeData(dataPacket));
                 magnC = cell2mat(h.XsDataPacket_calibratedMagneticField(dataPacket));
                 quat = cell2mat(h.XsDataPacket_orientationQuaternion_1(dataPacket));
-                fprintf(xsenslog,'%d\t %s\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,IDDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
-                %fprintf(xsenslog,'%d\t %s\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,IDDev,cbmex('time'),oriC,quat);
+                fprintf(xsenslog,'%d\t %s\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',nDev,IDDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
+                %fprintf(xsenslog,'%d\t %s\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',nDev,IDDev,cbmex('time'),oriC,quat);
                 
             end
             

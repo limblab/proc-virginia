@@ -15,8 +15,12 @@ strspl = strsplit(order,'/');
 
 for ii = 1:nIMU
     IMU(ii).place = strspl{ii};
-    IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
-    IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
+    if any(strcmp(header,'DevIDd'))
+        IMU(ii).ID = dataIMU(dataIMU(:,1)==ii,find(strcmp(header,'DevIDd')));
+    end
+    it = find(strcmp(header,'CerebusTime'));
+    IMU(ii).data = dataIMU(dataIMU(:,1)==ii,it+1:end);
+    IMU(ii).time = dataIMU(dataIMU(:,1)==ii,it);
     IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
     IMU(ii).sts = IMU(ii).ts;
 end

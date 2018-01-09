@@ -8,7 +8,7 @@ isrst = [1,1,1]; % When 0 enables detrend
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-    %[IMU,OS] = loadIMU(filenames{jj},isrst(jj));
+    [IMU,OS] = loadIMU(filenames{jj},isrst(jj));
     %IMU = IMU_nometal2;
     
     % Plot IMU angles from Euler
