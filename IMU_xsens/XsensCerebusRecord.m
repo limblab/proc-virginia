@@ -22,14 +22,14 @@ switch lab
         FN = 'C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\20171213_stability_noreset_L1.nev'; % Cerebus file name
         xsenslog = fopen('C:\Users\limblab\Documents\GitHub\proc\proc-Virginia\IMU_xsens\txt\20171213_stability_noreset_L1.txt','wt'); % Xsens file name
     case 3
-        FN = 'E:\IMU data\20180108_calibration_AA.nev'; % cerebus file name
-        xsenslog = fopen('E:\IMU data\20180108_calibration_AA.txt','wt'); % xsens file name
+        FN = 'E:\IMU data\20180109.nev'; % cerebus file name
+        xsenslog = fopen('E:\IMU data\20180109.txt','wt'); % xsens file name
     case 6
         
 end
 
-fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
-%fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t q0\t q1\t q2\t q3\n'); % xsens header
+fprintf(xsenslog,'DevIDn\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
+%fprintf(xsenslog,'DevID\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
 switch computer
@@ -204,6 +204,8 @@ stopAll;
         deviceFound = varargin{3}{1};
         
         iDev = find(cellfun(@(x) x==deviceFound, devicesUsed));
+        IDDev = dec2hex(h.XsDevice_deviceId(deviceFound));
+        
         if dataPacket
             if h.XsDataPacket_containsOrientation(dataPacket)
                 oriC = cell2mat(h.XsDataPacket_orientationEuler_1(dataPacket));
@@ -211,8 +213,8 @@ stopAll;
                 gyroC = cell2mat(h.XsDataPacket_calibratedGyroscopeData(dataPacket));
                 magnC = cell2mat(h.XsDataPacket_calibratedMagneticField(dataPacket));
                 quat = cell2mat(h.XsDataPacket_orientationQuaternion_1(dataPacket));
-                fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
-                %fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,quat);
+                fprintf(xsenslog,'%d\t %s\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,IDDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
+                %fprintf(xsenslog,'%d\t %s\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,IDDev,cbmex('time'),oriC,quat);
                 
             end
             
