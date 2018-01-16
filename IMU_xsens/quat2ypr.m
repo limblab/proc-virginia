@@ -1,4 +1,4 @@
-function[yw,pt,rl] = qtoEul(q) % Obtain Euler angles from quaternion
+function[yw,pt,rl] = quat2ypr(q) % Obtain Euler angles from quaternion
 
 q1.w = q.q0;
 q1.x = q.q1;

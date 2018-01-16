@@ -1,4 +1,4 @@
-function[yw,pt,rl] = Rtoypr(Rmat) % Obtain Euler angles from rotation matrix
+function[yw,pt,rl] = Rmat2ypr(Rmat) % Obtain Euler angles from rotation matrix
 
 if (Rmat(3,1)~=1) || (Rmat(3,1)~=-1)
     pt = asin(-Rmat(3,1));

@@ -1,4 +1,4 @@
-function[Rmat] = yprtoR(y,p,r) % Obtains XYZ rotation matrix from Euler angles
+function[Rmat] = ypr2Rmat(y,p,r) % Obtains XYZ rotation matrix from Euler angles
 
 R_y = [cosd(y) -sind(y) 0; sind(y) cosd(y) 0; 0 0 1];
 R_p = [cosd(p) 0 sind(p); 0 1 0; -sind(p) 0 cosd(p)];
