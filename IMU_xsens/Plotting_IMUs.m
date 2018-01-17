@@ -7,7 +7,7 @@ switch lab
         addpath('E:\IMU data');
 end
 
-filenames = {'20180115_calibration_AA.txt'};%,'20171221_calibrationT.txt','20171221_shoelbFE.txt'};
+filenames = {'20171012_onrobot.txt'};
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
@@ -90,18 +90,21 @@ for ii = 1:size(IMU,2)
     title([IMU(ii).place, ' IMU'])
 end
 
-%% Calibration with IMU accelerations - sho FE 
+%% Get calibration indexes for different poses
 JA = [];
-%IMU = IMUs21;
+tpose = [0.05, 0.1, 0.11, 0.16, 0.15, 0.2]; %% Vertical, Flex 90º, Abb 90º
+npose = 3;
 
-for ii = 1:3
-    [~,ix1] = min(abs(IMU(ii).stimem-0.04)); % Initial time for 1st pose
-    [~,ix2] = min(abs(IMU(ii).stimem-0.06)); % Final time for 1st pose
-    [~,ix3] = min(abs(IMU(ii).stimem-0.21)); % Initial time for 2nd pose
-    [~,ix4] = min(abs(IMU(ii).stimem-0.25)); % Final time for 2nd pose
-    
-    zsgA = mean(IMU(ii).acc(ix1:ix2,:));
-    zsgB1 = mean(IMU(ii).acc(ix3:ix4,:));
+for i = 1:(2*npose)
+    ixn = ['ix',num2str(i)];
+    [~,JA.ixp.(ixn)] = min(abs(IMU(1).stimem-tpose(i)));
+end
+
+%% Calibration with IMU accelerations - sho FE
+
+for ii = 1:size(IMU,2)
+    zsgA = mean(IMU(ii).acc(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
+    zsgB1 = mean(IMU(ii).acc(JA(1).ixp.ix5:JA(1).ixp.ix6,:));
     zsgB = zsgB1/norm(zsgB1);
     zsb = zsgA/norm(zsgA);
     xsb = -cross(zsb,zsgB)/norm(cross(zsb,zsgB));
@@ -111,17 +114,11 @@ for ii = 1:3
 end
 
 %% Calibration with IMU accelerations - sho AA 
-JA = [];
-%IMU = IMUs21;
 
-for ii = 1:3
-    [~,ix1] = min(abs(IMU(ii).stimem-0.04)); % Initial time for 1st pose
-    [~,ix2] = min(abs(IMU(ii).stimem-0.06)); % Final time for 1st pose
-    [~,ix3] = min(abs(IMU(ii).stimem-0.11)); % Initial time for 2nd pose
-    [~,ix4] = min(abs(IMU(ii).stimem-0.16)); % Final time for 2nd pose
+for ii = 1:size(IMU,2)
    
-    zsgA = mean(IMU(ii).acc(ix1:ix2,:));
-    zsgB1 = mean(IMU(ii).acc(ix3:ix4,:));
+    zsgA = mean(IMU(ii).acc(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
+    zsgB1 = mean(IMU(ii).acc(JA(1).ixp.ix3:JA(1).ixp.ix4,:));
     zsgB = zsgB1/norm(zsgB1);
     zsb = zsgA/norm(zsgA);
     ysb = -cross(zsb,zsgB)/norm(cross(zsb,zsgB));
@@ -131,20 +128,12 @@ for ii = 1:3
 end
 
 %% Calibration with IMU accelerations - sho FE+AA
-JA = [];
-%IMU = IMUs21;
 
-for ii = 1:3
-    [~,ix1] = min(abs(IMU(ii).stimem-0.04)); % Initial time for 1st pose
-    [~,ix2] = min(abs(IMU(ii).stimem-0.06)); % Final time for 1st pose
-    [~,ix3] = min(abs(IMU(ii).stimem-0.11)); % Initial time for 2nd pose
-    [~,ix4] = min(abs(IMU(ii).stimem-0.16)); % Final time for 2nd pose
-    [~,ix5] = min(abs(IMU(ii).stimem-0.2)); % Initial time for 3rd pose
-    [~,ix6] = min(abs(IMU(ii).stimem-0.25)); % Final time for 3rd pose
+for ii = 1:size(IMU,2)
     
-    vsgA1 = mean(IMU(ii).acc(ix1:ix2,:));
-    vsgB1 = mean(IMU(ii).acc(ix3:ix4,:));
-    vsgC1 = mean(IMU(ii).acc(ix5:ix6,:));
+    vsgA1 = mean(IMU(ii).acc(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
+    vsgB1 = mean(IMU(ii).acc(JA(1).ixp.ix3:JA(1).ixp.ix4,:));
+    vsgC1 = mean(IMU(ii).acc(JA(1).ixp.ix5:JA(1).ixp.ix6,:));
     vsgA = vsgA1/norm(vsgA1);
     vsgB = vsgB1/norm(vsgB1);
     vsgC = vsgC1/norm(vsgC1);
@@ -154,6 +143,14 @@ for ii = 1:3
     zsb = cross(xsb,ysb)/norm(cross(xsb,ysb));
 
     JA(ii).Rsb = [xsb' ysb' zsb']; % Body to sensor matrix
+end
+
+%% Correct Rsb
+for ii = 1:size(IMU,2)
+    accv = mean(IMU(ii).acc(JA(1).ixp.ix1:JA(1).ixp.ix2,:))
+    JA(ii).RAA = vec2Rmat([accv(1) 0 accv(3)],[1 0 0]);
+    JA(ii).RFE = vec2Rmat([accv(1:2) 0],[1 0 0]);
+    JA(ii).Rsbc = JA(ii).RAA*JA(ii).RFE*JA(ii).Rsb;
 end
 
 %% Obtaining calibrated joint angles
@@ -172,11 +169,11 @@ for ii = 1:length(IMU(1).stime)
     for jj = 1:3
         %JA(jj).Rgs = ypr2Rmat(IMU(jj).yw(ii),IMU(jj).pt(ii),IMU(jj).rl(ii));
         JA(jj).Rgs = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii)); % Sensor to global matrix
-        [JA(jj).ywg(ii),JA(jj).ptg(ii),JA(jj).rlg(ii)] = Rmat2ypr(JA(jj).Rgs*JA(jj).Rsb); % Reconstructed global IMU angles
+        [JA(jj).ywg(ii),JA(jj).ptg(ii),JA(jj).rlg(ii)] = Rmat2ypr(JA(jj).Rgs*JA(jj).Rsbc); % Reconstructed global IMU angles
     end
     
-    JA(1).Rbb(:,:,ii) = inv(JA(nelb).Rgs*JA(nelb).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Segment to segment matrix
-    JA(2).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Segment to segment matrix
+    JA(1).Rbb(:,:,ii) = inv(JA(nelb).Rgs*JA(nelb).Rsbc)*(JA(nsho).Rgs*JA(nsho).Rsbc); % Segment to segment matrix
+    JA(2).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsbc)*(JA(nsho).Rgs*JA(nsho).Rsbc); % Segment to segment matrix
     
     for kk = 1:2
         [JA(kk).yw(ii),JA(kk).pt(ii),JA(kk).rl(ii)] = Rmat2ypr(JA(kk).Rbb(:,:,ii)); % Reconstructed joint angles
@@ -213,7 +210,7 @@ for ii = 1:size(JA,2)
 end
 
 %% Polyfit
-IMU = IMUFE11(1);
+IMU = IMU(1);
 ini = find(IMU.stimem>=1,1);
 fin = find(IMU.stimem>=IMU.stimem(end)-2,1);
 li = IMU.yw(ini:fin);
@@ -263,20 +260,14 @@ plot(x,yfm,'r')
 
 %% Wavelets
 wname = 'haar';
-%[LO_D,HI_D,LO_R,HI_R] = wfilters('bior1.5');
 N = 4;
 ord = 14;
 
-[C,L] = wavedec(li,ord,wname);
-Ctmp = C;
-C(sum(L(1:N)):end) = 0;
-Ctmp(1:sum(L(1:N))) = 0;
-yA = waverec(C,L,wname);
-yD = waverec(Ctmp,L,wname);
+[yA,yD] = wdriftcorrect(li,wname,N,ord);
 
 figure;
 plot(x,li)
 hold on
 plot(x,yD,'g')
 plot(x,yA,'r')
-plot(x,yD+median(yA),'m')
+%plot(x,yD+median(yA),'m')
