@@ -7,13 +7,13 @@ switch lab
         addpath('E:\IMU data');
 end
 
-filenames = {'20171012_onrobot.txt'};
+filenames = {'20180108_stability_g1_1.txt'};
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-    IMU = loadIMU(filenames{jj},isrst(jj));
+    %IMU = loadIMU(filenames{jj},isrst(jj));
     %IMU = IMUFE11;
     
     % Plot IMU angles from Euler
@@ -34,7 +34,6 @@ for  jj = 1:length(filenames)
         hold on
         plot(IMU(ii).stimem,IMU(ii).q.pt)
         plot(IMU(ii).stimem,IMU(ii).q.yw)
-        
         xlabel('Time [min]'); ylabel('Angle [deg]');
         legend('Roll','Pitch','Yaw')
         title([IMU(ii).place, ' IMU'])
@@ -50,52 +49,75 @@ for  jj = 1:length(filenames)
         title([IMU(ii).place, ' IMU'])
     end
     
-    % Plot angular velocity
-    figure('name',filenames{jj})
-    for ii = 1:size(IMU,2)
-        subplot(size(IMU,2),1,ii)
-        plot(IMU(ii).stimem,IMU(ii).gyro)
-        xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
-        legend('w_x','w_y','w_z')
-        title([IMU(ii).place, ' IMU'])
-    end
-    
-    % Plot magnetic field
-    figure('name',filenames{jj})
-    for ii = 1:size(IMU,2)
-        subplot(size(IMU,2),1,ii)
-        plot(IMU(ii).stimem,IMU(ii).magn)
-        xlabel('Time [min]'); ylabel('Magnetic Field [-]');
-        legend('m_x','m_y','m_z')
-        title([IMU(ii).place, ' IMU'])
-    end
-    
-    % Plot normalized magnetic field - should be close to 1
-    figure('name',filenames{jj})
-    for ii = 1:size(IMU,2)
-        subplot(size(IMU,2),1,ii)
-        plot(IMU(ii).stimem,IMU(ii).nmagn)
-        xlabel('Time [min]'); ylabel('Normalized Magnetic Field [-]');
-        title([IMU(ii).place, ' IMU'])
-    end
+%     % Plot angular velocity
+%     figure('name',filenames{jj})
+%     for ii = 1:size(IMU,2)
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).stimem,IMU(ii).gyro)
+%         xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
+%         legend('w_x','w_y','w_z')
+%         title([IMU(ii).place, ' IMU'])
+%     end
+%     
+%     % Plot magnetic field
+%     figure('name',filenames{jj})
+%     for ii = 1:size(IMU,2)
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).stimem,IMU(ii).magn)
+%         xlabel('Time [min]'); ylabel('Magnetic Field [-]');
+%         legend('m_x','m_y','m_z')
+%         title([IMU(ii).place, ' IMU'])
+%     end
+%     
+%     % Plot normalized magnetic field - should be close to 1
+%     figure('name',filenames{jj})
+%     for ii = 1:size(IMU,2)
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).stimem,IMU(ii).nmagn)
+%         xlabel('Time [min]'); ylabel('Normalized Magnetic Field [-]');
+%         title([IMU(ii).place, ' IMU'])
+%     end
     
 end
-%% Plotting IMU non detrend
-figure
+%% Filtering IMU data and plotting
+IMU = filtIMU(IMU,1);
+
+% figure('name','Filtered Euler')
+% for ii = 1:size(IMU,2)
+%     subplot(size(IMU,2),1,ii)
+%     plot(IMU(ii).stimem,IMU(ii).filt.ori)
+%     xlabel('Time [s]'); ylabel('Angle [deg]');
+%     legend('Roll','Pitch','Yaw')
+%     title([IMU(ii).place, ' IMU'])
+% end
+% 
+% figure('name','Filtered Quaternions')
+% for ii = 1:size(IMU,2)
+%     subplot(size(IMU,2),1,ii)
+%     plot(IMU(ii).stimem,IMU(ii).filt.q.rl)
+%     hold on
+%     plot(IMU(ii).stimem,IMU(ii).filt.q.pt)
+%     plot(IMU(ii).stimem,IMU(ii).filt.q.yw)
+%     xlabel('Time [s]'); ylabel('Angle [deg]');
+%     legend('Roll','Pitch','Yaw')
+%     title([IMU(ii).place, ' IMU'])
+% end
+
 for ii = 1:size(IMU,2)
-    subplot(size(IMU,2),1,ii)
-    plot(IMU(ii).stime-IMU(ii).stime(1),IMU(ii).sts.Data(:,1:3))
-    xlabel('Time [s]'); ylabel('Angle [deg]');
-    legend('Roll','Pitch','Yaw')
-    title([IMU(ii).place, ' IMU'])
+    CCmat = [IMU(ii).yw IMU(ii).filt.yw];
+    CC = corrcoef(CCmat);
+    fprintf('\n Euler R%d = %1.3f',ii,CC(1,2))
+    
+    CCmat = [IMU(ii).q.pt IMU(ii).filt.q.pt];
+    CC = corrcoef(CCmat);
+    fprintf('\n Quaternions R%d = %1.3f\n',ii,CC(1,2))
 end
 
 %% Get calibration indexes for different poses
 JA = [];
 tpose = [0.05, 0.1, 0.11, 0.16, 0.15, 0.2]; %% Vertical, Flex 90º, Abb 90º
-npose = 3;
 
-for i = 1:(2*npose)
+for i = 1:(length(tpose)/2)
     ixn = ['ix',num2str(i)];
     [~,JA.ixp.(ixn)] = min(abs(IMU(1).stimem-tpose(i)));
 end

@@ -38,14 +38,10 @@ end
 
 it = find(strcmp(header,'CerebusTime'));
 
-flow = 4;
-forder = 2;
-
 for ii = 1:nIMU
     IMU(ii).stime = IMU(ii).sts.Time;
     IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
-    [b,a] = butter(forder,flow*2/IMU(ii).fs,'low');
-
+    
     if any(strcmp(header,'Roll'))
         irl = find(strcmp(header,'Roll'))-it;
         IMU(ii).rl = IMU(ii).sts.Data(:,irl);
@@ -60,12 +56,7 @@ for ii = 1:nIMU
     end
     if any(strcmp(header,'Yaw')) && any(strcmp(header,'Pitch')) && any(strcmp(header,'Roll'))
         IMU(ii).ori = [IMU(ii).rl,IMU(ii).pt,IMU(ii).yw];
-        IMU(ii).filt.rl = filtfilt(b,a,IMU(ii).rl);
-        IMU(ii).filt.pt = filtfilt(b,a,IMU(ii).pt);
-        IMU(ii).filt.yw = filtfilt(b,a,IMU(ii).yw);
-        IMU(ii).filt.ori = [IMU(ii).filt.rl,IMU(ii).filt.pt,IMU(ii).filt.yw];
     end
-    
     if any(strcmp(header,'xAcc'))
         iac = find(strcmp(header,'xAcc'))-it;
         IMU(ii).acc = IMU(ii).sts.Data(:,iac:iac+2);
@@ -88,9 +79,6 @@ for ii = 1:nIMU
         IMU(ii).q.q2 = IMU(ii).sts.Data(:,iq+2);
         IMU(ii).q.q3 = IMU(ii).sts.Data(:,iq+3);
         IMU(ii) = EulfromQuat_IMUload(IMU(ii));
-        IMU(ii).filt.q.rl = filtfilt(b,a,IMU(ii).q.rl);
-        IMU(ii).filt.q.pt = filtfilt(b,a,IMU(ii).q.pt);
-        IMU(ii).filt.q.yw = filtfilt(b,a,IMU(ii).q.yw);
     end
 end
 
