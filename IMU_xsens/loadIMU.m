@@ -64,6 +64,9 @@ for ii = 1:nIMU
     if any(strcmp(header,'xGyro'))
         igy = find(strcmp(header,'xGyro'))-it;
         IMU(ii).gyro = rad2deg(IMU(ii).sts.Data(:,igy:igy+2));
+        for j = 1:length(IMU(ii).stime)
+            IMU(ii).ngyro(j) = norm(IMU(ii).gyro(j,:));
+        end
     end
     if any(strcmp(header,'xMagn'))
         img = find(strcmp(header,'xMagn'))-it;

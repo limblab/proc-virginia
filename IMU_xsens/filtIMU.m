@@ -1,12 +1,11 @@
-function[IMU] = filtIMU(IMU,plt)
+function[IMU] = filtIMU(IMU,flow,forder,wname,detaillevel,plt)
+
 if plt
- figure
+    figure
 end
 
 for ii = 1:size(IMU,2)
     %% High pass filtering - high frequency noise removal
-    flow = 4;
-    forder = 2;
     
     [b,a] = butter(forder,flow*2/IMU(ii).fs,'low');
     
@@ -19,24 +18,23 @@ for ii = 1:size(IMU,2)
     IMU(ii).filt.q.yw = filtfilt(b,a,IMU(ii).q.yw);
     
     %% Low pass filtering - drift removal on yaw/pitch (Euler/quat)
-    wname = 'haar';
-    N = 4;
-    ord = 14;
     
-    [bseline,IMU(ii).filt.yw] = wdriftcorrect(IMU(ii).filt.yw,wname,N,ord);
+    decomplevel = wmaxlev(length(IMU(ii).yw),wname);
+    [bseline,IMU(ii).filt.yw] = wdriftcorrect(IMU(ii).filt.yw,wname,detaillevel,decomplevel);
     IMU(ii).filt.ori = [IMU(ii).filt.rl,IMU(ii).filt.pt,IMU(ii).filt.yw];
     
-    [~,IMU(ii).filt.q.pt] = wdriftcorrect(IMU(ii).filt.q.pt,wname,N,ord);
+    [~,IMU(ii).filt.q.pt] = wdriftcorrect(IMU(ii).filt.q.pt,wname,detaillevel,decomplevel);
     
-    if plt
     % Plot
-    subplot(3,1,ii)
-    plot(IMU(ii).stimem,IMU(ii).yw,'b')
-    hold on
-    plot(IMU(ii).stimem,bseline,'r','linewidth',1.5)
-    plot(IMU(ii).stimem,IMU(ii).filt.yw)
-    xlabel('Time [min]'); ylabel('Angle [deg]');
-    title([IMU(ii).place, ' IMU'])
+    if plt
+        subplot(3,1,ii)
+        plot(IMU(ii).stimem,IMU(ii).yw,'b')
+        hold on
+        plot(IMU(ii).stimem,IMU(ii).filt.yw)        
+        plot(IMU(ii).stimem,bseline,'r','linewidth',1.5)
+        legend('Unfiltered','Filtered','Baseline')
+        xlabel('Time [min]'); ylabel('Angle [deg]');
+        title([IMU(ii).place, ' IMU'])
     end
 end
 end
