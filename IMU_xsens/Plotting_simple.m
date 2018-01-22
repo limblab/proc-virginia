@@ -8,6 +8,7 @@ switch lab
     case 3
         addpath('E:\IMU data\');     
     case 6      
+        addpath('C:\data\IMU\txt\');
 end
 
 data = dlmread('20180108_stability_g2_1.txt','\t',2,0);
