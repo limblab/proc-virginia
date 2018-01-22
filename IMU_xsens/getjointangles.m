@@ -1,4 +1,4 @@
-function[JA] = getjointangles(IMU,JA,oritype,filt)
+function[JA] = getjointangles(IMU,JA,oritype,filt,rst)
 
 joints = {'elb','sho'};
 nelb = find(strcmp({IMU.place},'elb'));
@@ -22,9 +22,26 @@ for ii = 1:length(IMU(1).stime)
     JA(1).Rbb(:,:,ii) = inv(JA(nelb).Rgs*JA(nelb).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Segment to segment matrix
     JA(2).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Segment to segment matrix
     
-    for kk = 1:2
+    for kk = 1:size(IMU,2)-1
         [JA(kk).yw(ii),JA(kk).pt(ii),JA(kk).rl(ii)] = Rmat2ypr(JA(kk).Rbb(:,:,ii)); % Reconstructed joint angles
         JA(kk).place = joints{kk};
+    end         
+end
+
+if rst
+    for kk = 1:size(IMU,2)-1
+        JA(kk).yw = JA(kk).yw-(mean(JA(kk).yw(JA(1).ixp.ix1:JA(1).ixp.ix2)));
+        JA(kk).pt = JA(kk).pt-(mean(JA(kk).pt(JA(1).ixp.ix1:JA(1).ixp.ix2)));
+        JA(kk).rl = JA(kk).rl-(mean(JA(kk).rl(JA(1).ixp.ix1:JA(1).ixp.ix2)));
     end
     
+    JA(1).rl = JA(1).rl-90;
+    
+    for ii = 1:size(IMU,2)
+        JA(ii).ywg = JA(ii).ywg-(mean(JA(ii).ywg(JA(1).ixp.ix1:JA(1).ixp.ix2)));
+        JA(ii).ptg = JA(ii).ptg-(mean(JA(ii).ptg(JA(1).ixp.ix1:JA(1).ixp.ix2)));
+        JA(ii).rlg = JA(ii).rlg-(mean(JA(ii).rlg(JA(1).ixp.ix1:JA(1).ixp.ix2)));
+    end
 end
+end
+          

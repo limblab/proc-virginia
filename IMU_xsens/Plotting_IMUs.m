@@ -13,7 +13,7 @@ isrst = [1,1,1]; % When 0 enables detrend
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-    IMU = loadIMU(filenames{jj},isrst(jj));
+    %IMU = loadIMU(filenames{jj},isrst(jj));
     %IMU = IMUFE11;
     
     % Plot IMU angles from Euler
@@ -127,44 +127,14 @@ end
 %% Get calibration indexes for different poses
 clear JA
 
-tpose = [0.04, 0.05, 0.08, 0.12, 0.24, 0.28]; %% Vertical, Flex 90º, Abb 90º
+tpose = [0.05, 0.08, 0.14, 0.17, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
 calibtype = 'FE'; % FE/AA/FE+AA
 oritype = 'eul'; % eul/quat
 filt = 0;
+rst = 1;
 
 JA = getbody2IMUmat(IMU,tpose,calibtype);
-JA = getjointangles(IMU,JA,oritype,filt);
-
-%% Correct Rsb
-for ii = 1:size(IMU,2)
-    accv = mean(IMU(ii).acc(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
-    JA(ii).RAA = vec2Rmat([accv(1) 0 accv(3)],[1 0 0]);
-    JA(ii).RFE = vec2Rmat([accv(1:2) 0],[1 0 0]);
-    JA(ii).Rsbc = JA(ii).RAA*JA(ii).RFE*JA(ii).Rsb;
-end
-
-%% Obtaining calibrated joint angles - using corrected Rsb
-joints = {'elb','sho'};
-nelb = find(strcmp({IMU.place},'elb'));
-nsho = find(strcmp({IMU.place},'sho'));
-nback = find(strcmp({IMU.place},'back'));
-
-for ii = 1:length(IMU(1).stime)
-    for jj = 1:3
-        JA(jj).Rgs = ypr2Rmat(IMU(jj).yw(ii),IMU(jj).pt(ii),IMU(jj).rl(ii));
-        %JA(jj).Rgs = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii)); % Sensor to global matrix
-        [JA(jj).ywg(ii),JA(jj).ptg(ii),JA(jj).rlg(ii)] = Rmat2ypr(JA(jj).Rgs*JA(jj).Rsbc); % Reconstructed global IMU angles
-    end
-    
-    JA(1).Rbb(:,:,ii) = inv(JA(nelb).Rgs*JA(nelb).Rsbc)*(JA(nsho).Rgs*JA(nsho).Rsbc); % Segment to segment matrix
-    JA(2).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsbc)*(JA(nsho).Rgs*JA(nsho).Rsbc); % Segment to segment matrix
-    
-    for kk = 1:2
-        [JA(kk).yw(ii),JA(kk).pt(ii),JA(kk).rl(ii)] = Rmat2ypr(JA(kk).Rbb(:,:,ii)); % Reconstructed joint angles
-        JA(kk).place = joints{kk};
-    end
-    
-end
+JA = getjointangles(IMU,JA,oritype,filt,rst);
 
 %% Plot joint angles and reconstructed global frame IMU angles
 
@@ -173,12 +143,12 @@ decomplevel = wmaxlev(length(JA(1).rl),wname);
 detaillevel = round(decomplevel/4)-1;
 
 for ii = 1:2
-[bsline,JA(ii).filt.rl] = wdriftcorrect(JA(ii).rl,wname,detaillevel,decomplevel);
+    [bsline,JA(ii).filt.rl] = wdriftcorrect(JA(ii).rl,wname,detaillevel,decomplevel);
 end
 
 figure('name',[filenames{1}, '-Joint Angles'])
 subplot(2,1,1)
-plot(IMU(1).stimem,(JA(1).filt.rl))
+plot(IMU(1).stimem,(JA(1).rl))
 hold on
 plot(IMU(1).stimem,(JA(1).pt))
 %plot(IMU(1).stimem,unwrap(JA(1).yw))
@@ -186,10 +156,10 @@ xlabel('Time [min]'); ylabel('Angle [deg]');
 legend('Roll/FE','Pitch/PS/R')
 title('elb Joint')
 subplot(2,1,2)
-plot(IMU(2).stimem,(JA(2).filt.rl))
+plot(IMU(2).stimem,(JA(2).rl))
 hold on
 plot(IMU(2).stimem,(JA(2).pt))
-plot(IMU(2).stimem,(JA(2).yw))
+plot(IMU(2).stimem,unwrap(JA(2).yw))
 xlabel('Time [min]'); ylabel('Angle [deg]');
 legend('Roll/FE','Pitch/PS/R','Yaw/AA')
 title('sho Joint')
@@ -197,10 +167,10 @@ title('sho Joint')
 figure('name',[filenames{1}, '-Reconst Global Angles'])
 for ii = 1:size(JA,2)
     subplot(size(JA,2),1,ii)
-    plot(IMU(ii).stimem,unwrap(JA(ii).rlg))
+    plot(IMU(ii).stimem,(JA(ii).rlg))
     hold on
     plot(IMU(ii).stimem,(JA(ii).ptg))
-    plot(IMU(ii).stimem,unwrap(JA(ii).ywg))
+    plot(IMU(ii).stimem,(JA(ii).ywg))
     
     xlabel('Time [min]'); ylabel('Angle [deg]');
     legend('Roll','Pitch','Yaw')
@@ -212,7 +182,7 @@ forder = 2;
 flow = 1;
 
 [b,a] = butter(forder,flow*2/IMU(1).fs,'low');
-peaks = [];
+
 for ii = 1:size(IMU,2)
     filtgyro = filtfilt(b,a,IMU(ii).gyro);
     for j = 1:size(IMU(ii).gyro,1)
@@ -243,4 +213,33 @@ for ii = 1:size(IMU,2)
     title([IMU(ii).place, ' IMU'])
 end
 
+%% Validate JA
 
+for ii = 1:size(JA,2)-1
+    [~, JA(ii).rlpks] = findpeaks((JA(ii).rl), 'minpeakheight', max(JA(ii).rl)/2,'minpeakdistance',100);
+    [~, JA(ii).ptpks] = findpeaks((JA(ii).pt), 'minpeakheight', max(JA(ii).pt)/2,'minpeakdistance',100);
+    [~, JA(ii).ywpks] = findpeaks((JA(ii).yw), 'minpeakheight', max(JA(ii).yw)/2,'minpeakdistance',100);
+end
+
+figure('name',[filenames{1}, '-Joint Angles'])
+subplot(2,1,1)
+plot(IMU(1).stimem,(JA(1).rl))
+hold on
+plot(IMU(1).stimem,(JA(1).pt))
+plot(IMU(1).stimem(JA(1).rlpks), JA(1).rl(JA(1).rlpks),'r*')
+plot(IMU(1).stimem(JA(1).ptpks), JA(1).pt(JA(1).ptpks),'r*')
+xlabel('Time [min]'); ylabel('Angle [deg]');
+legend('Roll/FE','Pitch/PS/R')
+title('elb Joint')
+
+subplot(2,1,2)
+plot(IMU(2).stimem,(JA(2).rl))
+hold on
+plot(IMU(2).stimem,(JA(2).pt))
+plot(IMU(2).stimem,(JA(2).yw))
+plot(IMU(2).stimem(JA(2).rlpks), JA(2).rl(JA(2).rlpks),'r*')
+plot(IMU(2).stimem(JA(2).ptpks), JA(2).pt(JA(2).ptpks),'r*')
+plot(IMU(2).stimem(JA(2).ywpks), JA(2).yw(JA(2).ywpks),'r*')
+xlabel('Time [min]'); ylabel('Angle [deg]');
+legend('Roll/FE','Pitch/PS/R','Yaw/AA')
+title('sho Joint')
