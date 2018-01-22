@@ -1,10 +1,12 @@
 %% File selection
 lab = 0;
 switch lab
-    case 0
+    case 0 % my comp
         addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
     case 3
         addpath('E:\IMU data');
+    case 6
+        addpath('C:\data\IMU\txt\');
 end
 
 filenames = {'20180118_up_movem.txt'};
