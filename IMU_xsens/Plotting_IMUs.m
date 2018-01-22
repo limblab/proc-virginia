@@ -1,7 +1,7 @@
 %% File selection
 lab = 0;
 switch lab
-    case 0 % my comp
+    case 0 % mac
         addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
     case 3
         addpath('E:\IMU data');
@@ -60,7 +60,7 @@ for  jj = 1:length(filenames)
         legend('w_x','w_y','w_z')
         title([IMU(ii).place, ' IMU'])
     end
-%     
+    
 %     % Plot magnetic field
 %     figure('name',filenames{jj})
 %     for ii = 1:size(IMU,2)
@@ -70,7 +70,7 @@ for  jj = 1:length(filenames)
 %         legend('m_x','m_y','m_z')
 %         title([IMU(ii).place, ' IMU'])
 %     end
-%     
+    
     % Plot normalized magnetic field - should be close to 1
     figure('name',filenames{jj})
     for ii = 1:size(IMU,2)
@@ -86,15 +86,28 @@ end
 flow = 4;
 forder = 2;
 
-% Wavelet drift removal parameters
+%% Wavelet drift removal parameters
 wname = 'haar';
-decomplevel = wmaxlev(length(IMU(1).yw),wname);
-detaillevel = round(decomplevel/4)-1;
+decomplevel = wmaxlev(length(IMU(1).yw),wname)-1;
+detaillevel = round(decomplevel/4);
 
 plt = 1;
 
-IMU = filtIMU(IMU,flow,forder,wname,detaillevel,plt);
+IMU = wfiltIMU(IMU,flow,forder,wname,detaillevel,plt);
 
+%% Detrend drift removal
+bkptst = [4;0;0];
+for ii = 1:size(IMU,2)
+    for j = 1:size(bkptst,2)
+        [~,bkpts(ii,j)] = min(abs(IMU(1).stimem-bkptst(ii,j)));
+    end
+end
+
+plt = 1;
+
+IMU = dfiltIMU(IMU,flow,forder,bkpts,plt);
+
+%% Correlation coefficient 
 for ii = 1:size(IMU,2)
     CCmat = [IMU(ii).yw IMU(ii).filt.yw];
     CC = corrcoef(CCmat);
@@ -105,26 +118,27 @@ for ii = 1:size(IMU,2)
     fprintf('\n Quaternions R%d = %1.3f\n',ii,CC(1,2))
 end
 
-% figure('name','Filtered Euler')
-% for ii = 1:size(IMU,2)
-%     subplot(size(IMU,2),1,ii)
-%     plot(IMU(ii).stimem,IMU(ii).filt.ori)
-%     xlabel('Time [s]'); ylabel('Angle [deg]');
-%     legend('Roll','Pitch','Yaw')
-%     title([IMU(ii).place, ' IMU'])
-% end
-% 
-% figure('name','Filtered Quaternions')
-% for ii = 1:size(IMU,2)
-%     subplot(size(IMU,2),1,ii)
-%     plot(IMU(ii).stimem,IMU(ii).filt.q.rl)
-%     hold on
-%     plot(IMU(ii).stimem,IMU(ii).filt.q.pt)
-%     plot(IMU(ii).stimem,IMU(ii).filt.q.yw)
-%     xlabel('Time [s]'); ylabel('Angle [deg]');
-%     legend('Roll','Pitch','Yaw')
-%     title([IMU(ii).place, ' IMU'])
-% end
+%%
+figure('name','Filtered Euler')
+for ii = 1:size(IMU,2)
+    subplot(size(IMU,2),1,ii)
+    plot(IMU(ii).stimem,IMU(ii).filt.ori)
+    xlabel('Time [s]'); ylabel('Angle [deg]');
+    legend('Roll','Pitch','Yaw')
+    title([IMU(ii).place, ' IMU'])
+end
+
+figure('name','Filtered Quaternions')
+for ii = 1:size(IMU,2)
+    subplot(size(IMU,2),1,ii)
+    plot(IMU(ii).stimem,IMU(ii).filt.q.rl)
+    hold on
+    plot(IMU(ii).stimem,IMU(ii).filt.q.pt)
+    plot(IMU(ii).stimem,IMU(ii).filt.q.yw)
+    xlabel('Time [s]'); ylabel('Angle [deg]');
+    legend('Roll','Pitch','Yaw')
+    title([IMU(ii).place, ' IMU'])
+end
 
 %% Get calibration indexes for different poses
 clear JA
