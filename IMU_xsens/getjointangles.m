@@ -1,11 +1,15 @@
 function[JA] = getjointangles(IMU,JA,oritype,filt,rst)
 
 joints = {'elb','sho'};
+for ii = 1:length(joints)
+    JA(ii).joint = joints{ii};
+end
+
 nelb = find(strcmp({IMU.place},'elb'));
 nsho = find(strcmp({IMU.place},'sho'));
 nback = find(strcmp({IMU.place},'back'));
 
-for ii = 1:length(IMU(1).stime)
+for ii = 1:length(JA(1).time)
     for jj = 1:3
         if strcmp(oritype,'eul') && ~filt
             JA(jj).Rgs = ypr2Rmat(IMU(jj).yw(ii),IMU(jj).pt(ii),IMU(jj).rl(ii)); % Sensor to global matrix
@@ -43,5 +47,14 @@ if rst
         JA(ii).rlg = JA(ii).rlg-(mean(JA(ii).rlg(JA(1).ixp.ix1:JA(1).ixp.ix2)));
     end
 end
+
+JA(1).ywd = JA(nelb).ywg-JA(nsho).ywg-JA(nback).ywg;
+JA(1).ptd = JA(nelb).ptg-JA(nsho).ptg-JA(nback).ptg;
+JA(1).rld = JA(nelb).rlg-JA(nsho).rlg-JA(nback).rlg;
+
+JA(2).ywd = JA(nsho).ywg-JA(nback).ywg;
+JA(2).ptd = JA(nsho).ptg-JA(nback).ptg;
+JA(2).rld = JA(nsho).rlg-JA(nback).rlg;
+
 end
           

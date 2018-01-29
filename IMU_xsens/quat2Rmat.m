@@ -5,7 +5,6 @@ qx = q1;
 qy = q2;
 qz = q3;
 
-% sqw = qw*qw;
 sqx = qx*qx;
 sqy = qy*qy;
 sqz = qz*qz;

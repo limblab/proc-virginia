@@ -1,5 +1,7 @@
 function[JA] = getbody2IMUmat(IMU,tpose,calibtype)
 
+JA(1).time = IMU(1).stimem;
+
 % Get calibration indexes for different poses
 for i = 1:length(tpose)
     ixn = ['ix',num2str(i)];

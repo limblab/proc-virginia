@@ -9,14 +9,13 @@ switch lab
         addpath('C:\data\IMU\txt\');
 end
 
-filenames = {'20180118_up_movem.txt'};
+filenames = {'20180126_elb.txt'};
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
     %IMU = loadIMU(filenames{jj},isrst(jj));
-    %IMU = IMUFE11;
     
     % Plot IMU angles from Euler
     figure('name',[filenames{jj}, '-Euler'])
@@ -143,9 +142,10 @@ end
 %% Get calibration indexes for different poses
 clear JA
 
-tpose = [0.05, 0.08, 0.14, 0.17, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+tpose = [0.06, 0.11, 0.15, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+%tpose = [0.06, 0.1, 0.15, 0.2, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
 calibtype = 'FE'; % FE/AA/FE+AA
-oritype = 'eul'; % eul/quat
+oritype = 'quat'; % eul/quat
 filt = 0;
 rst = 1;
 
@@ -166,8 +166,8 @@ figure('name',[filenames{1}, '-Joint Angles'])
 subplot(2,1,1)
 plot(IMU(1).stimem,(JA(1).rl))
 hold on
-plot(IMU(1).stimem,(JA(1).pt))
-%plot(IMU(1).stimem,unwrap(JA(1).yw))
+%plot(IMU(1).stimem,(JA(1).pt))
+plot(IMU(1).stimem,(JA(1).yw))
 xlabel('Time [min]'); ylabel('Angle [deg]');
 legend('Roll/FE','Pitch/PS/R')
 title('elb Joint')
@@ -176,6 +176,24 @@ plot(IMU(2).stimem,(JA(2).rl))
 hold on
 plot(IMU(2).stimem,(JA(2).pt))
 plot(IMU(2).stimem,unwrap(JA(2).yw))
+xlabel('Time [min]'); ylabel('Angle [deg]');
+legend('Roll/FE','Pitch/PS/R','Yaw/AA')
+title('sho Joint')
+
+figure('name',[filenames{1}, '-Joint Angles diff'])
+subplot(2,1,1)
+plot(IMU(1).stimem,(JA(1).rld))
+hold on
+plot(IMU(1).stimem,(JA(1).ptd))
+plot(IMU(1).stimem,(JA(1).ywd))
+xlabel('Time [min]'); ylabel('Angle [deg]');
+legend('Roll/FE','Pitch/PS/R')
+title('elb Joint')
+subplot(2,1,2)
+plot(IMU(2).stimem,(JA(2).rld))
+hold on
+plot(IMU(2).stimem,(JA(2).ptd))
+plot(IMU(2).stimem,unwrap(JA(2).ywd))
 xlabel('Time [min]'); ylabel('Angle [deg]');
 legend('Roll/FE','Pitch/PS/R','Yaw/AA')
 title('sho Joint')
@@ -193,69 +211,114 @@ for ii = 1:size(JA,2)
     title([IMU(ii).place, ' IMU'])
 end
 
-%% Find beginning of movement after calibration
-forder = 2;
-flow = 1;
-
-[b,a] = butter(forder,flow*2/IMU(1).fs,'low');
-
-for ii = 1:size(IMU,2)
-    filtgyro = filtfilt(b,a,IMU(ii).gyro);
-    for j = 1:size(IMU(ii).gyro,1)
-        IMU(ii).gyrom(j) = norm(filtgyro(j,:));
-    end
-    thres = max(IMU(ii).gyrom)/2;
-    [~, IMU(ii).peaks] = findpeaks((IMU(ii).gyrom), 'minpeakheight', thres);
-end
-
-%[~, locs] = findpeaks((gyrom), 'minpeakheight', std(gyrom)/2);
-
-figure
-for ii = 1:size(IMU,2)
-    subplot(size(IMU,2),1,ii)
-    plot(IMU(ii).stimem,IMU(ii).gyro)
-    hold on
-    plot(IMU(ii).stimem(IMU(ii).peaks(3)), IMU(ii).gyro(IMU(ii).peaks(3),:),'r*')
-    xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
-    legend('w_x','w_y','w_z')
-    title([IMU(ii).place, ' IMU'])
-end
-
-figure
-for ii = 1:size(IMU,2)
-    subplot(size(IMU,2),1,ii)
-    plot(IMU(ii).stimem,IMU(ii).gyrom)
-    xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
-    title([IMU(ii).place, ' IMU'])
-end
-
 %% Validate JA
+% (max(JA(ii).rl)-min(JA(ii).rl))/2+min(JA(ii).rl)
+% (max(JA(ii).pt)-min(JA(ii).pt))/2+min(JA(ii).pt)
+% (max(JA(ii).yw)-min(JA(ii).yw))*2/3+min(JA(ii).yw)
 
 for ii = 1:size(JA,2)-1
-    [~, JA(ii).rlpks] = findpeaks((JA(ii).rl), 'minpeakheight', max(JA(ii).rl)/2,'minpeakdistance',100);
-    [~, JA(ii).ptpks] = findpeaks((JA(ii).pt), 'minpeakheight', max(JA(ii).pt)/2,'minpeakdistance',100);
-    [~, JA(ii).ywpks] = findpeaks((JA(ii).yw), 'minpeakheight', max(JA(ii).yw)/2,'minpeakdistance',100);
+    [~, JA(ii).rlpks] = findpeaks((JA(ii).rl), 'minpeakheight', mean(JA(ii).rl)+std(JA(ii).rl)/2,'minpeakdistance',100);
+    [~, JA(ii).ptpks] = findpeaks((JA(ii).pt), 'minpeakheight', mean(JA(ii).pt)+std(JA(ii).pt)/2,'minpeakdistance',100);
+    [~, JA(ii).ywpks] = findpeaks((JA(ii).yw), 'minpeakheight', mean(JA(ii).yw)+std(JA(ii).yw)/2,'minpeakdistance',100);
 end
+
 
 figure('name',[filenames{1}, '-Joint Angles'])
 subplot(2,1,1)
 plot(IMU(1).stimem,(JA(1).rl))
 hold on
 plot(IMU(1).stimem,(JA(1).pt))
+plot(IMU(1).stimem,(JA(1).yw))
 plot(IMU(1).stimem(JA(1).rlpks), JA(1).rl(JA(1).rlpks),'r*')
 plot(IMU(1).stimem(JA(1).ptpks), JA(1).pt(JA(1).ptpks),'r*')
+plot(IMU(1).stimem(JA(1).ywpks), JA(1).yw(JA(1).ywpks),'r*')
 xlabel('Time [min]'); ylabel('Angle [deg]');
-legend('Roll/FE','Pitch/PS/R')
+legend('Roll/FE','Pitch/PS/R','Yaw')
 title('elb Joint')
 
 subplot(2,1,2)
 plot(IMU(2).stimem,(JA(2).rl))
 hold on
-plot(IMU(2).stimem,(JA(2).pt))
-plot(IMU(2).stimem,(JA(2).yw))
+plot(IMU(2 ).stimem,(JA(2).pt))
+plot(IMU(2).stimem,unwrap(JA(2).yw))
 plot(IMU(2).stimem(JA(2).rlpks), JA(2).rl(JA(2).rlpks),'r*')
 plot(IMU(2).stimem(JA(2).ptpks), JA(2).pt(JA(2).ptpks),'r*')
-plot(IMU(2).stimem(JA(2).ywpks), JA(2).yw(JA(2).ywpks),'r*')
+plot(IMU(2).stimem(JA(2).ywpks), (JA(2).yw(JA(2).ywpks)),'r*')
 xlabel('Time [min]'); ylabel('Angle [deg]');
 legend('Roll/FE','Pitch/PS/R','Yaw/AA')
 title('sho Joint')
+
+%% Get segments for different movements
+tJA = [0.3,0.6,0.65,0.9];
+JA = getJAsegm(IMU,JA,tJA); 
+JA = getpks(JA);
+
+%% Plot reconstructed JA for segments
+figure('name',[filenames{1}, '-Reconst GA FE'])
+for ii = 1:size(JA,2)
+    subplot(size(JA,2),1,ii)
+    plot(JA(ii).S1.time,(JA(ii).S1.rlg))
+    hold on
+    plot(JA(ii).S1.time,(JA(ii).S1.ptg))
+    plot(JA(ii).S1.time,(JA(ii).S1.ywg))
+    
+    plot(JA(ii).S1.pks.trlg,(JA(ii).S1.pks.rlg),'r*')
+    plot(JA(ii).S1.pks.tptg,(JA(ii).S1.pks.ptg),'r*')
+    plot(JA(ii).S1.pks.tywg,(JA(ii).S1.pks.ywg),'r*')
+    
+    xlabel('Time [min]'); ylabel('Angle [deg]');
+    legend('Roll','Pitch','Yaw')
+    title([IMU(ii).place, ' IMU - FE seg'])
+end
+
+figure('name',[filenames{1}, '-Reconst GA PS'])
+for ii = 1:size(JA,2)
+    subplot(size(JA,2),1,ii)
+    plot(JA(ii).S2.time,(JA(ii).S2.rlg))
+    hold on
+    plot(JA(ii).S2.time,(JA(ii).S2.ptg))
+    plot(JA(ii).S2.time,(JA(ii).S2.ywg))
+    
+    plot(JA(ii).S2.pks.trlg,(JA(ii).S2.pks.rlg),'r*')
+    plot(JA(ii).S2.pks.tptg,(JA(ii).S2.pks.ptg),'r*')
+    plot(JA(ii).S2.pks.tywg,(JA(ii).S2.pks.ywg),'r*')
+    
+    xlabel('Time [min]'); ylabel('Angle [deg]');
+    legend('Roll','Pitch','Yaw')
+    title([IMU(ii).place, ' IMU - PS seg'])
+end
+
+%% Plot reconstructed JA for segments
+figure('name',[filenames{1}, '-Reconst GA FE'])
+for ii = 1:size(JA,2)-1
+    subplot(size(JA,2)-1,1,ii)
+    plot(JA(ii).S1.time,(JA(ii).S1.rl))
+    hold on
+    plot(JA(ii).S1.time,(JA(ii).S1.pt))
+    plot(JA(ii).S1.time,(JA(ii).S1.yw))
+ 
+    plot(JA(ii).S1.pks.trl,(JA(ii).S1.pks.rl),'r*')
+    plot(JA(ii).S1.pks.tpt,(JA(ii).S1.pks.pt),'r*')
+    plot(JA(ii).S1.pks.tyw,(JA(ii).S1.pks.yw),'r*')
+    
+    xlabel('Time [min]'); ylabel('Angle [deg]');
+    legend('Roll','Pitch','Yaw')
+    title([JA(ii).joint, ' - FE seg'])
+end
+
+figure('name',[filenames{1}, '-Reconst GA PS'])
+for ii = 1:size(JA,2)-1
+    subplot(size(JA,2)-1,1,ii)
+    plot(JA(ii).S2.time,(JA(ii).S2.rl))
+    hold on
+    plot(JA(ii).S2.time,(JA(ii).S2.pt))
+    plot(JA(ii).S2.time,(JA(ii).S2.yw))
+    
+    plot(JA(ii).S2.pks.trl,(JA(ii).S2.pks.rl),'r*')
+    plot(JA(ii).S2.pks.tpt,(JA(ii).S2.pks.pt),'r*')
+    plot(JA(ii).S2.pks.tyw,(JA(ii).S2.pks.yw),'r*')
+    
+    xlabel('Time [min]'); ylabel('Angle [deg]');
+    legend('Roll','Pitch','Yaw')
+    title([JA(ii).joint, ' - PS seg'])
+end

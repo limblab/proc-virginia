@@ -91,3 +91,39 @@ for ii = 1:length(IMU(1).stime)
     end
     
 end
+
+%% Find beginning of movement after calibration
+forder = 2;
+flow = 1;
+
+[b,a] = butter(forder,flow*2/IMU(1).fs,'low');
+
+for ii = 1:size(IMU,2)
+    filtgyro = filtfilt(b,a,IMU(ii).gyro);
+    for j = 1:size(IMU(ii).gyro,1)
+        IMU(ii).gyrom(j) = norm(filtgyro(j,:));
+    end
+    thres = max(IMU(ii).gyrom)/2;
+    [~, IMU(ii).peaks] = findpeaks((IMU(ii).gyrom), 'minpeakheight', thres);
+end
+
+%[~, locs] = findpeaks((gyrom), 'minpeakheight', std(gyrom)/2);
+
+figure
+for ii = 1:size(IMU,2)
+    subplot(size(IMU,2),1,ii)
+    plot(IMU(ii).stimem,IMU(ii).gyro)
+    hold on
+    plot(IMU(ii).stimem(IMU(ii).peaks(3)), IMU(ii).gyro(IMU(ii).peaks(3),:),'r*')
+    xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
+    legend('w_x','w_y','w_z')
+    title([IMU(ii).place, ' IMU'])
+end
+
+figure
+for ii = 1:size(IMU,2)
+    subplot(size(IMU,2),1,ii)
+    plot(IMU(ii).stimem,IMU(ii).gyrom)
+    xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
+    title([IMU(ii).place, ' IMU'])
+end
