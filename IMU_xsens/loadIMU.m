@@ -6,7 +6,8 @@ fid = fopen(filenameIMU,'rt');
 header = strsplit(fgets(fid));
 fclose(fid);
 
-dataIMU = dlmread(filenameIMU,'\t',2,0);
+idnIMU = dlmread(filenameIMU,'\t',[1 1 end 1]);
+dataIMU = dlmread(filenameIMU,'\t',1,2);
 nIMU = max(dataIMU(:,1));
 
 order = [];
@@ -15,8 +16,12 @@ strspl = strsplit(order,'/');
 
 for ii = 1:nIMU
     IMU(ii).place = strspl{ii};
-    IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
-    IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
+    if any(strcmp(header,'DevIDd'))
+        IMU(ii).ID = dataIMU(dataIMU(:,1)==ii,find(strcmp(header,'DevIDd')));
+    end
+    it = find(strcmp(header,'CerebusTime'));
+    IMU(ii).data = dataIMU(dataIMU(:,1)==ii,it+1:end);
+    IMU(ii).time = dataIMU(dataIMU(:,1)==ii,it);
     IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
     IMU(ii).sts = IMU(ii).ts;
 end

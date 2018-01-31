@@ -1,17 +1,20 @@
 %% File selection
-lab = 1;
+lab = 0;
 switch lab
     case 0
         addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
     case 1
         addpath('E:\Data-lab1\IMU Data\txt')
+    case 3
+        addpath('E:\IMU data');
 end
-filenames = {'20180108_stability_g1_1.txt'};%,'20171221_calibrationT.txt','20171221_shoelbFE.txt'};
+
+filenames = {'20180109.txt'};%,'20171221_calibrationT.txt','20171221_shoelbFE.txt'};
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
-    
+   
     [IMU,OS] = loadIMU(filenames{jj},isrst(jj));
     %IMU = IMU_nometal2;
     

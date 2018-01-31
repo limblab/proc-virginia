@@ -9,7 +9,7 @@ addpath(genpath('cbmex'));
 cbmex('open');
 
 reccbmex = 0; % Record cerebus?
-lab = 3;
+lab = 1;
 alignrst = 0; % Initial alignment reset?
 headrst = 1; % Initial heading reset?
 
@@ -19,17 +19,17 @@ end
 
 switch lab
     case 1
-        FN = 'E:\Data-lab1\IMU Data\txt\20171218_resetmat.nev'; % cerebus file name
-        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20171218_resetmat.txt','wt'); % xsens file name
+        FN = 'E:\Data-lab1\IMU Data\txt\20180110_static_2.nev'; % cerebus file name
+        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180110_static_2.txt','wt'); % xsens file name
     case 3
-        FN = 'E:\IMU data\20180108_stability_g1_2.nev'; % cerebus file name
-        xsenslog = fopen('E:\IMU data\20180108_stability_g1_2.txt','wt'); % xsens file name
+        FN = 'E:\IMU data\20180109.nev'; % cerebus file name
+        xsenslog = fopen('E:\IMU data\20180109.txt','wt'); % xsens file name
     case 6
         
 end
 
-fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
-%fprintf(xsenslog,'DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t q0\t q1\t q2\t q3\n'); % xsens header
+fprintf(xsenslog,'DevIDd\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
+%fprintf(xsenslog,'DevIDd\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
 switch computer
@@ -204,7 +204,9 @@ stopAll;
         dataPacket = varargin{3}{2};
         deviceFound = varargin{3}{1};
         
-        iDev = find(cellfun(@(x) x==deviceFound, devicesUsed));
+        nDev = find(cellfun(@(x) x==deviceFound, devicesUsed));
+        IDDev = dec2hex(h.XsDevice_deviceId(deviceFound));
+        
         if dataPacket
             if h.XsDataPacket_containsOrientation(dataPacket)
                 oriC = cell2mat(h.XsDataPacket_orientationEuler_1(dataPacket));
@@ -212,8 +214,8 @@ stopAll;
                 gyroC = cell2mat(h.XsDataPacket_calibratedGyroscopeData(dataPacket));
                 magnC = cell2mat(h.XsDataPacket_calibratedMagneticField(dataPacket));
                 quat = cell2mat(h.XsDataPacket_orientationQuaternion_1(dataPacket));
-                fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
-                %fprintf(xsenslog,'%d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',iDev,cbmex('time'),oriC,quat);
+                fprintf(xsenslog,'%s\t %d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',IDDev,nDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
+                %fprintf(xsenslog,'%s\t %d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',IDDev,nDev,cbmex('time'),oriC,quat);
                 
             end
             
