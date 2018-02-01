@@ -171,7 +171,8 @@ end
 input('\n Press ''enter'' when aligned with initial position')
 
 % Perfrom alignment reset
-if alignrst == 1
+tel = cbmex('time');
+if alignrst == 1 && (rem(tel,300)<=3)
     for i = 1:length(children)
         coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
     end

@@ -9,13 +9,13 @@ switch lab
         addpath('C:\data\IMU\txt\');
 end
 
-filenames = {'20180126_elb.txt'};
+filenames = {'20171212_stability_reset.txt'};
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-    %IMU = loadIMU(filenames{jj},isrst(jj));
+    IMU = loadIMU(filenames{jj},isrst(jj));
     
     % Plot IMU angles from Euler
     figure('name',[filenames{jj}, '-Euler'])
@@ -321,4 +321,23 @@ for ii = 1:size(JA,2)-1
     xlabel('Time [min]'); ylabel('Angle [deg]');
     legend('Roll','Pitch','Yaw')
     title([JA(ii).joint, ' - PS seg'])
+end
+
+%% Mean and std of peaks
+for ii  = 1:size(JA,2)
+fprintf('\n Mean ± std of reconstructed global angles IMU %d: \n Roll: %1.3f ± %1.3f\n Pitch: %1.3f ± %1.3f\n Yaw: %1.3f ± %1.3f\n',...
+    ii,JA(ii).pks.mrlg,JA(ii).pks.stdrlg,JA(ii).pks.mptg,JA(ii).pks.stdptg,JA(ii).pks.mywg,JA(ii).pks.stdywg);
+end
+
+
+jj = 1;
+seg = ['S',num2str(jj)];
+
+while isfield(JA,seg)
+    for ii  = 1:size(JA,2)
+        fprintf('\n Mean ± std of reconstructed global angles IMU %d, segment %d: \n Roll: %1.3f ± %1.3f\n Pitch: %1.3f ± %1.3f\n Yaw: %1.3f ± %1.3f\n',...
+            ii,jj,JA(ii).(seg).pks.mrlg,JA(ii).(seg).pks.stdrlg,JA(ii).(seg).pks.mptg,JA(ii).(seg).pks.stdptg,JA(ii).(seg).pks.mywg,JA(ii).(seg).pks.stdywg);
+    end 
+    jj = jj+1;
+    seg = ['S',num2str(jj)];
 end

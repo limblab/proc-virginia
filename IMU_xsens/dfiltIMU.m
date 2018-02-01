@@ -13,23 +13,27 @@ for ii = 1:size(IMU,2)
     IMU(ii).filt.pt = filtfilt(b,a,IMU(ii).pt);
     IMU(ii).filt.yw = filtfilt(b,a,IMU(ii).yw);
     
-    IMU(ii).filt.q.rl = filtfilt(b,a,IMU(ii).q.rl);
-    IMU(ii).filt.q.pt = filtfilt(b,a,IMU(ii).q.pt);
-    IMU(ii).filt.q.yw = filtfilt(b,a,IMU(ii).q.yw);
+    if isfield(IMU,'q')
+        IMU(ii).filt.q.rl = filtfilt(b,a,IMU(ii).q.rl);
+        IMU(ii).filt.q.pt = filtfilt(b,a,IMU(ii).q.pt);
+        IMU(ii).filt.q.yw = filtfilt(b,a,IMU(ii).q.yw);
+    end
     
     %% Low pass filtering with detrend - drift removal on yaw/pitch (Euler/quat)
     
     IMU(ii).filt.yw = detrend(IMU(ii).filt.yw,'linear',bkpts(ii,:));
     IMU(ii).filt.ori = [IMU(ii).filt.rl,IMU(ii).filt.pt,IMU(ii).filt.yw];
     
-    IMU(ii).filt.q.pt = detrend(IMU(ii).filt.q.pt,'linear',bkpts(ii,:));
+    if isfield(IMU,'q')
+        IMU(ii).filt.q.pt = detrend(IMU(ii).filt.q.pt,'linear',bkpts(ii,:));
+    end
     
     %% Plot
     if plt
-        subplot(3,1,ii)
+        subplot(size(IMU,2),1,ii)
         plot(IMU(ii).stimem,IMU(ii).yw,'b')
         hold on
-        plot(IMU(ii).stimem,IMU(ii).filt.yw)        
+        plot(IMU(ii).stimem,IMU(ii).filt.yw)
         legend('Unfiltered','Filtered')
         xlabel('Time [min]'); ylabel('Angle [deg]');
         title([IMU(ii).place, ' IMU'])
