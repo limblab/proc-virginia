@@ -44,6 +44,7 @@ for ii = 1:nIMU
     plot(IMU(ii).time,IMU(ii).data(:,3))
     hold on
     xlabel('Time [s]'); ylabel('Angle [deg]');
+    legend('Shoulder','Elbow');
 end
 
 unwrp = input('\n Unwrap IMU angles? (y/n) ','s');
