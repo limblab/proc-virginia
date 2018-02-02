@@ -131,6 +131,7 @@ if isenc
     
     for ii = 1:nIMU
         IMU(ii).stime = IMU(ii).ests.Time;
+        IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
         IMU(ii).rl = IMU(ii).ests.Data(:,1);
         IMU(ii).pt = IMU(ii).ests.Data(:,2);
         IMU(ii).yw = IMU(ii).ests.Data(:,3);
@@ -156,6 +157,7 @@ if isenc
     
 elseif ~isenc && nIMU == 1
     IMU.stime = IMU.time;
+    IMU.stimem = (IMU.stime-IMU.stime(1))/60;
     IMU.rl = IMU.data(:,1);
     IMU.pt = IMU.data(:,2);
     IMU.yw = IMU.data(:,3);
@@ -179,6 +181,7 @@ elseif ~isenc && nIMU > 1
     
     for ii = 1:nIMU
         IMU(ii).stime = IMU(ii).sts.Time;
+        IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
         IMU(ii).rl = IMU(ii).sts.Data(:,1);
         IMU(ii).pt = IMU(ii).sts.Data(:,2);
         IMU(ii).yw = IMU(ii).sts.Data(:,3);
