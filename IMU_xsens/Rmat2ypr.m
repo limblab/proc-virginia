@@ -1,4 +1,6 @@
-function[yw,pt,rl] = Rmat2ypr(Rmat) % Obtain Euler angles from rotation matrix
+function[yw,pt,rl] = Rmat2ypr(Rmat) 
+% Obtains Euler angles (yw, pt, rl) from rotation matrix (Rmat) taking into
+% account possible singularities at +/-90 deg pitch
 
 if (Rmat(3,1)~=1) || (Rmat(3,1)~=-1)
     pt = asin(-Rmat(3,1));

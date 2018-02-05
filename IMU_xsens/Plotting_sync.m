@@ -21,8 +21,8 @@ x_h = cds.kin.x;
 y_h = cds.kin.y;
 
 %% Data loading
-filenameIMU = '20171017_onrobot.txt';
-filenameenc = '20171017_onrobot.mat';
+filenameIMU = '20171020_onrobot.txt';
+filenameenc = '20171020_onrobot.mat';
 
 [IMU,enc] = loadsync(filenameIMU,filenameenc);
 iselb = 0;
@@ -40,6 +40,23 @@ subplot(122)
 plot(enc.stime,enc.scth2)
 hold on
 plot(IMU(2).stime,IMU(2).yw)
+xlabel('Time [s]'); ylabel('Angle [deg]')
+legend('Encoder','IMU')
+title('Elbow')
+
+%% Plotting IMU and encoder angles non sync
+figure
+subplot(121)
+plot(enc.time,enc.th1-enc.th1(1))
+hold on
+plot(IMU(1).time,-IMU(1).data(:,3))
+xlabel('Time [s]'); ylabel('Angle [deg]')
+legend('Encoder','IMU')
+title('Shoulder')
+subplot(122)
+plot(enc.time,enc.th2)
+hold on
+plot(IMU(2).time,IMU(2).data(:,3))
 xlabel('Time [s]'); ylabel('Angle [deg]')
 legend('Encoder','IMU')
 title('Elbow')
@@ -128,6 +145,56 @@ plot(enc.stime(tbin)/60,rmse_sho,'r*')
 %plot((1:nbin+1),R_elb,'b-')
 xlabel('Time [min]'); ylabel('RMSE [deg]');
 legend('Elbow','Shoulder')
+
+%% Filtering IMU data and plotting
+% Butter low pass filter parameters
+flow = 5;
+forder = 2;
+
+%% Wavelet drift removal parameters
+wname = 'haar';
+decomplevel = wmaxlev(length(IMU(1).yw),wname);
+detaillevel = round(decomplevel/4);
+
+plt = 1;
+
+IMU = wfiltIMU(IMU,flow,forder,wname,detaillevel,plt);
+
+%% Detrend drift removal
+bkptst = [10; 20];
+for ii = 1:size(IMU,2)
+    for j = 1:size(bkptst,2)
+        [~,bkpts(ii,j)] = min(abs(IMU(1).stimem-bkptst(ii,j)));
+    end
+end
+
+plt = 1;
+
+IMU = dfiltIMU(IMU,flow,forder,bkpts,plt);
+
+%% Correlation coefficient 
+fprintf('\nCorrcoef raw vs filtered:\n')
+for ii = 1:size(IMU,2)
+    CCmat = [IMU(ii).yw IMU(ii).filt.yw];
+    CC = corrcoef(CCmat);
+    fprintf('Euler R%d = %1.3f\n',ii,CC(1,2))
+    
+    if isfield(IMU,'q')
+        CCmat = [IMU(ii).q.pt IMU(ii).filt.q.pt];
+        CC = corrcoef(CCmat);
+        fprintf('\n Quaternions R%d = %1.3f\n',ii,CC(1,2))
+    end
+end
+
+% Comparing with encoder values
+fprintf('\nCorrcoef encoder vs filtered:\n')
+CCmat = [enc.scth1 IMU(1).filt.yw];
+CC = corrcoef(CCmat);
+fprintf('Euler R1 = %1.3f\n',CC(1,2))
+
+CCmat = [enc.scth2 IMU(2).filt.yw];
+CC = corrcoef(CCmat);
+fprintf('Euler R2 = %1.3f\n',CC(1,2))
 
 %% Position handle with encoder and IMU 
 lrelb = 28;

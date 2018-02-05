@@ -1,4 +1,6 @@
-function[yw,pt,rl] = quat2ypr(q) % Obtain Euler angles from quaternion
+function[yw,pt,rl] = quat2ypr(q) 
+% Obtains Euler angles (yw, pt, rl) from quaternion (q containing q0, q1, q2
+% q3)
 
 q1.w = q.q0;
 q1.x = q.q1;
@@ -14,11 +16,11 @@ sqz = q1.z*q1.z;
 
 unit = sqx + sqy + sqz + sqw;
 
-if (test > 0.499*unit) % singularity at north pole
+if (test > 0.499*unit) % Singularity at +90 deg pitch
     yw = 2 * atan2(q1.x,q1.w);
     pt = pi/2;
     rl = 0;
-elseif (test < -0.499*unit) % singularity at south pole
+elseif (test < -0.499*unit) % Singularity at -90 deg pitch
     yw = -2 * atan2(q1.x,q1.w);
     pt = - pi/2;
     rl = 0;

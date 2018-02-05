@@ -1,4 +1,9 @@
 function[JA] = getpks(JA)
+% Obtains peaks from joint angles and reconstructed body referenced IMU
+% angles and appends them to JA into pks sub structure. Obtains mean and 
+% standard devation of peaks
+
+% JA: joint angle data structure
 
 for ii = 1:size(JA,2)-1
     [~, rlpks] = findpeaks((JA(ii).rl), 'minpeakheight', mean(JA(ii).rl)+std(JA(ii).rl)/2,'minpeakdistance',100);
@@ -12,6 +17,14 @@ for ii = 1:size(JA,2)-1
     JA(ii).pks.rl = JA(ii).rl(rlpks);
     JA(ii).pks.pt = JA(ii).pt(ptpks);
     JA(ii).pks.yw = JA(ii).yw(ywpks);
+    
+    JA(ii).pks.mrl = mean(JA(ii).rl(rlpks));
+    JA(ii).pks.mpt = mean(JA(ii).pt(ptpks));
+    JA(ii).pks.myw = mean(JA(ii).yw(ywpks));
+    
+    JA(ii).pks.stdrl = std(JA(ii).rl(rlpks));
+    JA(ii).pks.stdpt = std(JA(ii).pt(ptpks));
+    JA(ii).pks.stdyw = std(JA(ii).yw(ywpks));   
 end
 
 for ii = 1:size(JA,2)
@@ -26,6 +39,14 @@ for ii = 1:size(JA,2)
     JA(ii).pks.rlg = JA(ii).rlg(rlgpks);
     JA(ii).pks.ptg = JA(ii).ptg(ptgpks);
     JA(ii).pks.ywg = JA(ii).ywg(ywgpks);
+    
+    JA(ii).pks.mrlg = mean(JA(ii).rlg(rlgpks));
+    JA(ii).pks.mptg = mean(JA(ii).ptg(ptgpks));
+    JA(ii).pks.mywg = mean(JA(ii).ywg(ywgpks));
+    
+    JA(ii).pks.stdrlg = std(JA(ii).rlg(rlgpks));
+    JA(ii).pks.stdptg = std(JA(ii).ptg(ptgpks));
+    JA(ii).pks.stdywg = std(JA(ii).ywg(ywgpks));
 end
 
 j = 1;
@@ -44,6 +65,14 @@ while isfield(JA,seg)
         JA(ii).(seg).pks.rl = JA(ii).(seg).rl(rlpks);
         JA(ii).(seg).pks.pt = JA(ii).(seg).pt(ptpks);
         JA(ii).(seg).pks.yw = JA(ii).(seg).yw(ywpks);
+        
+        JA(ii).(seg).pks.mrl = mean(JA(ii).(seg).rl(rlpks));
+        JA(ii).(seg).pks.mpt = mean(JA(ii).(seg).pt(ptpks));
+        JA(ii).(seg).pks.myw = mean(JA(ii).(seg).yw(ywpks));
+        
+        JA(ii).(seg).pks.stdrl = std(JA(ii).(seg).rl(rlpks));
+        JA(ii).(seg).pks.stdpt = std(JA(ii).(seg).pt(ptpks));
+        JA(ii).(seg).pks.stdyw = std(JA(ii).(seg).yw(ywpks));
     end
     for ii = 1:size(JA,2)
         [~, rlgpks] = findpeaks((JA(ii).(seg).rlg), 'minpeakheight', mean(JA(ii).(seg).rlg)+std(JA(ii).(seg).rlg)/2,'minpeakdistance',100);
@@ -57,6 +86,14 @@ while isfield(JA,seg)
         JA(ii).(seg).pks.rlg = JA(ii).(seg).rlg(rlgpks);
         JA(ii).(seg).pks.ptg = JA(ii).(seg).ptg(ptgpks);
         JA(ii).(seg).pks.ywg = JA(ii).(seg).ywg(ywgpks);
+        
+        JA(ii).(seg).pks.mrlg = mean(JA(ii).(seg).rlg(rlgpks));
+        JA(ii).(seg).pks.mptg = mean(JA(ii).(seg).ptg(ptgpks));
+        JA(ii).(seg).pks.mywg = mean(JA(ii).(seg).ywg(ywgpks));
+        
+        JA(ii).(seg).pks.stdrlg = std(JA(ii).(seg).rlg(rlgpks));
+        JA(ii).(seg).pks.stdptg = std(JA(ii).(seg).ptg(ptgpks));
+        JA(ii).(seg).pks.stdywg = std(JA(ii).(seg).ywg(ywgpks));
     end
     j = j+1;
     seg = ['S',num2str(j)];
