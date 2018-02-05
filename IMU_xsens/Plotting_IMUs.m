@@ -83,6 +83,20 @@ for  jj = 1:length(filenames)
 %     end
     
 end
+
+%% Get calibration indexes for different poses
+clear JA
+
+%tpose = [0.06, 0.11, 0.16, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+tpose = [0.04, 0.1, 0.14, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+calibtype = 'FE'; % FE/AA/FE+AA
+oritype = 'quat'; % eul/quat
+filt = 0;
+rst = 1;
+
+JA = getbody2IMUmat(IMU,tpose,calibtype);
+JA = getjointangles(IMU,JA,oritype,filt,rst);
+
 %% Filtering IMU data and plotting
 % Butter low pass filter parameters
 flow = 4;
@@ -141,19 +155,6 @@ for ii = 1:size(IMU,2)
     legend('Roll','Pitch','Yaw')
     title([IMU(ii).place, ' IMU'])
 end
-
-%% Get calibration indexes for different poses
-clear JA
-
-%tpose = [0.06, 0.11, 0.16, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
-tpose = [0.04, 0.1, 0.14, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
-calibtype = 'FE'; % FE/AA/FE+AA
-oritype = 'quat'; % eul/quat
-filt = 0;
-rst = 1;
-
-JA = getbody2IMUmat(IMU,tpose,calibtype);
-JA = getjointangles(IMU,JA,oritype,filt,rst);
 
 %% Plot joint angles and reconstructed global frame IMU angles
 
@@ -215,9 +216,6 @@ for ii = 1:size(JA,2)
 end
 
 %% Validate JA
-% (max(JA(ii).rl)-min(JA(ii).rl))/2+min(JA(ii).rl)
-% (max(JA(ii).pt)-min(JA(ii).pt))/2+min(JA(ii).pt)
-% (max(JA(ii).yw)-min(JA(ii).yw))*2/3+min(JA(ii).yw)
 
 for ii = 1:size(JA,2)-1
     [~, JA(ii).rlpks] = findpeaks((JA(ii).rl), 'minpeakheight', mean(JA(ii).rl)+std(JA(ii).rl)/2,'minpeakdistance',100);

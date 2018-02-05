@@ -1,12 +1,20 @@
 function[IMU] = wfiltIMU(IMU,flow,forder,wname,detaillevel,plt)
+% Filters IMU data for high frequency noise with low pass butterworth
+% filter and drift with high pass wavelet filtering
+
+% IMU: IMU data structure
+% flow: low cutoff frequency for low pass filter
+% forder: order of low pass filter
+% wname: wavelet type name for drift removal
+% detaillevel: order of the wavelet detail coefficients to preserve
+% plt: whether to plot filter and unfiltered signals
 
 if plt
     figure
 end
 
 for ii = 1:size(IMU,2)
-    %% High pass filtering with butter - high frequency noise removal
-    
+    % Low pass filtering with butter - high frequency noise removal
     [b,a] = butter(forder,flow*2/IMU(ii).fs,'low');
     
     IMU(ii).filt.rl = filtfilt(b,a,IMU(ii).rl);
@@ -18,8 +26,8 @@ for ii = 1:size(IMU,2)
         IMU(ii).filt.q.pt = filtfilt(b,a,IMU(ii).q.pt);
         IMU(ii).filt.q.yw = filtfilt(b,a,IMU(ii).q.yw);
     end
-    %% Low pass filtering with wavelets - drift removal on yaw/pitch (Euler/quat)
     
+    % High pass filtering with wavelets - drift removal on yaw/pitch (Euler/quat)
     decomplevel = wmaxlev(length(IMU(ii).yw),wname);
     [bseline,IMU(ii).filt.yw] = wdriftcorrect(IMU(ii).filt.yw,wname,detaillevel,decomplevel);
     IMU(ii).filt.ori = [IMU(ii).filt.rl,IMU(ii).filt.pt,IMU(ii).filt.yw];
@@ -27,8 +35,8 @@ for ii = 1:size(IMU,2)
     if isfield(IMU,'q')
         [~,IMU(ii).filt.q.pt] = wdriftcorrect(IMU(ii).filt.q.pt,wname,detaillevel,decomplevel);
     end
-    %% Plot
     
+    % Plot
     if plt
         subplot(size(IMU,2),1,ii)
         plot(IMU(ii).stimem,IMU(ii).yw,'b')

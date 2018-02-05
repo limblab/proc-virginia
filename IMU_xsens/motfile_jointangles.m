@@ -12,7 +12,7 @@ fprintf(fid,'%s\t %s\t %s\t %s\t %s\t %s\n',header{:});
 dlmwrite([txtpath,'/',motname],OS.all,'-append','delimiter','\t','precision','%.6f');
 fclose(fid);
 
-%% Get OpenSim angles
+%% Get OpenSim angles from calibration
 clear OS
 
 OS.time = IMU(1).stime-IMU(1).stime(1);
@@ -35,7 +35,7 @@ figure
 plot(OS.time,OS.all(:,2:end))
 legend(header{2:end})
 
-%% Get OpenSim angles
+%% Get OpenSim angles from difference
 clear OS
 
 OS.time = IMU(1).stime-IMU(1).stime(1);

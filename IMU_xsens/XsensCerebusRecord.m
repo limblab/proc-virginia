@@ -1,6 +1,6 @@
 %% Function XsensCerebusRecord()
-% Syncs the recording from the cerebus and the xsens by printing cbmex time
-% on xsens txt file
+% Syncs the recording from Cerebus and Xsens Mtws by printing cbmex time
+% on Xsens txt file
 
 function XsensCerebusRecord()
 %% Cbmex intitialization
@@ -9,9 +9,10 @@ addpath(genpath('cbmex'));
 cbmex('open');
 
 reccbmex = 0; % Record cerebus?
-lab = 3;
+lab = 3; % Lab number for file paths
 alignrst = 0; % Initial alignment reset?
 headrst = 1; % Initial heading reset?
+trigrst = 0; % Trigger alignment reset?
 
 if reccbmex
     cbmex('trialconfig',0) % Turn off the data buffer
@@ -197,6 +198,7 @@ if output %% && all(coord_reset)
 else
     fprintf('\n Problems with going to measurement\n')
 end
+
 stopAll;
 
 %% Event handler
@@ -221,11 +223,13 @@ stopAll;
             end
             
             % Perform alignment reset every ~5 min when trigger is detected at sync line
-            trig = h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
-            tel = cbmex('time');
-            if trig && (rem(tel,300)<=3)
-                for i = 1:length(children)
-                    h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
+            if trigrst
+                trig = h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
+                tel = cbmex('time');
+                if trig && (rem(tel,300)<=3)
+                    for j = 1:length(children)
+                        h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Alignment());
+                    end
                 end
             end
             
