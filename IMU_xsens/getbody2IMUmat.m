@@ -1,4 +1,16 @@
-function[JA] = getbody2IMUmat(IMU,tpose,calibtype)
+function[JA] = getbody2IMUmat(IMU,tpose,calibtype) 
+% Obtains body to sensor segment transformation matrix (Rsb)
+
+% JA: joint angle data structure 
+% IMU: IMU data structure
+% tpose: vector with start and end times for calibration poses
+% calibtype: which calibration type to perform, 'FE','AA' or 'FE+AA'
+
+% Implemented from:
+%    Palermo E, Rossi S, Marini F, Patanè F, Cappa P. 
+%    Experimental evaluation of accuracy and repeatability of a novel 
+%    body-to-sensor calibration procedure for inertial sensor-based gait analysis. 
+%    Measurement. 2014 Jun 1;52:145?55. 
 
 JA(1).time = IMU(1).stimem;
 
@@ -19,7 +31,7 @@ switch calibtype
             xsb = -cross(zsb,zsgB)/norm(cross(zsb,zsgB));
             ysb = -cross(zsb,xsb)/norm(cross(zsb,xsb));
             
-            JA(ii).Rsb = [xsb' ysb' zsb']; % Body to sensor matrix
+            JA(ii).Rsb = [xsb' ysb' zsb']; % Body to sensor matrix: z vertical axis, y frontal axis, x saggital axis
         end
         
     case 'AA'

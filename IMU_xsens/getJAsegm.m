@@ -1,4 +1,9 @@
 function[JA] = getJAsegm(IMU,JA,tJA)
+% Splits IMU and JA data into time segments
+
+% JA: joint angle data structure 
+% IMU: IMU data structure
+% tJA: vector with start and end times for time segments
 
 nJA = length(tJA)/2;
 vJA = 1:2:nJA*2;

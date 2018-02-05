@@ -2,14 +2,17 @@
 lab = 0;
 switch lab
     case 0 % mac
-        addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
+        txtpath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt';
+        addpath(txtpath);
     case 3
-        addpath('E:\IMU data');
+        txtpath = 'E:\IMU data';
+        addpath(txtpath);
     case 6
-        addpath('C:\data\IMU\txt\');
+        txtpath = 'C:\data\IMU\txt\';
+        addpath(txtpath);
 end
 
-filenames = {'20171212_stability_reset.txt'};
+filenames = {'20180118_up_movem.txt'};
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
@@ -40,25 +43,25 @@ for  jj = 1:length(filenames)
         title([IMU(ii).place, ' IMU'])
     end
     
-    % Plot accelerations
-    figure('name',filenames{jj})
-    for ii = 1:size(IMU,2)
-        subplot(size(IMU,2),1,ii)
-        plot(IMU(ii).stimem,IMU(ii).acc)
-        xlabel('Time [min]'); ylabel('Acceleration [m/s^2]');
-        legend('a_x','a_y','a_z')
-        title([IMU(ii).place, ' IMU'])
-    end
-    
-    % Plot angular velocity
-    figure('name',filenames{jj})
-    for ii = 1:size(IMU,2)
-        subplot(size(IMU,2),1,ii)
-        plot(IMU(ii).stimem,IMU(ii).gyro)
-        xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
-        legend('w_x','w_y','w_z')
-        title([IMU(ii).place, ' IMU'])
-    end
+%     % Plot accelerations
+%     figure('name',filenames{jj})
+%     for ii = 1:size(IMU,2)
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).stimem,IMU(ii).acc)
+%         xlabel('Time [min]'); ylabel('Acceleration [m/s^2]');
+%         legend('a_x','a_y','a_z')
+%         title([IMU(ii).place, ' IMU'])
+%     end
+%     
+%     % Plot angular velocity
+%     figure('name',filenames{jj})
+%     for ii = 1:size(IMU,2)
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).stimem,IMU(ii).gyro)
+%         xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
+%         legend('w_x','w_y','w_z')
+%         title([IMU(ii).place, ' IMU'])
+%     end
     
 %     % Plot magnetic field
 %     figure('name',filenames{jj})
@@ -70,14 +73,14 @@ for  jj = 1:length(filenames)
 %         title([IMU(ii).place, ' IMU'])
 %     end
     
-    % Plot normalized magnetic field - should be close to 1
-    figure('name',filenames{jj})
-    for ii = 1:size(IMU,2)
-        subplot(size(IMU,2),1,ii)
-        plot(IMU(ii).stimem,IMU(ii).nmagn)
-        xlabel('Time [min]'); ylabel('Normalized Magnetic Field [-]');
-        title([IMU(ii).place, ' IMU'])
-    end
+%     % Plot normalized magnetic field - should be close to 1
+%     figure('name',filenames{jj})
+%     for ii = 1:size(IMU,2)
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).stimem,IMU(ii).nmagn)
+%         xlabel('Time [min]'); ylabel('Normalized Magnetic Field [-]');
+%         title([IMU(ii).place, ' IMU'])
+%     end
     
 end
 %% Filtering IMU data and plotting
@@ -142,8 +145,8 @@ end
 %% Get calibration indexes for different poses
 clear JA
 
-tpose = [0.06, 0.11, 0.15, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
-%tpose = [0.06, 0.1, 0.15, 0.2, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+%tpose = [0.06, 0.11, 0.16, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+tpose = [0.04, 0.1, 0.14, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
 calibtype = 'FE'; % FE/AA/FE+AA
 oritype = 'quat'; % eul/quat
 filt = 0;

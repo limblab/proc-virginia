@@ -1,4 +1,4 @@
-function[IMU] = EulerfromQuaternionIMUload(IMU)
+function[IMU] = EulfromQuat_IMUload(IMU)
 
 for ii = 1:size(IMU,2)
     for jj = 1:length(IMU(ii).q.q0)
