@@ -19,13 +19,14 @@ end
 
 switch lab
     case 1
-        FN = 'E:\Data-lab1\IMU Data\txt\20180110_static_2.nev'; % cerebus file name
-        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180110_static_2.txt','wt'); % xsens file name
+        FN = 'E:\Data-lab1\IMU Data\txt\20180131_test.nev'; % cerebus file name
+        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180131_test.txt','wt'); % xsens file name
     case 3
         FN = 'E:\IMU data\20180109.nev'; % cerebus file name
         xsenslog = fopen('E:\IMU data\20180109.txt','wt'); % xsens file name
     case 6
-        
+      FN = 'C:\data\IMU\filename.nev'; % cerebus file name
+      xsenslog = fopen('C:\data\IMU\txt\filename.txt','wt'); % xsens file name   
 end
 
 fprintf(xsenslog,'DevIDd\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header

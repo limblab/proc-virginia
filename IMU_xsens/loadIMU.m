@@ -1,13 +1,12 @@
-function[IMU,OS] = loadIMU(filenameIMU,isrst)
+function[IMU] = loadIMU(filenameIMU,isrst)
 
-clear IMU OS
+clear IMU
 
-fid = fopen(filenameIMU,'rt');
-header = strsplit(fgets(fid));
-fclose(fid);
+alldataIMU = importdata(filenameIMU,'\t');
+IdsIMU = regexprep(alldataIMU.textdata(2:end,1),'\s','');
+header = regexprep(alldataIMU.textdata(1,1:end),'\s','');
+dataIMU = alldataIMU.data;
 
-idnIMU = dlmread(filenameIMU,'\t',[1 1 end 1]);
-dataIMU = dlmread(filenameIMU,'\t',1,2);
 nIMU = max(dataIMU(:,1));
 
 order = [];
@@ -17,13 +16,13 @@ strspl = strsplit(order,'/');
 for ii = 1:nIMU
     IMU(ii).place = strspl{ii};
     if any(strcmp(header,'DevIDd'))
-        IMU(ii).ID = dataIMU(dataIMU(:,1)==ii,find(strcmp(header,'DevIDd')));
+        IMU(ii).ID = IdsIMU{dataIMU(:,1)==ii};
     end
-    it = find(strcmp(header,'CerebusTime'));
-    IMU(ii).data = dataIMU(dataIMU(:,1)==ii,it+1:end);
-    IMU(ii).time = dataIMU(dataIMU(:,1)==ii,it);
+    IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
+    IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
     IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
     IMU(ii).sts = IMU(ii).ts;
+    IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
 end
 
 if nIMU > 1
@@ -37,50 +36,60 @@ if nIMU > 1
     end
 end
 
+it = find(strcmp(header,'CerebusTime'));
+
 for ii = 1:nIMU
     IMU(ii).stime = IMU(ii).sts.Time;
     IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
     
     if any(strcmp(header,'Roll'))
-        irl = find(strcmp(header,'Roll'))-2;
+        irl = find(strcmp(header,'Roll'))-it;
         IMU(ii).rl = IMU(ii).sts.Data(:,irl);
     end
     if any(strcmp(header,'Pitch'))
-        ipt = find(strcmp(header,'Pitch'))-2;
+        ipt = find(strcmp(header,'Pitch'))-it;
         IMU(ii).pt = IMU(ii).sts.Data(:,ipt);
     end
     if any(strcmp(header,'Yaw'))
-        iyw = find(strcmp(header,'Yaw'))-2;
+        iyw = find(strcmp(header,'Yaw'))-it;
         IMU(ii).yw = IMU(ii).sts.Data(:,iyw);
     end
     if any(strcmp(header,'Yaw')) && any(strcmp(header,'Pitch')) && any(strcmp(header,'Roll'))
         IMU(ii).ori = [IMU(ii).rl,IMU(ii).pt,IMU(ii).yw];
     end
-    
     if any(strcmp(header,'xAcc'))
-        iac = find(strcmp(header,'xAcc'))-2;
+        iac = find(strcmp(header,'xAcc'))-it;
         IMU(ii).acc = IMU(ii).sts.Data(:,iac:iac+2);
     end
     if any(strcmp(header,'xGyro'))
-        igy = find(strcmp(header,'xGyro'))-2;
+        igy = find(strcmp(header,'xGyro'))-it;
         IMU(ii).gyro = rad2deg(IMU(ii).sts.Data(:,igy:igy+2));
+        for j = 1:length(IMU(ii).stime)
+            IMU(ii).ngyro(j) = norm(IMU(ii).gyro(j,:));
+        end
     end
     if any(strcmp(header,'xMagn'))
-        img = find(strcmp(header,'xMagn'))-2;
+        img = find(strcmp(header,'xMagn'))-it;
         IMU(ii).magn = IMU(ii).sts.Data(:,img:img+2);
+            for j = 1:length(IMU(ii).stime)
+                IMU(ii).nmagn(j) = norm(IMU(ii).magn(j,:));
+            end
     end
     if any(strcmp(header,'q0'))
-        iq = find(strcmp(header,'q0'))-2;
+        iq = find(strcmp(header,'q0'))-it;
         IMU(ii).q.q0 = IMU(ii).sts.Data(:,iq);
         IMU(ii).q.q1 = IMU(ii).sts.Data(:,iq+1);
         IMU(ii).q.q2 = IMU(ii).sts.Data(:,iq+2);
         IMU(ii).q.q3 = IMU(ii).sts.Data(:,iq+3);
-        IMU(ii) = EulerfromQuaternionIMUload(IMU(ii));
+        IMU(ii) = EulfromQuat_IMUload(IMU(ii));
     end
 end
 
 if ~isrst
     for ii = 1:nIMU
+        IMU(ii).rl = detrend(IMU(ii).rl);
+        IMU(ii).pt = detrend(IMU(ii).pt);
+        IMU(ii).yw = detrend(IMU(ii).yw);
         IMU(ii).ori = detrend(IMU(ii).ori);
         IMU(ii).q.rl = detrend(IMU(ii).q.rl);
         IMU(ii).q.pt = detrend(IMU(ii).q.pt);
@@ -88,26 +97,4 @@ if ~isrst
     end
 end
 
-nback = find(strcmp({IMU.place}, 'back') == 1);
-nsho = find(strcmp({IMU.place}, 'sho') == 1);
-nelb = find(strcmp({IMU.place}, 'elb') == 1);
-
-%     OS.time = IMU(1).stime;
-%     
-%     OS.shoulder_flexion = IMU(nsho).pt;
-%     OS.shoulder_adduction = IMU(nsho).rl-IMU(nsho).yw;
-%     OS.shoulder_rotation = IMU(nsho).yw-IMU(nsho).rl;
-%     
-%     OS.elbow_flexion = IMU(nelb).pt+IMU(nsho).pt;
-%     OS.radial_pronation = IMU(nelb).rl-IMU(nsho).yw+IMU(nsho).rl;
-%     
-%     OS.header = fieldnames(OS);
-%     
-%     OS.all = [];
-%     
-%     for ii = 1:length(OS.header)
-%         OS.all = [OS.all OS.(OS.header{ii})];
-%     end  
-    
-OS = [];
 end
