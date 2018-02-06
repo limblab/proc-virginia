@@ -20,8 +20,8 @@ end
 
 switch lab
     case 1
-        FN = 'E:\Data-lab1\IMU Data\txt\20180131_test.nev'; % cerebus file name
-        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180131_test.txt','wt'); % xsens file name
+        FN = 'E:\Data-lab1\IMU Data\txt\20180206_reset_lat_3.nev'; % cerebus file name
+        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180206_reset_lat_3.txt','wt'); % xsens file name
     case 3
         FN = 'E:\IMU data\20180109.nev'; % cerebus file name
         xsenslog = fopen('E:\IMU data\20180109.txt','wt'); % xsens file name
@@ -30,7 +30,7 @@ switch lab
       xsenslog = fopen('C:\data\IMU\txt\filename.txt','wt'); % xsens file name   
 end
 
-fprintf(xsenslog,'DevIDd\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\n'); % xsens header
+fprintf(xsenslog,'DevIDd\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t xAcc\t yAcc\t zAcc\t xGyro\t yGyro\t zGyro\t xMagn\t yMagn\t zMagn\t q0\t q1\t q2\t q3\t rst\n'); % xsens header
 %fprintf(xsenslog,'DevIDd\t DevID\t CerebusTime\t Roll\t Pitch\t Yaw\t q0\t q1\t q2\t q3\n'); % xsens header
 
 %% Launching activex server
@@ -174,15 +174,14 @@ input('\n Press ''enter'' when aligned with initial position')
 
 
 % Perfrom alignment reset
-tel = cbmex('time');
-if alignrst == 1 && (rem(tel,300)<=3)
+if alignrst == 1
     for i = 1:length(children)
         coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Alignment());
     end
 end
 
 % Perform heading reset
-if headrst == 1
+if headrst == 1 
     for i = 1:length(children)
         coord_reset(i) = h.XsDevice_resetOrientation(children{i}, h.XsResetMethod_XRM_Heading());
     end
@@ -192,6 +191,8 @@ if output %% && all(coord_reset)
     
     h.XsDevice_startRecording(device);
     
+    t_ini = cbmex('time');
+    rst = 0;
     % Register onLiveDataAvailable event
     h.registerevent({'onLiveDataAvailable',@handleData});
     h.setCallbackOption(h.XsComCallbackOptions_XSC_LivePacket, h.XsComCallbackOptions_XSC_None);
@@ -211,7 +212,7 @@ stopAll;
         
         nDev = find(cellfun(@(x) x==deviceFound, devicesUsed));
         IDDev = dec2hex(h.XsDevice_deviceId(deviceFound));
-        
+                
         if dataPacket
             if h.XsDataPacket_containsOrientation(dataPacket)
                 oriC = cell2mat(h.XsDataPacket_orientationEuler_1(dataPacket));
@@ -219,7 +220,7 @@ stopAll;
                 gyroC = cell2mat(h.XsDataPacket_calibratedGyroscopeData(dataPacket));
                 magnC = cell2mat(h.XsDataPacket_calibratedMagneticField(dataPacket));
                 quat = cell2mat(h.XsDataPacket_orientationQuaternion_1(dataPacket));
-                fprintf(xsenslog,'%s\t %d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',IDDev,nDev,cbmex('time'),oriC,accC,gyroC,magnC,quat);
+                fprintf(xsenslog,'%s\t %d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %d\n',IDDev,nDev,cbmex('time'),oriC,accC,gyroC,magnC,quat,rst);
                 %fprintf(xsenslog,'%s\t %d\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\n',IDDev,nDev,cbmex('time'),oriC,quat);
                 
             end
@@ -227,12 +228,22 @@ stopAll;
             % Perform alignment reset every ~5 min when trigger is detected at sync line
             if trigrst
                 trig = h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
-                tel = cbmex('time');
-                if trig && (rem(tel,300)<=3)
+                t_elap = cbmex('time');
+                if trig && (rem(t_elap,300)<=3)
                     for j = 1:length(children)
                         h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Alignment());
                     end
                 end
+            end
+            
+            t_elap = cbmex('time');
+            if ((rem(t_elap-t_ini,60))<0.01)
+                rst = 1;
+                for j = 1:length(children)
+                    h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Heading());
+                end
+            else 
+                rst = 0;
             end
             
             h.liveDataPacketHandled(deviceFound, dataPacket);

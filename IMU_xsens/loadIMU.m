@@ -39,6 +39,11 @@ end
 it = find(strcmp(header,'CerebusTime'));
 
 for ii = 1:nIMU
+    if any(strcmp(header,'rst'))
+        irst = find(strcmp(header,'rst'))-it;
+        IMU(ii).rst = IMU(ii).sts.Data(:,irst);
+    end
+    
     IMU(ii).stime = IMU(ii).sts.Time;
     IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
     

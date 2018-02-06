@@ -15,7 +15,7 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {'20180131_test.txt'};
+filenames = {'20180206_reset_lat_3.txt'};
 
 isrst = [1,1,1]; % When 0 enables detrend
 
@@ -162,7 +162,6 @@ for ii = 1:size(IMU,2)
     title([IMU(ii).place, ' IMU'])
 end
 
-<<<<<<< HEAD
 %% Get calibration indexes for different poses
 clear JA
 
@@ -176,8 +175,6 @@ rst = 1;
 JA = getbody2IMUmat(IMU,tpose,calibtype);
 JA = getjointangles(IMU,JA,oritype,filt,rst);
 
-=======
->>>>>>> f44927e2a6a06bbc3b8828689550c4f58232f021
 %% Plot joint angles and reconstructed global frame IMU angles
 
 wname = 'haar';
