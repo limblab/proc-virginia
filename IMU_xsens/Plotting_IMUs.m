@@ -15,7 +15,8 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {'20180205_Finit.txt'};
+
+filenames = {'20180205_reset5_lat_2.txt'};
 
 isrst = [1,1,1]; % When 0 enables detrend
 
@@ -227,65 +228,6 @@ for ii = 1:size(IMU,2)
     plot(IMU(ii).stimem,IMU(ii).filt.q.pt)
     plot(IMU(ii).stimem,IMU(ii).filt.q.yw)
     xlabel('Time [s]'); ylabel('Angle [deg]');
-    legend('Roll','Pitch','Yaw')
-    title([IMU(ii).place, ' IMU'])
-end
-
-%% Plot joint angles and reconstructed global frame IMU angles
-
-wname = 'haar';
-decomplevel = wmaxlev(length(JA(1).rl),wname);
-detaillevel = round(decomplevel/4)-1;
-
-for ii = 1:2
-    [bsline,JA(ii).filt.rl] = wdriftcorrect(JA(ii).rl,wname,detaillevel,decomplevel);
-end
-
-figure('name',[filenames{1}, '-Joint Angles'])
-subplot(2,1,1)
-plot(IMU(1).stimem,(JA(1).rl))
-hold on
-%plot(IMU(1).stimem,(JA(1).pt))
-plot(IMU(1).stimem,(JA(1).yw))
-xlabel('Time [min]'); ylabel('Angle [deg]');
-legend('Roll/FE','Pitch/PS/R')
-title('elb Joint')
-subplot(2,1,2)
-plot(IMU(2).stimem,(JA(2).rl))
-hold on
-plot(IMU(2).stimem,(JA(2).pt))
-plot(IMU(2).stimem,unwrap(JA(2).yw))
-xlabel('Time [min]'); ylabel('Angle [deg]');
-legend('Roll/FE','Pitch/PS/R','Yaw/AA')
-title('sho Joint')
-
-figure('name',[filenames{1}, '-Joint Angles diff'])
-subplot(2,1,1)
-plot(IMU(1).stimem,(JA(1).rld))
-hold on
-plot(IMU(1).stimem,(JA(1).ptd))
-plot(IMU(1).stimem,(JA(1).ywd))
-xlabel('Time [min]'); ylabel('Angle [deg]');
-legend('Roll/FE','Pitch/PS/R')
-title('elb Joint')
-subplot(2,1,2)
-plot(IMU(2).stimem,(JA(2).rld))
-hold on
-plot(IMU(2).stimem,(JA(2).ptd))
-plot(IMU(2).stimem,unwrap(JA(2).ywd))
-xlabel('Time [min]'); ylabel('Angle [deg]');
-legend('Roll/FE','Pitch/PS/R','Yaw/AA')
-title('sho Joint')
-
-figure('name',[filenames{1}, '-Reconst Global Angles'])
-for ii = 1:size(JA,2)
-    subplot(size(JA,2),1,ii)
-    plot(IMU(ii).stimem,(JA(ii).rlg))
-    hold on
-    plot(IMU(ii).stimem,(JA(ii).ptg))
-    plot(IMU(ii).stimem,(JA(ii).ywg))
-    
-    xlabel('Time [min]'); ylabel('Angle [deg]');
     legend('Roll','Pitch','Yaw')
     title([IMU(ii).place, ' IMU'])
 end
