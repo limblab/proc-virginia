@@ -1,4 +1,4 @@
-function[JA] = getjointangles(IMU,JA,oritype,filt,rst)
+function[JA] = getjointangles(IMU,JA,oritype,filt,rst,correct)
 % Obtains body segment to body segment transformation matrix (Rbb), joint
 % angles (rl, pt, yw), and reconstructed IMU body referenced angles (rlg,
 % ptg, ywg)
@@ -24,6 +24,16 @@ end
 nelb = find(strcmp({IMU.place},'elb'));
 nsho = find(strcmp({IMU.place},'sho'));
 nback = find(strcmp({IMU.place},'back'));
+
+% Correct Rsb
+if correct
+    for ii = 1:size(IMU,2)
+        accv = mean(IMU(ii).acc(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
+        %JA(ii).RAA = vec2Rmat([accv(1) 0 accv(3)],[1 0 0]);
+        JA(ii).RFE = vec2Rmat([accv(1:2) 0],[0 0 1]);
+        JA(ii).Rsb = JA(ii).RFE*JA(ii).Rsb;
+    end
+end
 
 for ii = 1:length(JA(1).time)
     for jj = 1:size(IMU,2)

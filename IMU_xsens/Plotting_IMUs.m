@@ -1,5 +1,5 @@
 %% File selection
-lab = 1;
+lab = 0;
 switch lab
     case 0 % mac        
         txtpath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt';
@@ -15,14 +15,14 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {'20180131_test.txt'};
+filenames = {'20180205_Finit.txt'};
 
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-    IMU = loadIMU(filenames{jj},isrst(jj));
+   % IMU = loadIMU(filenames{jj},isrst(jj));
     
     % Plot IMU angles from Euler
     figure('name',[filenames{jj}, '-Euler'])
@@ -92,14 +92,74 @@ end
 clear JA
 
 %tpose = [0.06, 0.11, 0.16, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
-tpose = [0.04, 0.1, 0.14, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+tpose = [0.05, 0.1, 0.2, 0.25, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
 calibtype = 'FE'; % FE/AA/FE+AA
 oritype = 'quat'; % eul/quat
 filt = 0;
 rst = 1;
+correct = 0;
 
 JA = getbody2IMUmat(IMU,tpose,calibtype);
-JA = getjointangles(IMU,JA,oritype,filt,rst);
+JA = getjointangles(IMU,JA,oritype,filt,rst,correct);
+
+%% Plot joint angles and reconstructed global frame IMU angles
+
+% wname = 'haar';
+% decomplevel = wmaxlev(length(JA(1).rl),wname);
+% detaillevel = round(decomplevel/4)-1;
+% 
+% for ii = 1:2
+%     [bsline,JA(ii).filt.rl] = wdriftcorrect(JA(ii).rl,wname,detaillevel,decomplevel);
+% end
+
+figure('name',[filenames{1}, '-Joint Angles'])
+subplot(2,1,1)
+plot(IMU(1).stimem,(JA(1).rl))
+hold on
+%plot(IMU(1).stimem,(JA(1).pt))
+plot(IMU(1).stimem,(JA(1).yw))
+xlabel('Time [min]'); ylabel('Angle [deg]');
+legend('Roll/FE','Pitch/PS/R')
+title('elb Joint')
+subplot(2,1,2)
+plot(IMU(2).stimem,(JA(2).rl))
+hold on
+plot(IMU(2).stimem,(JA(2).pt))
+plot(IMU(2).stimem,unwrap(JA(2).yw))
+xlabel('Time [min]'); ylabel('Angle [deg]');
+legend('Roll/FE','Pitch/PS/R','Yaw/AA')
+title('sho Joint')
+
+% figure('name',[filenames{1}, '-Joint Angles diff'])
+% subplot(2,1,1)
+% plot(IMU(1).stimem,(JA(1).rld))
+% hold on
+% plot(IMU(1).stimem,(JA(1).ptd))
+% plot(IMU(1).stimem,(JA(1).ywd))
+% xlabel('Time [min]'); ylabel('Angle [deg]');
+% legend('Roll/FE','Pitch/PS/R')
+% title('elb Joint')
+% subplot(2,1,2)
+% plot(IMU(2).stimem,(JA(2).rld))
+% hold on
+% plot(IMU(2).stimem,(JA(2).ptd))
+% plot(IMU(2).stimem,unwrap(JA(2).ywd))
+% xlabel('Time [min]'); ylabel('Angle [deg]');
+% legend('Roll/FE','Pitch/PS/R','Yaw/AA')
+% title('sho Joint')
+
+figure('name',[filenames{1}, '-Reconst Global Angles'])
+for ii = 1:size(JA,2)
+    subplot(size(JA,2),1,ii)
+    plot(IMU(ii).stimem,(JA(ii).rlg))
+    hold on
+    plot(IMU(ii).stimem,(JA(ii).ptg))
+    plot(IMU(ii).stimem,(JA(ii).ywg))
+    
+    xlabel('Time [min]'); ylabel('Angle [deg]');
+    legend('Roll','Pitch','Yaw')
+    title([IMU(ii).place, ' IMU'])
+end
 
 %% Filtering IMU data and plotting
 % Butter low pass filter parameters
@@ -107,6 +167,13 @@ flow = 4;
 forder = 2;
 
 %% Wavelet drift removal parameters
+pla = {'sho','elb'};
+for ii = 1:size(IMU,2)
+IMU(ii).fs = 120;
+IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
+IMU(ii).place = pla{ii};
+end
+
 wname = 'haar';
 decomplevel = wmaxlev(length(IMU(1).yw),wname)-1;
 detaillevel = round(decomplevel/4);
@@ -116,7 +183,7 @@ plt = 1;
 IMU = wfiltIMU(IMU,flow,forder,wname,detaillevel,plt);
 
 %% Detrend drift removal
-bkptst = [4;0;0];
+bkptst = [10;0;0];
 
 for ii = 1:size(IMU,2)
     for j = 1:size(bkptst,2)
@@ -134,9 +201,11 @@ for ii = 1:size(IMU,2)
     CC = corrcoef(CCmat);
     fprintf('\n Euler R%d = %1.3f',ii,CC(1,2))
     
+    if isfield(IMU,'q')
     CCmat = [IMU(ii).q.pt IMU(ii).filt.q.pt];
     CC = corrcoef(CCmat);
     fprintf('\n Quaternions R%d = %1.3f\n',ii,CC(1,2))
+    end
 end
 
 %%
@@ -162,22 +231,6 @@ for ii = 1:size(IMU,2)
     title([IMU(ii).place, ' IMU'])
 end
 
-<<<<<<< HEAD
-%% Get calibration indexes for different poses
-clear JA
-
-tpose = [0.05, 0.1, 0.15, 0.2, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
-%tpose = [0.06, 0.1, 0.15, 0.2, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
-calibtype = 'FE'; % FE/AA/FE+AA
-oritype = 'quat'; % eul/quat
-filt = 0;
-rst = 1;
-
-JA = getbody2IMUmat(IMU,tpose,calibtype);
-JA = getjointangles(IMU,JA,oritype,filt,rst);
-
-=======
->>>>>>> f44927e2a6a06bbc3b8828689550c4f58232f021
 %% Plot joint angles and reconstructed global frame IMU angles
 
 wname = 'haar';
