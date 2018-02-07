@@ -8,6 +8,7 @@ function[JA] = getjointangles(IMU,JA,oritype,filt,rst,correct)
 % oritype: which orientation representation was used 'quat' or 'eul'
 % filt: whether to use filtered data
 % rst: whether to detrend data and bring to OpenSim reference angles
+% correct: whether to correct Rsb for flexion angle offset
 
 % Implemented from:
 %    Palermo E, Rossi S, Marini F, Patanè F, Cappa P.
@@ -17,9 +18,9 @@ function[JA] = getjointangles(IMU,JA,oritype,filt,rst,correct)
 
 % Joints evaluated
 joints = {'elb','sho'};
-for ii = 1:length(joints)
-    JA(ii).joint = joints{ii};
-end
+% for ii = 1:length(joints)
+%     JA(ii).joint = joints{ii};
+% end
 
 nelb = find(strcmp({IMU.place},'elb'));
 nsho = find(strcmp({IMU.place},'sho'));
@@ -45,7 +46,7 @@ for ii = 1:length(JA(1).time)
         elseif strcmp(oritype,'quat') && ~filt
             JA(jj).Rgs = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii));
         else
-            JA(jj).Rgs = quat2Rmat(IMU(jj).filt.q.q0(ii),IMU(jj).filt.q.q1(ii),IMU(jj).filt.q.q2(ii),IMU(jj).filt.q.q3(ii));
+            JA(jj).Rgs = ypr2Rmat(IMU(jj).filt.q.yw(ii),IMU(jj).filt.q.pt(ii),IMU(jj).filt.q.rl(ii));
         end
         % Reconstruct body IMU angles
         [JA(jj).ywg(ii),JA(jj).ptg(ii),JA(jj).rlg(ii)] = Rmat2ypr(JA(jj).Rgs*JA(jj).Rsb);

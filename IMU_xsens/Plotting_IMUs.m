@@ -15,15 +15,14 @@ switch lab
         addpath(txtpath);
 end
 
-
-filenames = {'20180205_reset5_lat_2.txt'};
+filenames = {'20180207_reset1_shoFE.txt'};
 
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-   % IMU = loadIMU(filenames{jj},isrst(jj));
+   IMU = loadIMU(filenames{jj},isrst(jj));
     
     % Plot IMU angles from Euler
     figure('name',[filenames{jj}, '-Euler'])
@@ -93,9 +92,9 @@ end
 clear JA
 
 %tpose = [0.06, 0.11, 0.16, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
-tpose = [0.05, 0.1, 0.2, 0.25, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+tpose = [0.04, 0.08, 0.12, 0.16, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
 calibtype = 'FE'; % FE/AA/FE+AA
-oritype = 'quat'; % eul/quat
+oritype = 'eul'; % eul/quat
 filt = 0;
 rst = 1;
 correct = 0;
@@ -162,29 +161,46 @@ for ii = 1:size(JA,2)
     title([IMU(ii).place, ' IMU'])
 end
 
+%% Binding reset segments
+IMU = bindrst(IMU);
+
+figure('name',[filenames{1}, '-Reconst Global Angles'])
+for ii = 1:size(JA,2)
+    subplot(size(JA,2),1,ii)
+    plot(IMU(ii).stimem,IMU(ii).rstb.rl)
+    hold on
+    plot(IMU(ii).stimem,IMU(ii).rstb.pt)
+    plot(IMU(ii).stimem,IMU(ii).rstb.yw)
+    
+    xlabel('Time [min]'); ylabel('Angle [deg]');
+    legend('Roll','Pitch','Yaw')
+    title([IMU(ii).place, ' IMU'])
+end
+
 %% Filtering IMU data and plotting
 % Butter low pass filter parameters
 flow = 4;
 forder = 2;
 
 %% Wavelet drift removal parameters
-pla = {'sho','elb'};
+pla = {'back','sho','elb'};
 for ii = 1:size(IMU,2)
 IMU(ii).fs = 120;
 IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
 IMU(ii).place = pla{ii};
 end
 
+%%
 wname = 'haar';
-decomplevel = wmaxlev(length(IMU(1).yw),wname)-1;
-detaillevel = round(decomplevel/4);
+decomplevel = wmaxlev(length(IMU(1).yw),wname);
+detaillevel = round(decomplevel/4)+2;
 
 plt = 1;
 
 IMU = wfiltIMU(IMU,flow,forder,wname,detaillevel,plt);
 
 %% Detrend drift removal
-bkptst = [10;0;0];
+bkptst = [5 10 15;5 10 15;5 10 15];
 
 for ii = 1:size(IMU,2)
     for j = 1:size(bkptst,2)
@@ -213,7 +229,10 @@ end
 figure('name','Filtered Euler')
 for ii = 1:size(IMU,2)
     subplot(size(IMU,2),1,ii)
-    plot(IMU(ii).stimem,IMU(ii).filt.ori)
+    plot(IMU(ii).stimem,IMU(ii).filt.rl)
+    hold on
+    plot(IMU(ii).stimem,IMU(ii).filt.pt)
+    plot(IMU(ii).stimem,IMU(ii).filt.yw)
     xlabel('Time [s]'); ylabel('Angle [deg]');
     legend('Roll','Pitch','Yaw')
     title([IMU(ii).place, ' IMU'])
