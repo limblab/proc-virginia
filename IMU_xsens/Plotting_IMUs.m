@@ -1,15 +1,17 @@
 %% File selection
-lab = 0;
+lab = -1;
 switch lab
     case 0 % mac
         addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
+    case -1
+        addpath('C:\Users\vct1641\Documents\Data\data-IMU')
     case 3
         addpath('E:\IMU data');
     case 6
         addpath('C:\data\IMU\txt\');
 end
 
-filenames = {'20171212_stability_reset.txt'};
+filenames = {'20180118_up_movem.txt'};
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
@@ -142,7 +144,7 @@ end
 %% Get calibration indexes for different poses
 clear JA
 
-tpose = [0.06, 0.11, 0.15, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+tpose = [0.04, 0.1, 0.14, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
 %tpose = [0.06, 0.1, 0.15, 0.2, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
 calibtype = 'FE'; % FE/AA/FE+AA
 oritype = 'quat'; % eul/quat
