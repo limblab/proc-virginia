@@ -15,7 +15,7 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {'20180206_reset_lat_3.txt'};
+filenames = {'20180207_reset1_shoFE_2.txt'};
 
 isrst = [1,1,1]; % When 0 enables detrend
 

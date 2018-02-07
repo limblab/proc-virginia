@@ -18,10 +18,11 @@ if reccbmex
     cbmex('trialconfig',0) % Turn off the data buffer
 end
 
+
 switch lab
     case 1
-        FN = 'E:\Data-lab1\IMU Data\txt\20180206_reset_lat_3.nev'; % cerebus file name
-        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180206_reset_lat_3.txt','wt'); % xsens file name
+        FN = 'E:\Data-lab1\IMU Data\txt\20180207_reset1_shoFE_3.nev'; % cerebus file name
+        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180207_reset1_shoFE_3.txt','wt'); % xsens file name
     case 3
         FN = 'E:\IMU data\20180109.nev'; % cerebus file name
         xsenslog = fopen('E:\IMU data\20180109.txt','wt'); % xsens file name
