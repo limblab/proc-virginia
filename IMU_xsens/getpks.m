@@ -1,4 +1,9 @@
 function[JA] = getpks(JA)
+% Obtains peaks from joint angles and reconstructed body referenced IMU
+% angles and appends them to JA into pks sub structure. Obtains mean and 
+% standard devation of peaks
+
+% JA: joint angle data structure
 
 for ii = 1:size(JA,2)-1
     [~, rlpks] = findpeaks((JA(ii).rl), 'minpeakheight', mean(JA(ii).rl)+std(JA(ii).rl)/2,'minpeakdistance',100);

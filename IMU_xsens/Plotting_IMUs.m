@@ -2,22 +2,30 @@
 lab = -1;
 switch lab
     case 0 % mac
-        addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt');
+        txtpath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt';
+        addpath(txtpath);
     case -1
-        addpath('C:\Users\vct1641\Documents\Data\data-IMU')
+        txtpath = 'C:\Users\vct1641\Documents\Data\data-IMU';
+        addpath(txtpath);
+    case 1
+        txtpath = 'E:\Data-lab1\IMU Data\txt';
+        addpath(txtpath);
     case 3
-        addpath('E:\IMU data');
+        txtpath = 'E:\IMU data';
+        addpath(txtpath);
     case 6
-        addpath('C:\data\IMU\txt\');
+        txtpath = 'C:\data\IMU\txt\';
+        addpath(txtpath);
 end
 
-filenames = {'20180118_up_movem.txt'};
+filenames = {'20180205_reset5_lat_2.txt'};
+
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-    IMU = loadIMU(filenames{jj},isrst(jj));
+   % IMU = loadIMU(filenames{jj},isrst(jj));
     
     % Plot IMU angles from Euler
     figure('name',[filenames{jj}, '-Euler'])
@@ -42,25 +50,25 @@ for  jj = 1:length(filenames)
         title([IMU(ii).place, ' IMU'])
     end
     
-    % Plot accelerations
-    figure('name',filenames{jj})
-    for ii = 1:size(IMU,2)
-        subplot(size(IMU,2),1,ii)
-        plot(IMU(ii).stimem,IMU(ii).acc)
-        xlabel('Time [min]'); ylabel('Acceleration [m/s^2]');
-        legend('a_x','a_y','a_z')
-        title([IMU(ii).place, ' IMU'])
-    end
-    
-    % Plot angular velocity
-    figure('name',filenames{jj})
-    for ii = 1:size(IMU,2)
-        subplot(size(IMU,2),1,ii)
-        plot(IMU(ii).stimem,IMU(ii).gyro)
-        xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
-        legend('w_x','w_y','w_z')
-        title([IMU(ii).place, ' IMU'])
-    end
+%     % Plot accelerations
+%     figure('name',filenames{jj})
+%     for ii = 1:size(IMU,2)
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).stimem,IMU(ii).acc)
+%         xlabel('Time [min]'); ylabel('Acceleration [m/s^2]');
+%         legend('a_x','a_y','a_z')
+%         title([IMU(ii).place, ' IMU'])
+%     end
+%     
+%     % Plot angular velocity
+%     figure('name',filenames{jj})
+%     for ii = 1:size(IMU,2)
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).stimem,IMU(ii).gyro)
+%         xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
+%         legend('w_x','w_y','w_z')
+%         title([IMU(ii).place, ' IMU'])
+%     end
     
 %     % Plot magnetic field
 %     figure('name',filenames{jj})
@@ -72,22 +80,103 @@ for  jj = 1:length(filenames)
 %         title([IMU(ii).place, ' IMU'])
 %     end
     
-    % Plot normalized magnetic field - should be close to 1
-    figure('name',filenames{jj})
-    for ii = 1:size(IMU,2)
-        subplot(size(IMU,2),1,ii)
-        plot(IMU(ii).stimem,IMU(ii).nmagn)
-        xlabel('Time [min]'); ylabel('Normalized Magnetic Field [-]');
-        title([IMU(ii).place, ' IMU'])
-    end
+%     % Plot normalized magnetic field - should be close to 1
+%     figure('name',filenames{jj})
+%     for ii = 1:size(IMU,2)
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).stimem,IMU(ii).nmagn)
+%         xlabel('Time [min]'); ylabel('Normalized Magnetic Field [-]');
+%         title([IMU(ii).place, ' IMU'])
+%     end
     
 end
+
+%% Get calibration indexes for different poses
+clear JA
+
+%tpose = [0.06, 0.11, 0.16, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+tpose = [0.05, 0.1, 0.2, 0.25, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+calibtype = 'FE'; % FE/AA/FE+AA
+oritype = 'quat'; % eul/quat
+filt = 0;
+rst = 1;
+correct = 0;
+
+JA = getbody2IMUmat(IMU,tpose,calibtype);
+JA = getjointangles(IMU,JA,oritype,filt,rst,correct);
+
+%% Plot joint angles and reconstructed global frame IMU angles
+
+% wname = 'haar';
+% decomplevel = wmaxlev(length(JA(1).rl),wname);
+% detaillevel = round(decomplevel/4)-1;
+% 
+% for ii = 1:2
+%     [bsline,JA(ii).filt.rl] = wdriftcorrect(JA(ii).rl,wname,detaillevel,decomplevel);
+% end
+
+figure('name',[filenames{1}, '-Joint Angles'])
+subplot(2,1,1)
+plot(IMU(1).stimem,(JA(1).rl))
+hold on
+%plot(IMU(1).stimem,(JA(1).pt))
+plot(IMU(1).stimem,(JA(1).yw))
+xlabel('Time [min]'); ylabel('Angle [deg]');
+legend('Roll/FE','Pitch/PS/R')
+title('elb Joint')
+subplot(2,1,2)
+plot(IMU(2).stimem,(JA(2).rl))
+hold on
+plot(IMU(2).stimem,(JA(2).pt))
+plot(IMU(2).stimem,unwrap(JA(2).yw))
+xlabel('Time [min]'); ylabel('Angle [deg]');
+legend('Roll/FE','Pitch/PS/R','Yaw/AA')
+title('sho Joint')
+
+% figure('name',[filenames{1}, '-Joint Angles diff'])
+% subplot(2,1,1)
+% plot(IMU(1).stimem,(JA(1).rld))
+% hold on
+% plot(IMU(1).stimem,(JA(1).ptd))
+% plot(IMU(1).stimem,(JA(1).ywd))
+% xlabel('Time [min]'); ylabel('Angle [deg]');
+% legend('Roll/FE','Pitch/PS/R')
+% title('elb Joint')
+% subplot(2,1,2)
+% plot(IMU(2).stimem,(JA(2).rld))
+% hold on
+% plot(IMU(2).stimem,(JA(2).ptd))
+% plot(IMU(2).stimem,unwrap(JA(2).ywd))
+% xlabel('Time [min]'); ylabel('Angle [deg]');
+% legend('Roll/FE','Pitch/PS/R','Yaw/AA')
+% title('sho Joint')
+
+figure('name',[filenames{1}, '-Reconst Global Angles'])
+for ii = 1:size(JA,2)
+    subplot(size(JA,2),1,ii)
+    plot(IMU(ii).stimem,(JA(ii).rlg))
+    hold on
+    plot(IMU(ii).stimem,(JA(ii).ptg))
+    plot(IMU(ii).stimem,(JA(ii).ywg))
+    
+    xlabel('Time [min]'); ylabel('Angle [deg]');
+    legend('Roll','Pitch','Yaw')
+    title([IMU(ii).place, ' IMU'])
+end
+
 %% Filtering IMU data and plotting
 % Butter low pass filter parameters
 flow = 4;
 forder = 2;
 
 %% Wavelet drift removal parameters
+pla = {'sho','elb'};
+for ii = 1:size(IMU,2)
+IMU(ii).fs = 120;
+IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
+IMU(ii).place = pla{ii};
+end
+
 wname = 'haar';
 decomplevel = wmaxlev(length(IMU(1).yw),wname)-1;
 detaillevel = round(decomplevel/4);
@@ -97,7 +186,8 @@ plt = 1;
 IMU = wfiltIMU(IMU,flow,forder,wname,detaillevel,plt);
 
 %% Detrend drift removal
-bkptst = [4;0;0];
+bkptst = [10;0;0];
+
 for ii = 1:size(IMU,2)
     for j = 1:size(bkptst,2)
         [~,bkpts(ii,j)] = min(abs(IMU(1).stimem-bkptst(ii,j)));
@@ -114,9 +204,11 @@ for ii = 1:size(IMU,2)
     CC = corrcoef(CCmat);
     fprintf('\n Euler R%d = %1.3f',ii,CC(1,2))
     
+    if isfield(IMU,'q')
     CCmat = [IMU(ii).q.pt IMU(ii).filt.q.pt];
     CC = corrcoef(CCmat);
     fprintf('\n Quaternions R%d = %1.3f\n',ii,CC(1,2))
+    end
 end
 
 %%
@@ -128,6 +220,7 @@ for ii = 1:size(IMU,2)
     legend('Roll','Pitch','Yaw')
     title([IMU(ii).place, ' IMU'])
 end
+
 
 figure('name','Filtered Quaternions')
 for ii = 1:size(IMU,2)
@@ -141,6 +234,7 @@ for ii = 1:size(IMU,2)
     title([IMU(ii).place, ' IMU'])
 end
 
+<<<<<<< HEAD
 %% Get calibration indexes for different poses
 clear JA
 
@@ -213,10 +307,9 @@ for ii = 1:size(JA,2)
     title([IMU(ii).place, ' IMU'])
 end
 
+=======
+>>>>>>> 58149f24e98d8c6039d0ccb026a4f6b629eebe90
 %% Validate JA
-% (max(JA(ii).rl)-min(JA(ii).rl))/2+min(JA(ii).rl)
-% (max(JA(ii).pt)-min(JA(ii).pt))/2+min(JA(ii).pt)
-% (max(JA(ii).yw)-min(JA(ii).yw))*2/3+min(JA(ii).yw)
 
 for ii = 1:size(JA,2)-1
     [~, JA(ii).rlpks] = findpeaks((JA(ii).rl), 'minpeakheight', mean(JA(ii).rl)+std(JA(ii).rl)/2,'minpeakdistance',100);
