@@ -1,5 +1,5 @@
 %% File selection
-lab = -1;
+lab = 0;
 switch lab
     case 0 % mac
         txtpath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt';
@@ -25,7 +25,7 @@ isrst = [1,1,1]; % When 0 enables detrend
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-   IMU = loadIMU(filenames{jj},isrst(jj));
+   %IMU = loadIMU(filenames{jj},isrst(jj));
     
     % Plot IMU angles from Euler
     figure('name',[filenames{jj}, '-Euler'])
@@ -167,14 +167,25 @@ end
 %% Binding reset segments
 IMU = bindrst(IMU);
 
-figure('name',[filenames{1}, '-Reconst Global Angles'])
+figure('name',[filenames{1}, '-Binding Euler'])
 for ii = 1:size(JA,2)
     subplot(size(JA,2),1,ii)
     plot(IMU(ii).stimem,IMU(ii).rstb.rl)
     hold on
     plot(IMU(ii).stimem,IMU(ii).rstb.pt)
     plot(IMU(ii).stimem,IMU(ii).rstb.yw)
-    
+    xlabel('Time [min]'); ylabel('Angle [deg]');
+    legend('Roll','Pitch','Yaw')
+    title([IMU(ii).place, ' IMU'])
+end
+
+figure('name',[filenames{1}, '-Binding Quat'])
+for ii = 1:size(JA,2)
+    subplot(size(JA,2),1,ii)
+    plot(IMU(ii).stimem,IMU(ii).rstb.q.rl)
+    hold on
+    plot(IMU(ii).stimem,IMU(ii).rstb.q.pt)
+    plot(IMU(ii).stimem,IMU(ii).rstb.q.yw)
     xlabel('Time [min]'); ylabel('Angle [deg]');
     legend('Roll','Pitch','Yaw')
     title([IMU(ii).place, ' IMU'])
