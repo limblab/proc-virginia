@@ -2,7 +2,9 @@
 %% Load data path
 switch computer
     case 'PCWIN64'
-        datapath = 'C:\Users\vct1641\Documents\Data\data-IMU\';
+        datapath = 'C:\Users\vct1641\Documents\Data\';
+        datapathR = 'C:\Users\vct1641\Documents\MATLAB\proc-Raeed\';
+        addpath(genpath(datapathR))
     case 'MACI64'
         datapath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data';
 end
@@ -11,10 +13,10 @@ addpath(datapath);
 set(0,'defaultTextInterpreter','tex');
  
 %% Handle 
-filepath = 'C:\Users\vct1641\Documents\Data\data-IMU\cbmex\';
-filename = '20171020_onrobot';
+filepath = 'C:\Users\vct1641\Documents\Data\data-tests\';
+filename = '20171129_testwords_MG.nev';
 cds = commonDataStructure(); % Breakpt kinematicsFromNEV, line 85
-cds.file2cds([filepath,filename],'arrayIMU','taskRW',6);
+cds.file2cds([filepath,filename],'taskmulti_gadget',1);
 
 %% Handle position from cds.kin
 x_h = cds.kin.x;

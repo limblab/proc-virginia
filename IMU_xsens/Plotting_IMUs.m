@@ -1,8 +1,11 @@
 %% File selection
-lab = 0;
+lab = -1;
 switch lab
-    case 0 % mac        
+    case 0 % mac
         txtpath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt';
+        addpath(txtpath);
+    case -1
+        txtpath = 'C:\Users\vct1641\Documents\Data\data-IMU';
         addpath(txtpath);
     case 1
         txtpath = 'E:\Data-lab1\IMU Data\txt';
