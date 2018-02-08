@@ -240,8 +240,8 @@ stopAll;
             end
             
             t_elap = cbmex('time');
-            if ((rem(t_elap-t_ini,60))<0.01)
-                rst = rst + 1;
+            if ((rem(t_elap-t_ini,60))<0.01) && rst == 0
+                rst = 1;
                 for j = 1:length(children)
                     h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Heading());
                 end
