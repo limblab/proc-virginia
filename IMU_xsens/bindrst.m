@@ -1,6 +1,17 @@
 function[IMU] = bindrst(IMU)
-rstv = find(IMU(1).rst)+1;
+
+rstall = [];
+
 for ii = 1:size(IMU,2)
+    rstv = find(IMU(ii).rst);
+    rstvt = find(IMU(ii).yw(rstv)==0);
+    rstall = [rstall; rstv(rstvt)];
+end
+
+rstv = unique(rstall);
+
+for ii = 1:size(IMU,2)
+
     IMU(ii).rstb = [];
     
     IMU(ii).rstb.yw = IMU(ii).yw;
@@ -16,9 +27,9 @@ for ii = 1:size(IMU,2)
         IMU(ii).rstb.pt(rstv(jj):rstv(jj+1)-1) = IMU(ii).pt(rstv(jj):rstv(jj+1)-1)-(IMU(ii).pt(rstv(jj))-IMU(ii).pt(rstv(jj)-1));
         IMU(ii).rstb.rl(rstv(jj):rstv(jj+1)-1) = IMU(ii).rl(rstv(jj):rstv(jj+1)-1)-(IMU(ii).rl(rstv(jj))-IMU(ii).rl(rstv(jj)-1));
            
-        IMU(ii).rstb.q.yw(rstv(jj):rstv(jj+1)-1) = IMU(ii).q.yw(rstv(jj):rstv(jj+1)-1)+(IMU(ii).q.yw(rstv(jj)-1)-IMU(ii).q.yw(rstv(jj)));
-        IMU(ii).rstb.q.pt(rstv(jj):rstv(jj+1)-1) = IMU(ii).q.pt(rstv(jj):rstv(jj+1)-1)+(IMU(ii).q.pt(rstv(jj)-1)-IMU(ii).q.pt(rstv(jj)));
-        IMU(ii).rstb.q.rl(rstv(jj):rstv(jj+1)-1) = IMU(ii).q.rl(rstv(jj):rstv(jj+1)-1)+(IMU(ii).q.rl(rstv(jj)-1)-IMU(ii).q.rl(rstv(jj)));
+        IMU(ii).rstb.q.yw(rstv(jj):rstv(jj+1)-1) = IMU(ii).q.yw(rstv(jj):rstv(jj+1)-1)-(IMU(ii).q.yw(rstv(jj))-IMU(ii).q.yw(rstv(jj)-1));
+        IMU(ii).rstb.q.pt(rstv(jj):rstv(jj+1)-1) = IMU(ii).q.pt(rstv(jj):rstv(jj+1)-1)-(IMU(ii).q.pt(rstv(jj))-IMU(ii).q.pt(rstv(jj)-1));
+        IMU(ii).rstb.q.rl(rstv(jj):rstv(jj+1)-1) = IMU(ii).q.rl(rstv(jj):rstv(jj+1)-1)-(IMU(ii).q.rl(rstv(jj))-IMU(ii).q.rl(rstv(jj)-1));
     end
 end
 end

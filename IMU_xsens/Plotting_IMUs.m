@@ -170,12 +170,12 @@ IMU = bindrst(IMU);
 figure('name',[filenames{1}, '-Binding Euler'])
 for ii = 1:size(JA,2)
     subplot(size(JA,2),1,ii)
-    plot(IMU(ii).stimem,IMU(ii).rstb.rl)
+    %plot(IMU(ii).stimem,IMU(ii).rstb.rl)
     hold on
-    plot(IMU(ii).stimem,IMU(ii).rstb.pt)
+    plot(IMU(ii).stimem,IMU(ii).yw)
     plot(IMU(ii).stimem,IMU(ii).rstb.yw)
     xlabel('Time [min]'); ylabel('Angle [deg]');
-    legend('Roll','Pitch','Yaw')
+    legend('Yaw','Bound yaw')
     title([IMU(ii).place, ' IMU'])
 end
 
