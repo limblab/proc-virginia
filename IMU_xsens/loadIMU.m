@@ -23,16 +23,17 @@ for ii = 1:nIMU
     IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
     IMU(ii).sts = IMU(ii).ts;
     IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
+    IMU(ii).pc = IMU(ii).data(:,end);
 end
 
 if nIMU > 1
     for ii = 1:nIMU-1
         for jj = ii+1:nIMU
-            [IMU(ii).sts,IMU(jj).sts] = synchronize(IMU(ii).sts,IMU(jj).sts,'Intersection');
+            [IMU(ii).sts,IMU(jj).sts] = synchronize(IMU(ii).sts,IMU(jj).sts,'Intersection','KeepOriginalTimes',true);
         end
     end
     for ii = nIMU:-1:2
-        [IMU(ii).sts,IMU(1).sts] = synchronize(IMU(ii).sts,IMU(1).sts,'Intersection');
+        [IMU(ii).sts,IMU(1).sts] = synchronize(IMU(ii).sts,IMU(1).sts,'Intersection','KeepOriginalTimes',true);
     end
 end
 
@@ -44,6 +45,11 @@ for ii = 1:nIMU
         IMU(ii).rst = IMU(ii).sts.Data(:,irst);
     end
     
+    if any(strcmp(header,'Packcount'))
+        ipc = find(strcmp(header,'Packcount'))-it;    
+        IMU(ii).spc = IMU(ii).sts.Data(:,ipc);
+    end
+
     IMU(ii).stime = IMU(ii).sts.Time;
     IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
     

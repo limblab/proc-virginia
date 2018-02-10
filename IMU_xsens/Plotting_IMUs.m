@@ -18,7 +18,7 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {'20180207_reset1_shoFE_3.txt'};
+filenames = {'20180209_reset10.txt'};
 
 isrst = [1,1,1]; % When 0 enables detrend
 
@@ -168,8 +168,8 @@ end
 IMU = bindrst(IMU);
 
 figure('name',[filenames{1}, '-Binding Euler'])
-for ii = 1:size(JA,2)
-    subplot(size(JA,2),1,ii)
+for ii = 1:size(IMU,2)
+    subplot(size(IMU,2),1,ii)
     %plot(IMU(ii).stimem,IMU(ii).rstb.rl)
     hold on
     plot(IMU(ii).stimem,IMU(ii).yw)
@@ -180,8 +180,8 @@ for ii = 1:size(JA,2)
 end
 
 figure('name',[filenames{1}, '-Binding Quat'])
-for ii = 1:size(JA,2)
-    subplot(size(JA,2),1,ii)
+for ii = 1:size(IMU,2)
+    subplot(size(IMU,2),1,ii)
     plot(IMU(ii).stimem,IMU(ii).rstb.q.rl)
     hold on
     plot(IMU(ii).stimem,IMU(ii).rstb.q.pt)
