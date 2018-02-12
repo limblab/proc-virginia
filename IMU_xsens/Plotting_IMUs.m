@@ -1,5 +1,5 @@
 %% File selection
-lab = 0;
+lab = 1;
 switch lab
     case 0 % mac
         txtpath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt';
@@ -18,14 +18,14 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {'20180207_reset1_shoFE_3.txt'};
+filenames = {'20180212_reset_hrz2.txt'};
 
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-   %IMU = loadIMU(filenames{jj},isrst(jj));
+   IMU = loadIMU(filenames{jj},isrst(jj));
     
     % Plot IMU angles from Euler
     figure('name',[filenames{jj}, '-Euler'])

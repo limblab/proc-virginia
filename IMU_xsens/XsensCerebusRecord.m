@@ -21,8 +21,8 @@ end
 
 switch lab
     case 1
-        FN = 'E:\Data-lab1\IMU Data\txt\20180208_packcount.nev'; % cerebus file name
-        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180208_packcount.txt','wt'); % xsens file name
+        FN = 'E:\Data-lab1\IMU Data\txt\20180212_reset_hrz2.nev'; % cerebus file name
+        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180212_reset_hrz2.txt','wt'); % xsens file name
     case 3
         FN = 'E:\IMU data\20180109.nev'; % cerebus file name
         xsenslog = fopen('E:\IMU data\20180109.txt','wt'); % xsens file name
@@ -200,7 +200,7 @@ if output %% && all(coord_reset)
     % Event handler will call stopAll when limit is reached
     input('\n Press enter to stop measurement');
 else
-    fprintf('\n Problems with going to measurement\n')
+    fprintf('\n Problems with going to measurement\n');
 end
 
 stopAll;
