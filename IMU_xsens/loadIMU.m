@@ -1,4 +1,4 @@
-function[IMU] = loadIMU(filenameIMU,isrst)
+function[IMU] = loadIMU(filenameIMU,order,isrst)
 
 clear IMU
 
@@ -9,12 +9,8 @@ dataIMU = alldataIMU.data;
 
 nIMU = max(dataIMU(:,1));
 
-order = [];
-order = input('\n Order IMUs? [back/sho/elb/wrst] ','s');
-strspl = strsplit(order,'/');
-
 for ii = 1:nIMU
-    IMU(ii).place = strspl{ii};
+    IMU(ii).place = order{ii};
     if any(strcmp(header,'DevIDd'))
         IMU(ii).ID = IdsIMU{dataIMU(:,1)==ii};
     end
@@ -23,7 +19,17 @@ for ii = 1:nIMU
     IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
     IMU(ii).sts = IMU(ii).ts;
     IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
-    IMU(ii).pc = IMU(ii).data(:,end);
+    if any(strcmp(header,'Packcount'))
+        IMU(ii).pc = IMU(ii).data(:,end);
+        if diff(IMU(ii).pc)~=1
+            disp('\nWarning: there are non ordered packets\n')
+            [~,ids] = sort(IMU(ii).pc);
+            IMU(ii).data = IMU(ii).data(ids);
+            IMU(ii).time = IMU(ii).time(ids);
+            IMU(ii).ts = IMU(ii).ts(ids);
+            IMU(ii).sts = IMU(ii).sts(ids);
+        end
+    end
 end
 
 if nIMU > 1

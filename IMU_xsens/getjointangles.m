@@ -16,16 +16,20 @@ function[JA] = getjointangles(IMU,JA,oritype,filt,rst,correct)
 %    body-to-sensor calibration procedure for inertial sensor-based gait analysis.
 %    Measurement. 2014 Jun 1;52:145?55.
 
-% Joints evaluated
-joints = {'elb','sho'};
-% for ii = 1:length(joints)
-%     JA(ii).joint = joints{ii};
-% end
-
 nelb = find(strcmp({IMU.place},'elb'));
 nsho = find(strcmp({IMU.place},'sho'));
 nback = find(strcmp({IMU.place},'back'));
 
+if ~isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
+    joints = {'elb','sho'};
+end
+if ~isempty(nelb) && ~isempty(nsho) && isempty(nback)
+    joints = {'elb'};
+end
+if isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
+    joints = {'sho'};
+end
+    
 % Correct Rsb
 if correct
     for ii = 1:size(IMU,2)
@@ -53,11 +57,17 @@ for ii = 1:length(JA(1).time)
     end
     
     % Body segment to body segment transformation matrix
-    JA(1).Rbb(:,:,ii) = inv(JA(nelb).Rgs*JA(nelb).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Elbow angles
-    JA(2).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Shoulder angles
+    if ~isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
+        JA(1).Rbb(:,:,ii) = inv(JA(nelb).Rgs*JA(nelb).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Elbow angles
+        JA(2).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Shoulder angles
+    elseif isempty(nback) && ~isempty(nsho) && ~isempty(nelb)
+        JA(1).Rbb(:,:,ii) = inv(JA(nelb).Rgs*JA(nelb).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Elbow angles
+    elseif ~isempty(nback) && ~isempty(nsho) && isempty(nelb)
+        JA(1).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Shoulder angles
+    end
     
     % Reconstruct joint angles from Rbb
-    for kk = 1:size(IMU,2)-1
+    for kk = 1:size(JA,2)-1
         [JA(kk).yw(ii),JA(kk).pt(ii),JA(kk).rl(ii)] = Rmat2ypr(JA(kk).Rbb(:,:,ii));
         JA(kk).place = joints{kk};
     end
@@ -81,12 +91,18 @@ if rst
 end
 
 % Obtain joint angles by the difference of IMU orientation data
-JA(1).ywd = JA(nelb).ywg-JA(nsho).ywg-JA(nback).ywg;
-JA(1).ptd = JA(nelb).ptg-JA(nsho).ptg-JA(nback).ptg;
-JA(1).rld = JA(nelb).rlg-JA(nsho).rlg-JA(nback).rlg;
-
-JA(2).ywd = JA(nsho).ywg-JA(nback).ywg;
-JA(2).ptd = JA(nsho).ptg-JA(nback).ptg;
-JA(2).rld = JA(nsho).rlg-JA(nback).rlg;
+if ~isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
+    JA(1).ywd = JA(nelb).ywg-JA(nsho).ywg-JA(nback).ywg;
+    JA(1).ptd = JA(nelb).ptg-JA(nsho).ptg-JA(nback).ptg;
+    JA(1).rld = JA(nelb).rlg-JA(nsho).rlg-JA(nback).rlg;
+    
+    JA(2).ywd = JA(nsho).ywg-JA(nback).ywg;
+    JA(2).ptd = JA(nsho).ptg-JA(nback).ptg;
+    JA(2).rld = JA(nsho).rlg-JA(nback).rlg;
+elseif isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
+    JA(1).ywd = JA(nsho).ywg-JA(nback).ywg;
+    JA(1).ptd = JA(nsho).ptg-JA(nback).ptg;
+    JA(1).rld = JA(nsho).rlg-JA(nback).rlg;
+end
 
 end
