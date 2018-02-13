@@ -18,7 +18,7 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {'20180209_reset10.txt'};
+filenames = {'20180212_reset10_2.txt'};
 
 isrst = [1,1,1]; % When 0 enables detrend
 
@@ -28,7 +28,7 @@ for  jj = 1:length(filenames)
     order = {'back','sho','elb'};  % [back/sho/elb/wrst]
     IMU = loadIMU(filenames{jj},order,isrst(jj));
     
-    opts = {'eul','quat'};
+    opts = {'eul','quat','nmagn'};
     plotIMU(IMU,filenames{jj},opts);
     
 end

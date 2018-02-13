@@ -33,7 +33,7 @@ if any(strcmp(opts,'quat'))
 end
 if any(strcmp(opts,'acc'))
     % Plot accelerations
-    figure('name',filenames)
+    figure('name',[filenames '-Accelerations'])
     for ii = 1:size(IMU,2)
         subplot(size(IMU,2),1,ii)
         plot(IMU(ii).stimem,IMU(ii).acc)
@@ -41,10 +41,10 @@ if any(strcmp(opts,'acc'))
         legend('a_x','a_y','a_z')
         title([IMU(ii).place, ' IMU'])
     end
-    
+end
 if any(strcmp(opts,'gyro'))
     % Plot angular velocity
-    figure('name',filenames)
+    figure('name',[filenames '-Gyroscope'])
     for ii = 1:size(IMU,2)
         subplot(size(IMU,2),1,ii)
         plot(IMU(ii).stimem,IMU(ii).gyro)
@@ -55,7 +55,7 @@ if any(strcmp(opts,'gyro'))
 end
 if any(strcmp(opts,'magn'))
     % Plot magnetic field
-    figure('name',filenames)
+    figure('name',[filenames '-Magnetic Field'])
     for ii = 1:size(IMU,2)
         subplot(size(IMU,2),1,ii)
         plot(IMU(ii).stimem,IMU(ii).magn)
@@ -66,7 +66,7 @@ if any(strcmp(opts,'magn'))
 end
 if any(strcmp(opts,'nmagn'))
     % Plot normalized magnetic field - should be close to 1
-    figure('name',filenames)
+    figure('name',[filenames '-Normalized Magnetic Field'])
     for ii = 1:size(IMU,2)
         subplot(size(IMU,2),1,ii)
         plot(IMU(ii).stimem,IMU(ii).nmagn)
