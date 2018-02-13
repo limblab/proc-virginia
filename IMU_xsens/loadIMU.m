@@ -16,20 +16,18 @@ for ii = 1:nIMU
     end
     IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
     IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
-    IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
-    IMU(ii).sts = IMU(ii).ts;
     IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
     if any(strcmp(header,'Packcount'))
         IMU(ii).pc = IMU(ii).data(:,end);
-        if diff(IMU(ii).pc)~=1
-            disp('\nWarning: there are non ordered packets\n')
+        if any(diff(IMU(ii).pc)~=1)
+            fprintf('\nWarning: there are non ordered packets\n')
             [~,ids] = sort(IMU(ii).pc);
-            IMU(ii).data = IMU(ii).data(ids);
+            IMU(ii).data = IMU(ii).data(ids,:);
             IMU(ii).time = IMU(ii).time(ids);
-            IMU(ii).ts = IMU(ii).ts(ids);
-            IMU(ii).sts = IMU(ii).sts(ids);
         end
     end
+    IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
+    IMU(ii).sts = IMU(ii).ts;
 end
 
 if nIMU > 1

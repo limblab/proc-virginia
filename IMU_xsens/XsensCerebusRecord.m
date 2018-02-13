@@ -21,8 +21,8 @@ end
 
 switch lab
     case 1
-        FN = 'E:\Data-lab1\IMU Data\txt\20180213_reset30_mag2.nev'; % cerebus file name
-        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180213_reset30_mag2.txt','wt'); % xsens file name
+        FN = 'E:\Data-lab1\IMU Data\txt\20180213_reset30_mag3.nev'; % cerebus file name
+        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180213_reset30_mag3.txt','wt'); % xsens file name
     case 3
         FN = 'E:\IMU data\20180109.nev'; % cerebus file name
         xsenslog = fopen('E:\IMU data\20180109.txt','wt'); % xsens file name

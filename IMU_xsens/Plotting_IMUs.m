@@ -18,14 +18,14 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {'20180213_reset30_mag.txt'};
+filenames = {'20180213_reset30_mag3.txt'};
 
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-    order = {'back','sho','elb','magn'};  % [back/sho/elb/wrst]
+    order = {'sho','elb','magn'};  % [back/sho/elb/wrst]
     IMU = loadIMU(filenames{jj},order,isrst(jj));
     
     opts = {'eul','quat','magn'};
@@ -61,18 +61,18 @@ for ii = 1:size(IMU,2)
     subplot(size(IMU,2),1,ii)
     plot(IMU(ii).stimem,IMU(ii).rstb.yw)    
     hold on
-    plot(IMU(ii).stimem,IMU(ii).rstb.pt)
-    plot(IMU(ii).stimem,IMU(ii).rstb.rl)
+    %plot(IMU(ii).stimem,IMU(ii).rstb.pt)
+    %plot(IMU(ii).stimem,IMU(ii).rstb.rl)
     
     plot(IMU(ii).stimem,IMU(ii).yw)
-    plot(IMU(ii).stimem,IMU(ii).pt)
-    plot(IMU(ii).stimem,IMU(ii).rl)
+    %plot(IMU(ii).stimem,IMU(ii).pt)
+    %plot(IMU(ii).stimem,IMU(ii).rl)
 
     xlabel('Time [min]'); ylabel('Angle [deg]');
-    legend('Yaw','Bound yaw')
+    legend('Bound yaw','Yaw')
     title([IMU(ii).place, ' IMU'])
 end
-
+%%
 figure('name',[filenames{1}, '-Binding Quat'])
 for ii = 1:size(IMU,2)
     subplot(size(IMU,2),1,ii)
@@ -100,14 +100,14 @@ end
 %% Wavelet drift removal parameters
 wname = 'haar';
 decomplevel = wmaxlev(length(IMU(1).yw),wname);
-detaillevel = round(decomplevel/4)+2;
+detaillevel = round(decomplevel/4);
 
 plt = 1;
 
-IMU = wfiltIMU(IMU,flow,forder,wname,detaillevel,plt);
+IMU = wfiltIMU(IMU,wname,detaillevel,plt);
 
 %% Detrend drift removal
-bkptst = [5 10 15;5 10 15;5 10 15];
+bkptst = [0;0;0];
 
 plt = 1;
 
