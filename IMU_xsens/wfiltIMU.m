@@ -1,13 +1,15 @@
-function[IMU] = wfiltIMU(IMU,flow,forder,wname,detaillevel,plt)
+function[IMU] = wfiltIMU(IMU,wname,detaillevel,plt)
 % Filters IMU data for high frequency noise with low pass butterworth
 % filter and drift with high pass wavelet filtering
 
 % IMU: IMU data structure
-% flow: low cutoff frequency for low pass filter
-% forder: order of low pass filter
 % wname: wavelet type name for drift removal
 % detaillevel: order of the wavelet detail coefficients to preserve
 % plt: whether to plot filter and unfiltered signals
+
+% Butter low pass filter parameters
+flow = 4;
+forder = 2;
 
 if plt
     figure

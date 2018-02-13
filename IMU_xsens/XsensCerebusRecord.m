@@ -21,8 +21,8 @@ end
 
 switch lab
     case 1
-        FN = 'E:\Data-lab1\IMU Data\txt\20180212_reset_hrz2.nev'; % cerebus file name
-        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180212_reset_hrz2.txt','wt'); % xsens file name
+        FN = 'E:\Data-lab1\IMU Data\txt\20180213_reset30_mag2.nev'; % cerebus file name
+        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180213_reset30_mag2.txt','wt'); % xsens file name
     case 3
         FN = 'E:\IMU data\20180109.nev'; % cerebus file name
         xsenslog = fopen('E:\IMU data\20180109.txt','wt'); % xsens file name
@@ -240,7 +240,7 @@ stopAll;
             end
             
             t_elap = cbmex('time');
-            if ((rem(t_elap-t_ini,60))<0.01) && rst == 0
+            if ((rem(t_elap-t_ini,30))<0.01) && rst == 0
                 rst = 1;
                 for j = 1:length(children)
                     h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Heading());
