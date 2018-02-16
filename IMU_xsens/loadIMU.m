@@ -1,4 +1,4 @@
-function[IMU] = loadIMU(filenameIMU,isrst)
+function[IMU] = loadIMU(filenameIMU,order,isrst)
 
 clear IMU
 
@@ -9,35 +9,51 @@ dataIMU = alldataIMU.data;
 
 nIMU = max(dataIMU(:,1));
 
-order = input('\n Order IMUs? [back/sho/elb/wrst] ','s');
-strspl = strsplit(order,'/');
-
 for ii = 1:nIMU
-    IMU(ii).place = strspl{ii};
+    IMU(ii).place = order{ii};
     if any(strcmp(header,'DevIDd'))
         IMU(ii).ID = IdsIMU{dataIMU(:,1)==ii};
     end
     IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
     IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
+    IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
+    if any(strcmp(header,'Packcount'))
+        IMU(ii).pc = IMU(ii).data(:,end);
+        if any(diff(IMU(ii).pc)~=1)
+            fprintf('\nWarning: there are non ordered packets\n')
+            [~,ids] = sort(IMU(ii).pc);
+            IMU(ii).data = IMU(ii).data(ids,:);
+            IMU(ii).time = IMU(ii).time(ids);
+        end
+    end
     IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
     IMU(ii).sts = IMU(ii).ts;
-    IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
 end
 
 if nIMU > 1
     for ii = 1:nIMU-1
         for jj = ii+1:nIMU
-            [IMU(ii).sts,IMU(jj).sts] = synchronize(IMU(ii).sts,IMU(jj).sts,'Intersection');
+            [IMU(ii).sts,IMU(jj).sts] = synchronize(IMU(ii).sts,IMU(jj).sts,'Intersection','KeepOriginalTimes',true);
         end
     end
     for ii = nIMU:-1:2
-        [IMU(ii).sts,IMU(1).sts] = synchronize(IMU(ii).sts,IMU(1).sts,'Intersection');
+        [IMU(ii).sts,IMU(1).sts] = synchronize(IMU(ii).sts,IMU(1).sts,'Intersection','KeepOriginalTimes',true);
     end
 end
 
 it = find(strcmp(header,'CerebusTime'));
 
 for ii = 1:nIMU
+    if any(strcmp(header,'rst'))
+        irst = find(strcmp(header,'rst'))-it;
+        IMU(ii).rst = IMU(ii).sts.Data(:,irst);
+    end
+    
+    if any(strcmp(header,'Packcount'))
+        ipc = find(strcmp(header,'Packcount'))-it;    
+        IMU(ii).spc = IMU(ii).sts.Data(:,ipc);
+    end
+
     IMU(ii).stime = IMU(ii).sts.Time;
     IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
     
