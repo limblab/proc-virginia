@@ -9,7 +9,6 @@ dataIMU = alldataIMU.data;
 
 nIMU = max(dataIMU(:,1));
 
-order = [];
 order = input('\n Order IMUs? [back/sho/elb/wrst] ','s');
 strspl = strsplit(order,'/');
 
