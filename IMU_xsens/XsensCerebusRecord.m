@@ -9,7 +9,7 @@ addpath(genpath('cbmex'));
 cbmex('open');
 
 reccbmex = 0; % Record cerebus?
-lab = 1;
+lab = 6;
 alignrst = 0; % Initial alignment reset?
 headrst = 1; % Initial heading reset?
 trigrst = 0; % Trigger alignment reset?
@@ -232,11 +232,17 @@ stopAll;
             if trigrst
                 trig = h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
                 t_elap = cbmex('time');
-                if trig && (rem(t_elap,300)<=3)
+                if (t_elap-t_ini <= 0)
+                    t_ini = cbmex('time');
+                end
+                if trig && (rem(t_elap-t_ini,60)<=2)
+                    rst = 1;
                     for j = 1:length(children)
-                        h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Alignment());
+                        h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Heading());
                     end
                 end
+            else
+                rst = 0;
             end
             
             t_elap = cbmex('time');
