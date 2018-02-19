@@ -3,7 +3,9 @@ function [handle] = plotTuning(bins,pdData,curve,maxRadius,color,linspec, move_c
 % confidence intervals. Leave either entry blank to skip plotting it. Color
 % is a 3 element vector for the color of the plotted tuning curve and PD.
 % pdData is one row taken from binnedData object.
-move_cor = 'velDir';
+move_cor = 'velTarg';
+maxRadius = 40;
+color = 'r';
 if nargin >6, move_cor = move_corrIn; end 
 % plot initial point
 h=polar(0,maxRadius);

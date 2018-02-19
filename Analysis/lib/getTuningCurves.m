@@ -7,7 +7,7 @@
 %       .out_signal_names : names of signals to be used as signalID pdTable
 %                           default - empty
 %       .use_trials    : trials to use.
-%                         DEFAULT: 1:length(trial_data
+%                         DEFAULT: 1:length(trial_data)
 %       .move_corr - movement correlate to find tuning to
 %                    options:
 %                           'vel' : velocity of handle (default)
@@ -21,7 +21,7 @@
 % Written by Raeed Chowdhury. Updated Jul 2017.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [curves,bins] = getTuningCurves(trial_data,params)
+function [tuning,curves,bins] = getTuningCurves(trial_data,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DEFAULT PARAMETERS
 out_signals      =  [];
@@ -29,11 +29,13 @@ out_signal_names = {};
 use_trials        =  1:length(trial_data);
 move_corr      =  'vel';
 num_bins        = 8;
+space = '2D';
+array = 'S1';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Some undocumented parameters?
 if nargin > 1, assignParams(who,params); end % overwrite parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-possible_corrs = {'vel','acc','force'};
+possible_corrs = {'vel','acc','force','velTarg','velTarg_vec','target_direction'};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Process inputs
 trial_data = trial_data(use_trials);
@@ -63,7 +65,7 @@ else
 end
 
 out_signal_names = reshape(out_signal_names,size(response_var,2),[]);
-
+    
 % get bins
 bins = linspace(-pi,pi,num_bins+1);
 bins = bins(2:end);
@@ -71,11 +73,22 @@ bin_spacing = unique(diff(bins));
 if numel(bin_spacing)>1
     error('Something went wrong...')
 end
-
+if strcmp(task,'RT3D')
+    bins(bins == -pi/2)= [];
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-dir = atan2(move_var(:,2),move_var(:,1));
-spd = sqrt(sum(move_var.^2,2));
+if strcmp(space,'2D')    
+    dir = atan2(move_var(:,2),move_var(:,1));
+    spd = sqrt(sum(move_var.^2,2));
+else
+    dir = [];
+    for i = 1:size(trial_data,2)
+        trial_bins(i) = size(trial_data(i).([array,'_spikes']),1);
+        dir = [dir; trial_data(i).target_direction*ones(trial_bins(i),1)];
+    end
+end
 
+time_seg = mean(trial_bins)*0.01;
 % bin directions
 dir_bins = round(dir/bin_spacing)*bin_spacing;
 dir_bins(dir_bins==-pi) = pi;
@@ -84,19 +97,24 @@ dir_bins(dir_bins==-pi) = pi;
 for i = 1:length(bins)
     % get response_var when move_var is in the direction of bin
     % Also transpose response_var so that rows are neurons and columns are observations
-    response_var_in_bin = response_var(dir_bins==bins(i),:)';
-
+    response_var_in_bin = response_var(dir_bins==bins(i),:)';    
     % Mean binned response_var has normal-looking distribution (checked with
     % bootstrapping on a couple S1 neurons)
     binnedResponse(:,i) = mean(response_var_in_bin,2); % mean firing rate
-    binned_stderr = std(response_var_in_bin,0,2)/sqrt(size(response_var_in_bin,2)); % standard error
+    binned_stderr(:,i) = std(response_var_in_bin,0,2)/sqrt(size(response_var_in_bin,2)); % standard error
     tscore = tinv(0.975,size(response_var_in_bin,2)-1); % t-score for 95% CI
-    binned_CIhigh(:,i) = binnedResponse(:,i)+tscore*binned_stderr; %high CI
-    binned_CIlow(:,i) = binnedResponse(:,i)-tscore*binned_stderr; %low CI
+    binned_CIhigh(:,i) = binnedResponse(:,i)+tscore*binned_stderr(:,i); %high CI
+    binned_CIlow(:,i) = binnedResponse(:,i)-tscore*binned_stderr(:,i); %low CI
 end
 
 % set up output struct
 curves = table(monkey,date,task,out_signal_names,binnedResponse,binned_CIlow,binned_CIhigh,...,
-        'VariableNames',{'monkey','date','task','signalID','binnedResponse','CIlow','CIhigh'});
+    'VariableNames',{'monkey','date','task','signalID','binnedResponse','CIlow','CIhigh'});
+
+tuning.bins = bins;
+tuning.binnedResponse = binnedResponse;
+tuning.binned_stderr = binned_stderr;
+tuning.binned_CIhigh = binned_CIhigh;
+tuning.binned_CIlow = binned_CIlow;
 
 end%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

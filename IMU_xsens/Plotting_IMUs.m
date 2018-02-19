@@ -4,7 +4,7 @@ switch lab
     case 0 % mac
         txtpath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt';
         addpath(txtpath);
-    case -1
+    case -1 % gob2
         txtpath = 'C:\Users\vct1641\Documents\Data\data-IMU';
         addpath(txtpath);
     case 1

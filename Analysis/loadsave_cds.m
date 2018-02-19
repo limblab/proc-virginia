@@ -2,9 +2,9 @@
 meta.lab=6;
 meta.ranBy='Virginia';
 meta.monkey='Han';
-meta.date='20180208';
+meta.date='20180215';
 meta.task='RT3D'; % for the loading of cds
-meta.taskAlias={'RT3D_002'}; % for the filename (cell array list for files to load and save)
+meta.taskAlias={'RT3D_001'}; % for the filename (cell array list for files to load and save)
 meta.array='LeftS1Area2'; % for the loading of cds
 meta.arrayAlias='area2'; % for the filename
 meta.project='RT3D'; % for the folder in data-preproc
@@ -13,17 +13,19 @@ meta.folder=fullfile(meta.superfolder,meta.date); % compose subfolder and superf
 
 meta.neuralPrefix = [meta.monkey '_' meta.date '_' meta.arrayAlias];
 
-secondfile = 0;
+EMGextrafile = 1;
 
 if strcmp(meta.monkey,'Chips')
     meta.mapfile='C:\Users\vct1641\Documents\Data\data-preproc\Meta\Mapfiles\Chips\left_S1\SN 6251-001455.cmp';
-elseif strcmp(meta.monkey,'Han') && secondfile == 1
+elseif strcmp(meta.monkey,'Han')
     meta.mapfile='C:\Users\vct1641\Documents\Data\data-preproc\Meta\Mapfiles\Han\left_S1\SN 6251-001459.cmp';
-    altMeta = meta;
-    altMeta.array='';
-    altMeta.arrayAlias='EMGextra';
-    altMeta.neuralPrefix = [altMeta.monkey '_' altMeta.date '_' altMeta.arrayAlias];
-   % altMeta.mapfile=???;
+    if EMGextrafile == 1
+        altMeta = meta;
+        altMeta.array='';
+        altMeta.arrayAlias='EMGextra';
+        altMeta.neuralPrefix = [altMeta.monkey '_' altMeta.date '_' altMeta.arrayAlias];
+        % altMeta.mapfile=???;
+    end
 elseif strcmp(meta.monkey,'Lando')
     warning('mapfiles not found for Lando yet')
 %     meta.mapfile='C:\Users\rhc307\Projects\limblab\data-preproc\Meta\Mapfiles\Chips\left_S1\SN 6251-001455.cmp';
@@ -62,12 +64,14 @@ if ~exist(fullfile(meta.folder,'preCDS','Final'),'dir')
         movefile(fullfile(meta.folder,'preCDS',[altMeta.neuralPrefix '*.n*']),fullfile(meta.folder,'preCDS','Final'))
     end
 end
-if ~exist(fullfile(meta.folder,'ColorTracking'),'dir')
-    mkdir(fullfile(meta.folder,'ColorTracking'))
-    movefile(fullfile(meta.folder,'*_colorTracking_*.mat'),fullfile(meta.folder,'ColorTracking'))
-end
-if ~exist(fullfile(meta.folder,'ColorTracking','Markers'),'dir')
-    mkdir(fullfile(meta.folder,'ColorTracking','Markers'))
+if exist([meta.folder,'*_colorTracking_*.mat'],'file')
+    if ~exist(fullfile(meta.folder,'ColorTracking'),'dir')
+        mkdir(fullfile(meta.folder,'ColorTracking'))
+        movefile(fullfile(meta.folder,'*_colorTracking_*.mat'),fullfile(meta.folder,'ColorTracking'))
+    end
+    if ~exist(fullfile(meta.folder,'ColorTracking','Markers'),'dir')
+        mkdir(fullfile(meta.folder,'ColorTracking','Markers'))
+    end
 end
 if ~exist(fullfile(meta.folder,'OpenSim'),'dir')
     mkdir(fullfile(meta.folder,'OpenSim'))
@@ -152,7 +156,8 @@ cds = cell(size(meta.taskAlias));
 for fileIdx = 1:length(meta.taskAlias)
     cds{fileIdx} = commonDataStructure();
     cds{fileIdx}.file2cds(fullfile(meta.folder,'preCDS','Final',[meta.neuralPrefix '_' meta.taskAlias{fileIdx}]),...
-        ['ranBy' meta.ranBy],['array' meta.array],['monkey' meta.monkey],meta.lab,'ignoreJumps',['task' meta.task],['mapFile' meta.mapfile]);
+        ['ranBy' meta.ranBy],['array' meta.array],['monkey' meta.monkey],meta.lab,'ignoreJumps',['task' meta.task],...
+        ['mapFile' meta.mapfile]);
 
     % also load second file if necessary
     if exist('altMeta','var')
@@ -251,20 +256,37 @@ save(fullfile(meta.folder,'CDS',[meta.neuralPrefix '_CDS.mat']),'cds','-v7.3')
 % trial_data = parseFileByTrial(cds{1},params);
 
 % RW DL/PM
+% params.array_alias = {'LeftS1Area2','S1'};
+% params.trial_results = {'R','A','F','I'};
+% td_meta = struct('task',meta.task,'spaceNum',2);
+% params.meta = td_meta;
+% trial_data_DL = parseFileByTrial(cds{1},params);
+% td_meta = struct('task',meta.task,'spaceNum',1);
+% params.meta = td_meta;
+% trial_data_PM = parseFileByTrial(cds{2},params);
+% trial_data = [trial_data_PM trial_data_DL];
+% % match up with TRT
+% for trial = 1:length(trial_data)
+%     trial_data(trial).idx_targetStartTime = trial_data(trial).idx_startTime;
+% end
+% trial_data = reorderTDfields(trial_data);
+
+% RT3D
 params.array_alias = {'LeftS1Area2','S1'};
 params.trial_results = {'R','A','F','I'};
-td_meta = struct('task',meta.task,'spaceNum',2);
+td_meta = struct('task',meta.task);
 params.meta = td_meta;
-trial_data_DL = parseFileByTrial(cds{1},params);
-td_meta = struct('task',meta.task,'spaceNum',1);
-params.meta = td_meta;
-trial_data_PM = parseFileByTrial(cds{2},params);
-trial_data = [trial_data_PM trial_data_DL];
-% match up with TRT
-for trial = 1:length(trial_data)
-    trial_data(trial).idx_targetStartTime = trial_data(trial).idx_startTime;
-end
-trial_data = reorderTDfields(trial_data);
+params.bin_size = 0.01;
+params.include_ts = true;
+
+idx_R_config = 303;
+idx_R = find(contains(cds{1}.trials.result,'R'));
+ixd_trial_config = 298; %cds{1}.trials.number(idx_R(idx_R_config));
+params.task_config = [ones(ixd_trial_config,1); 2*ones(size(cds{1}.trials,1)-ixd_trial_config,1)];
+% 1 vertical, 2 horizontal
+trial_data = parseFileByTrial(cds{1},params);
+
 
 %% Save TD
 save(fullfile(meta.folder,'TD',[meta.monkey '_' meta.date '_TD.mat']),'trial_data')
+
