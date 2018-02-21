@@ -10,20 +10,30 @@ dataIMU = alldataIMU.data;
 nIMU = max(dataIMU(:,1));
 
 for ii = 1:nIMU
-    IMU(ii).place = order{ii};
     if any(strcmp(header,'DevIDd'))
-        IMU(ii).ID = IdsIMU{dataIMU(:,1)==ii};
+        IMUF(ii).ID = IdsIMU{dataIMU(:,1)==ii};
     end
-    IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
-    IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
-    IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
-    if any(strcmp(header,'Packcount'))
+    time = dataIMU(dataIMU(:,1)==ii,2);    
+    data = dataIMU(dataIMU(:,1)==ii,3:end);
+    
+    if any(diff(time)<0)
+        idx_cbrec = find(diff(time)<0);
+        IMUF(1).IMU(ii).time = time(1:idx_cbrec(1));
+        IMUF(1).IMU(ii).data = data(1:idx_cbrec(1));
+        % if length(idx_cbrec)>1
+        %         for j = 1:length(idx_cbrec)
+        IMU(ii).time = IMU(ii).time(idx_cbrec(1)+1:end);
+        IMU(ii).data = IMU(ii).data(idx_cbrec(1)+1:end);
+        IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));        
+        IMU(ii).place = order{ii};
+        if any(strcmp(header,'Packcount'))    
+
         IMU(ii).pc = IMU(ii).data(:,end);
-        if any(diff(IMU(ii).pc)~=1)
-            fprintf('\nWarning: there are non ordered packets\n')
-            [~,ids] = sort(IMU(ii).pc);
-            IMU(ii).data = IMU(ii).data(ids,:);
-            IMU(ii).time = IMU(ii).time(ids);
+%         if any(diff(IMU(ii).pc)~=1)
+%             fprintf('\nWarning: there are non ordered packets\n')
+%             [~,ids] = sort(IMU(ii).pc);
+%             IMU(ii).data = IMU(ii).data(ids,:);
+%             IMU(ii).time = IMU(ii).time(ids);
         end
     end
     IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);

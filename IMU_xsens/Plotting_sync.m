@@ -66,17 +66,18 @@ title('Elbow')
 %% Plot only elbow/shoulder angles
 figure
 if iselb
-    plot(enc.stime/60,enc.scth2)
+    plot(enc.stime,enc.scth2)
     title('Elbow')
 else
-    plot(enc.stime/60,enc.scth1)
+    plot(enc.stime,enc.scth1)
     title('Shoulder')
 end
 hold on
-plot(IMU(1).stime/60,IMU(1).yw)
-%xlim([4000 4700]);
-xlabel('Time [min]'); ylabel('Angle [deg]')
+plot(IMU(1).stime,-IMU(1).yw)
+%xlim([5000 5000.1]);
+xlabel('Time [s]'); ylabel('Angle [deg]')
 legend('Encoder','IMU')
+set(gca,'Fontsize',12)
 
 %% Plot IMU angles
 figure

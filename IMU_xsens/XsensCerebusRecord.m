@@ -245,15 +245,15 @@ stopAll;
                 rst = 0;
             end
             
-            t_elap = cbmex('time');
-            if ((rem(t_elap-t_ini,30))<0.01) && rst == 0
-                rst = 1;
-                for j = 1:length(children)
-                    h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Heading());
-                end
-            else 
-                rst = 0;
-            end
+%             t_elap = cbmex('time');
+%             if ((rem(t_elap-t_ini,30))<0.01) && rst == 0
+%                 rst = 1;
+%                 for j = 1:length(children)
+%                     h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Heading());
+%                 end
+%             else
+%                 rst = 0;
+%             end
             
             h.liveDataPacketHandled(deviceFound, dataPacket);
             

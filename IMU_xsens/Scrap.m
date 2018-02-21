@@ -127,3 +127,24 @@ for ii = 1:size(IMU,2)
     xlabel('Time [min]'); ylabel('Angular Velocity [deg/s]');
     title([IMU(ii).place, ' IMU'])
 end
+%% Time series test
+t1 = [0 1 1.1 2 3];
+d1 = [1 1 1 1 1];
+
+t2 = [1 2 3 4 2];
+d2 = [2 2 2 2 2];
+
+ts1 = timeseries(d1,t1);
+ts2 = timeseries(d2,t2);
+
+[sts1,sts2] = synchronize(ts1,ts2,'Intersection');
+
+sts1.time
+sts1.data(:)
+%sts2.time
+sts2.data(:)
+%%
+a = [1 2 3];
+h = [4 2 3];
+[~,id] = sort(h);
+a(id)

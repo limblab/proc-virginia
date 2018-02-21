@@ -1,5 +1,5 @@
 %% File selection
-lab = 1;
+lab = 0;
 switch lab
     case 0 % mac
         txtpath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt';
@@ -18,17 +18,17 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {'20180213_reset30_mag3.txt'};
+filenames = {'20180212_reset_hrz2.txt'};
 
 isrst = [1,1,1]; % When 0 enables detrend
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
-    order = {'sho','elb','magn'};  % [back/sho/elb/wrst]
-    IMU = loadIMU(filenames{jj},order,isrst(jj));
+    order = {'back','sho','elb'};  % [back/sho/elb/wrst]
+    %IMU = loadIMU(filenames{jj},order,isrst(jj));
     
-    opts = {'eul','quat','magn'};
+    opts = {'eul'};
     plotIMU(IMU,filenames{jj},opts);
     
 end
@@ -36,7 +36,7 @@ end
 %% Get calibration indexes for different poses
 clear JA
 
-tpose = [0.04, 0.08, 0.12, 0.16, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+tpose = [0.06, 0.1, 0.15, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
 calibtype = 'FE'; % FE/AA/FE+AA
 oritype = 'eul'; % eul/quat
 filt = 0;
@@ -49,7 +49,7 @@ JA = getjointangles(IMU,JA,oritype,filt,rst,correct);
 %% Plot joint angles and reconstructed global frame IMU angles
 
 for jj = 1:length(filenames)
-    opts  = {'joint','body'};
+    opts  = {'joint'};
     plotJA(IMU,JA,filenames{jj},opts);
 end
 

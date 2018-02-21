@@ -14,7 +14,8 @@ if any(strcmp(opts,'eul'))
         plot(IMU(ii).stimem,IMU(ii).ori)
         xlabel('Time [min]'); ylabel('Angle [deg]');
         legend('Roll','Pitch','Yaw')
-        title([IMU(ii).place, ' IMU'])
+        set(gca,'Fontsize',12);
+        title([IMU(ii).place, ' IMU'],'Fontsize',12)
     end
 end
 if any(strcmp(opts,'quat'))
