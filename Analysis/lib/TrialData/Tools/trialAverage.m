@@ -96,6 +96,7 @@ for i = 1:num_conds
     
     % populate meta fields
     for f = 1:length(fn_meta)
+        if ~strcmp(fn_meta{f},[array,'_ts'])
         if ischar(trial_data(1).(fn_meta{f}))
             u = unique({trial_data(cond_idx{i}).(fn_meta{f})});
             if length(u) == 1
@@ -112,6 +113,7 @@ for i = 1:num_conds
                 u = unique([trial_data(cond_idx{i}).(fn_meta{f})]);
             end
             avg_data(i).(fn_meta{f}) = u;
+        end
         end
     end
     

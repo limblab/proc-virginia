@@ -21,7 +21,7 @@ trimmed = false;
 assignParams(who,params); % overwrite parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~trimmed
+%if ~trimmed
 for trial = 1:length(trial_data)
     end_bin(trial) = size(trial_data(trial).([array '_spikes']),1);
 end
@@ -31,18 +31,18 @@ idx = 1:size(trial_data(trial_mxend_bin).([array '_spikes']),1);
 % build firing rate matrix for the specified window
 fr = zeros(length(trial_data),length(idx));
 for trial = 1:length(trial_data)
-    temp = trial_data(trial).([array '_spikes']);
+    temp = trial_data(trial).([array '_spikes'])/0.01;
     fr(trial,:) = [temp(:,neuron); zeros(length(idx)-size(trial_data(trial).([array '_spikes']),1),1)];
     %trial_data(trial).fr = fr(trial,:);
 end
-else
-    fr = zeros(length(trial_data),size(trial_data(1).([array '_spikes']),1));
-    for trial = 1:length(trial_data)
-        temp = trial_data(trial).([array '_spikes']);
-        fr(trial,:) = temp(:,neuron);
-        %trial_data(trial).fr = fr(trial,:);
-    end
-end
+
+%     fr = zeros(length(trial_data),size(trial_data(1).([array '_spikes']),2));
+%     for trial = 1:length(trial_data)
+%         temp = trial_data(trial).([array '_spikes']);
+%         fr(trial,:) = temp(:,neuron);
+%         %trial_data(trial).fr = fr(trial,:);
+%     end
+
 FRtd = struct();
 FRtd.rate  = mean(fr,1);
 FRtd.stderr = std(fr,1)/sqrt(length(trial_data));

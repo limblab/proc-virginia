@@ -83,24 +83,25 @@ if strcmp(space,'2D')
 else
     dir = [];
     for i = 1:size(trial_data,2)
-        trial_bins(i) = size(trial_data(i).([array,'_spikes']),1);
-        dir = [dir; trial_data(i).target_direction*ones(trial_bins(i),1)];
+        trial_bins(i,:) = [size(trial_data(i).([array,'_spikes']),1),trial_data(i).target_direction] ;
+        dir = [dir; trial_data(i).target_direction*ones(trial_bins(i,1),1)];
     end
 end
 
-time_seg = mean(trial_bins)*0.01;
 % bin directions
 dir_bins = round(dir/bin_spacing)*bin_spacing;
 dir_bins(dir_bins==-pi) = pi;
 
 % find response_var in each bin, along with CI
 for i = 1:length(bins)
+    dir_trial_num(i) = sum(trial_bins(:,2)==bins(i));
+    dir_time(i) = 0.01*mean(trial_bins(trial_bins(:,2)==bins(i)),1);
     % get response_var when move_var is in the direction of bin
     % Also transpose response_var so that rows are neurons and columns are observations
-    response_var_in_bin = response_var(dir_bins==bins(i),:)';    
+    response_var_in_bin = response_var(dir_bins==bins(i),:)'/dir_time(i);    
     % Mean binned response_var has normal-looking distribution (checked with
     % bootstrapping on a couple S1 neurons)
-    binnedResponse(:,i) = mean(response_var_in_bin,2); % mean firing rate
+    binnedResponse(:,i) = sum(response_var_in_bin,2)/dir_trial_num(i); % mean firing rate
     binned_stderr(:,i) = std(response_var_in_bin,0,2)/sqrt(size(response_var_in_bin,2)); % standard error
     tscore = tinv(0.975,size(response_var_in_bin,2)-1); % t-score for 95% CI
     binned_CIhigh(:,i) = binnedResponse(:,i)+tscore*binned_stderr(:,i); %high CI

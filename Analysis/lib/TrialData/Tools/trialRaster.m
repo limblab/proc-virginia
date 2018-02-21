@@ -14,7 +14,7 @@ function fhRaster = trialRaster(trial,params)
            plot([trial.([array, '_ts']){neuron}(spike), trial.([array, '_ts']){neuron}(spike)], [count, count+.8], 'k')
        end
     end
-    xlim([-.2, trial.idx_endTime* trial.bin_size])
+    %xlim([-.2, trial.idx_endTime* trial.bin_size])
     ylim([0,count+1])
     fhRaster = gca;
 end

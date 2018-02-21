@@ -1,4 +1,4 @@
-function [] = unitRaster(trial_data, params)
+function [h] = unitRaster(trial_data, params)
 
 xBound = [-.8, .8];
 array ='S1';
@@ -12,7 +12,7 @@ if nargin > 1, assignParams(who,params);
     end
 end
 
-figure
+h=figure;
 for j = 1:length(tdir)
     
     [idx,td] = getTDidx(trial_data,'target_direction',tdir(j)); 
@@ -52,12 +52,14 @@ for j = 1:length(tdir)
     end
     xlim(xBound); ylim([0, yMax]);
     ylabel([num2str(rad2deg(tdir(j)))],'fontsize',10);
-    set(gca,'ytick',[],'fontsize',10)
+    set(gca,'ytick',[],'fontsize',8)
     if j == 1
         title(['Raster: Neuron ',num2str(params.neuron)]);
     end
     if j == length(tdir)
         xlabel('Time [s]','fontsize',10);
+    else
+        set(gca,'xtick',[]);
     end
     end
 end
