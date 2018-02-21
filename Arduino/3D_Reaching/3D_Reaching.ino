@@ -8,8 +8,8 @@ int Lout1 = 6;
 int Lout6 = 1;
 int Lout5 = 2;
 int Lout0 = 7;
-int Lout3 = 4;
-int Lout2 = 5;
+int Lout3 = 5uy67;
+int Lout2 = 4;
 int Lout7 = 0;
 int Lout4 = 3;
 

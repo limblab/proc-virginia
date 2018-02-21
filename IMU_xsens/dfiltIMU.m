@@ -1,17 +1,25 @@
-function[IMU] = dfiltIMU(IMU,flow,forder,bkpts,plt)
+function[IMU] = dfiltIMU(IMU,bkptst,plt)
 % Filters IMU data for high frequency noise with low pass butterworth
 % filter and drift with detrend MATLAB command
 
 % IMU: IMU data structure
-% flow: low cutoff frequency for low pass filter
-% forder: order of low pass filter
-% bkpts: matrix with time points where there is a change in trend in the
+% bkptst: matrix with time points where there is a change in trend in the
 % signal. Each row corresponds to a different IMU and each column to a
 % different time point
 % plt: whether to plot filter and unfiltered signals
 
+% Butter low pass filter parameters
+flow = 4;
+forder = 2;
+
 if plt
     figure
+end
+
+for ii = 1:size(IMU,2)
+    for j = 1:size(bkptst,2)
+        [~,bkpts(ii,j)] = min(abs(IMU(1).stimem-bkptst(ii,j)));
+    end
 end
 
 for ii = 1:size(IMU,2)

@@ -9,7 +9,7 @@ addpath(genpath('cbmex'));
 cbmex('open');
 
 reccbmex = 0; % Record cerebus?
-lab = 1;
+lab = 6;
 alignrst = 0; % Initial alignment reset?
 headrst = 1; % Initial heading reset?
 trigrst = 0; % Trigger alignment reset?
@@ -21,8 +21,8 @@ end
 
 switch lab
     case 1
-        FN = 'E:\Data-lab1\IMU Data\txt\20180208_packcount.nev'; % cerebus file name
-        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180208_packcount.txt','wt'); % xsens file name
+        FN = 'E:\Data-lab1\IMU Data\txt\20180213_reset30_mag3.nev'; % cerebus file name
+        xsenslog = fopen('E:\Data-lab1\IMU Data\txt\20180213_reset30_mag3.txt','wt'); % xsens file name
     case 3
         FN = 'E:\IMU data\20180109.nev'; % cerebus file name
         xsenslog = fopen('E:\IMU data\20180109.txt','wt'); % xsens file name
@@ -200,7 +200,7 @@ if output %% && all(coord_reset)
     % Event handler will call stopAll when limit is reached
     input('\n Press enter to stop measurement');
 else
-    fprintf('\n Problems with going to measurement\n')
+    fprintf('\n Problems with going to measurement\n');
 end
 
 stopAll;
@@ -232,22 +232,28 @@ stopAll;
             if trigrst
                 trig = h.XsDataPacket_containsTriggerIndication(dataPacket,h.XsDataIdentifier_XDI_TriggerIn1);
                 t_elap = cbmex('time');
-                if trig && (rem(t_elap,300)<=3)
+                if (t_elap-t_ini <= 0)
+                    t_ini = cbmex('time');
+                end
+                if trig && (rem(t_elap-t_ini,60)<=2)
+                    rst = 1;
                     for j = 1:length(children)
-                        h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Alignment());
+                        h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Heading());
                     end
                 end
-            end
-            
-            t_elap = cbmex('time');
-            if ((rem(t_elap-t_ini,60))<0.01) && rst == 0
-                rst = 1;
-                for j = 1:length(children)
-                    h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Heading());
-                end
-            else 
+            else
                 rst = 0;
             end
+            
+%             t_elap = cbmex('time');
+%             if ((rem(t_elap-t_ini,30))<0.01) && rst == 0
+%                 rst = 1;
+%                 for j = 1:length(children)
+%                     h.XsDevice_resetOrientation(children{j}, h.XsResetMethod_XRM_Heading());
+%                 end
+%             else
+%                 rst = 0;
+%             end
             
             h.liveDataPacketHandled(deviceFound, dataPacket);
             

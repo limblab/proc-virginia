@@ -1,4 +1,4 @@
-function[IMU] = loadIMU(filenameIMU,isrst)
+function[IMU] = loadIMU(filenameIMU,order,isrst)
 
 clear IMU
 
@@ -9,30 +9,45 @@ dataIMU = alldataIMU.data;
 
 nIMU = max(dataIMU(:,1));
 
-order = [];
-order = input('\n Order IMUs? [back/sho/elb/wrst] ','s');
-strspl = strsplit(order,'/');
-
 for ii = 1:nIMU
-    IMU(ii).place = strspl{ii};
     if any(strcmp(header,'DevIDd'))
-        IMU(ii).ID = IdsIMU{dataIMU(:,1)==ii};
+        IMUF(ii).ID = IdsIMU{dataIMU(:,1)==ii};
     end
-    IMU(ii).data = dataIMU(dataIMU(:,1)==ii,3:end);
-    IMU(ii).time = dataIMU(dataIMU(:,1)==ii,2);
+    time = dataIMU(dataIMU(:,1)==ii,2);    
+    data = dataIMU(dataIMU(:,1)==ii,3:end);
+    
+    if any(diff(time)<0)
+        idx_cbrec = find(diff(time)<0);
+        IMUF(1).IMU(ii).time = time(1:idx_cbrec(1));
+        IMUF(1).IMU(ii).data = data(1:idx_cbrec(1));
+        % if length(idx_cbrec)>1
+        %         for j = 1:length(idx_cbrec)
+        IMU(ii).time = IMU(ii).time(idx_cbrec(1)+1:end);
+        IMU(ii).data = IMU(ii).data(idx_cbrec(1)+1:end);
+        IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));        
+        IMU(ii).place = order{ii};
+        if any(strcmp(header,'Packcount'))    
+
+        IMU(ii).pc = IMU(ii).data(:,end);
+%         if any(diff(IMU(ii).pc)~=1)
+%             fprintf('\nWarning: there are non ordered packets\n')
+%             [~,ids] = sort(IMU(ii).pc);
+%             IMU(ii).data = IMU(ii).data(ids,:);
+%             IMU(ii).time = IMU(ii).time(ids);
+        end
+    end
     IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
     IMU(ii).sts = IMU(ii).ts;
-    IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
 end
 
 if nIMU > 1
     for ii = 1:nIMU-1
         for jj = ii+1:nIMU
-            [IMU(ii).sts,IMU(jj).sts] = synchronize(IMU(ii).sts,IMU(jj).sts,'Intersection');
+            [IMU(ii).sts,IMU(jj).sts] = synchronize(IMU(ii).sts,IMU(jj).sts,'Intersection','KeepOriginalTimes',true);
         end
     end
     for ii = nIMU:-1:2
-        [IMU(ii).sts,IMU(1).sts] = synchronize(IMU(ii).sts,IMU(1).sts,'Intersection');
+        [IMU(ii).sts,IMU(1).sts] = synchronize(IMU(ii).sts,IMU(1).sts,'Intersection','KeepOriginalTimes',true);
     end
 end
 
@@ -44,6 +59,11 @@ for ii = 1:nIMU
         IMU(ii).rst = IMU(ii).sts.Data(:,irst);
     end
     
+    if any(strcmp(header,'Packcount'))
+        ipc = find(strcmp(header,'Packcount'))-it;    
+        IMU(ii).spc = IMU(ii).sts.Data(:,ipc);
+    end
+
     IMU(ii).stime = IMU(ii).sts.Time;
     IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
     
