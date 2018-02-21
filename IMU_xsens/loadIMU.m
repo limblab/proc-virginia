@@ -11,15 +11,15 @@ nIMU = max(dataIMU(:,1));
 
 for ii = 1:nIMU
     if any(strcmp(header,'DevIDd'))
-        IMUF(ii).ID = IdsIMU{dataIMU(:,1)==ii};
+        IMU(ii).ID = IdsIMU{dataIMU(:,1)==ii};
     end
     time = dataIMU(dataIMU(:,1)==ii,2);    
     data = dataIMU(dataIMU(:,1)==ii,3:end);
     
     if any(diff(time)<0)
         idx_cbrec = find(diff(time)<0);
-        IMUF(1).IMU(ii).time = time(1:idx_cbrec(1));
-        IMUF(1).IMU(ii).data = data(1:idx_cbrec(1));
+        IMU(ii).time_calib = time(1:idx_cbrec(1));
+        IMU(ii).data_calib = data(1:idx_cbrec(1));
         % if length(idx_cbrec)>1
         %         for j = 1:length(idx_cbrec)
         IMU(ii).time = IMU(ii).time(idx_cbrec(1)+1:end);
