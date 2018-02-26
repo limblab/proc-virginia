@@ -4,7 +4,7 @@ function loadOpenSimData(cds,folderPath,dataType)
     %
     %attempts to load Open Sim data from the source directory of the cds.
     %This uses the meta field to try and find properly named files in the
-    %folder specified. The prefix of the file myst match the name of the
+    %folder specified. The prefix of the file must match the name of the
     %source file of the cds
     %
     % Postfix can currently be one of:

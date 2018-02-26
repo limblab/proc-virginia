@@ -117,7 +117,10 @@ function getTrialTable(cds,opts)
             
             case 'RT3D' % Virginia's Random Target 3D reach task
                 cds.getRT3DTaskTable(times);
-                
+               
+            case 'COC3D' % Virginia's Center-out-center 3D reach task
+                cds.getCOC3DTaskTable(times);
+
             otherwise
                 warning('getTrialTable:UnknownTask','The task for this data file was not set. Trial table will contain only trial start,stop and result')
                 set(cds,'trials',times)

@@ -134,11 +134,7 @@ for i = 1:length(neuronsamp)
 %     saveas(gcf,['C:\Users\vct1641\Documents\Figs\',figname])
 end
 
-
 %% Trial Average
-%   e.g. to average over all target directions and task epochs
-%       avg_data = trialAverage(trial_data,{'target_direction','epoch'});
-%       Note: gives a struct of size #_TARGETS * #_EPOCHS
 %neuronsamp = [6,8,39,49];
 PD_neu = [0];
 
@@ -171,7 +167,6 @@ for i = 1:length(neuronsamp)
     
     figure
     plot(time_spikes,avg_spikes,'k')
-    %fill([time;flipud(time)],[FR.rate-FR.stderr;flipud(FR.rate+FR.stderr)],'b','linestyle','none');
     xlabel('Time [s]','fontsize',10); ylabel('Mean Firing Rate [Hz]','fontsize',10);
     title(['FR: Neuron ',num2str(neuronsamp(i))])
     xlim([min(time_spikes),max(time_spikes)])
@@ -210,7 +205,6 @@ for i = 1:length(neuronsamp)
     
     figure
     plot(time,fr,'k')
-    %fill([time;flipud(time)],[FR.rate-FR.stderr;flipud(FR.rate+FR.stderr)],'b','linestyle','none');
     xlabel('Time [s]','fontsize',10); ylabel('Firing Rate','fontsize',10);
     title(['Mean FR: Neuron ',num2str(neuronsamp(i))])
 end

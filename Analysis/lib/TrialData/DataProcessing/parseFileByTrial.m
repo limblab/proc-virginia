@@ -137,16 +137,13 @@ fn = cds.trials.Properties.VariableNames;
 if ~all(ismember({'startTime','endTime'},fn)), error('Must have start and end times in CDS.'); end
 event_list = union({'startTime';'endTime'},event_list);
 if ismember({'goCueTime'},fn), event_list = union({'goCueTime'},event_list); end
-if ismember({'tgtOnTime'},fn), event_list = union({'tgtOnTime'},event_list); end
-if ismember({'CTStartTime'},fn), event_list = union({'CTStartTime'},event_list); end
-if ismember({'OTHoldTime'},fn), event_list = union({'OTHoldTime'},event_list); end
 
 % determine which signals are time-varying and which are parameter values
 %   There was a CDS bug where start/end times didn't have units, but I know
 %   they are supposed to be here so it's hard coded for now
 %   Some parameter values have 's' as units but are not time events.
 %   Include them in the time_event_exceptions below.
-time_event_exceptions = {'ctrHold','ftHoldTime','targHoldTime'};
+time_event_exceptions = {'ctrHold','ftHoldTime','targHoldTime','stHoldTime','otHoldTime','ftHoldTime'};
 time_event_exc_idx = false(size(fn));
 for exc = 1:length(time_event_exceptions)
     time_event_exc_idx = time_event_exc_idx | contains(fn,time_event_exceptions{exc});
@@ -177,7 +174,7 @@ for i = 1:length(idx_trials)
     trial_data(i).monkey = cds.meta.monkey;
     trial_data(i).date = datestr(cds.meta.dateTime,'mm-dd-yyyy');
     trial_data(i).task = cds.meta.task;
-    
+    trial_data(i).epoch = params.meta.epoch;
    
     switch lower(cds.meta.task)
         case 'co' % center out apparently has broken target dir, so use target id
@@ -207,6 +204,21 @@ for i = 1:length(idx_trials)
                 end
             else
                 disp('This RT3D trial had a bad target ID...');
+                trial_data(i).target_direction = NaN;
+                trial_data(i).target_direction_inc = NaN;
+            end
+        case 'coc3d'
+            targ_angs = [-pi/4, 0, pi/4, pi/2, 3*pi/4, pi, -3*pi/4];
+            targ_angs_inc = [0, pi/4];
+            if ~isnan(cds.trials.otNum(iTrial)) && cds.trials.otNum(iTrial) <= length(targ_angs) && cds.trials.otNum(iTrial) >= 1
+                trial_data(i).target_direction = targ_angs(cds.trials.otNum(iTrial));
+                if strcmp(trial_data(i).epoch,'2D')
+                    trial_data(i).target_direction_inc = targ_angs_inc(1);
+                else
+                    trial_data(i).target_direction_inc = targ_angs_inc(2);
+                end
+            else
+                disp('This COC3D trial had a bad target ID...');
                 trial_data(i).target_direction = NaN;
                 trial_data(i).target_direction_inc = NaN;
             end
