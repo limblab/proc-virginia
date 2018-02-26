@@ -1,7 +1,7 @@
 function[] = plotIMU(IMU,filenames,varargin)
 
 if isempty(varargin)
-    opts = {'eul','quat','acc','gyro','magn','nmagn'};
+    opts = {'eul','quat','acc','gyro','magn','nmagn','acc_calib','eul_calib'};
 else
     opts = varargin{1};
 end
@@ -12,6 +12,18 @@ if any(strcmp(opts,'eul'))
     for ii = 1:size(IMU,2)
         subplot(size(IMU,2),1,ii)
         plot(IMU(ii).stimem,IMU(ii).ori)
+        xlabel('Time [min]'); ylabel('Angle [deg]');
+        legend('Roll','Pitch','Yaw')
+        set(gca,'Fontsize',12);
+        title([IMU(ii).place, ' IMU'],'Fontsize',12)
+    end
+end
+if any(strcmp(opts,'eul_calib')) && isfield(IMU,'eul_calib')
+    % Plot IMU angles from Euler
+    figure('name',[filenames, '-Euler from Calibration'])
+    for ii = 1:size(IMU,2)
+        subplot(size(IMU,2),1,ii)
+        plot(IMU(ii).timem_calib,IMU(ii).eul_calib)
         xlabel('Time [min]'); ylabel('Angle [deg]');
         legend('Roll','Pitch','Yaw')
         set(gca,'Fontsize',12);
@@ -38,6 +50,17 @@ if any(strcmp(opts,'acc'))
     for ii = 1:size(IMU,2)
         subplot(size(IMU,2),1,ii)
         plot(IMU(ii).stimem,IMU(ii).acc)
+        xlabel('Time [min]'); ylabel('Acceleration [m/s^2]');
+        legend('a_x','a_y','a_z')
+        title([IMU(ii).place, ' IMU'])
+    end
+end
+if any(strcmp(opts,'acc_calib')) && isfield(IMU,'acc_calib')
+    % Plot accelerations
+    figure('name',[filenames '-Accelerations from Calibration'])
+    for ii = 1:size(IMU,2)
+        subplot(size(IMU,2),1,ii)
+        plot(IMU(ii).timem_calib,IMU(ii).acc_calib)
         xlabel('Time [min]'); ylabel('Acceleration [m/s^2]');
         legend('a_x','a_y','a_z')
         title([IMU(ii).place, ' IMU'])

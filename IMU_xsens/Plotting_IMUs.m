@@ -1,11 +1,11 @@
 %% File selection
-lab = 0;
+lab = -1;
 switch lab
     case 0 % mac
         txtpath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt';
         addpath(txtpath);
     case -1 % gob2
-        txtpath = 'C:\Users\vct1641\Documents\Data\data-IMU';
+        txtpath = [meta.folder,'\IMU\'];
         addpath(txtpath);
     case 1
         txtpath = 'E:\Data-lab1\IMU Data\txt';
@@ -19,27 +19,45 @@ switch lab
 end
 
 filenames = {'20180212_reset_hrz2.txt'};
+filenames = {[meta.IMUPrefix,meta.taskAlias{1},'.txt'],[meta.IMUPrefix,meta.taskAlias{2},'.txt']};
 
-isrst = [1,1,1]; % When 0 enables detrend
+isrst = [1,1]; % When 0 enables detrend
+iscalib = [0,0]; % When 1 only load calibrated data
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
     order = {'back','sho','elb'};  % [back/sho/elb/wrst]
-    %IMU = loadIMU(filenames{jj},order,isrst(jj));
+    IMU = loadIMU(filenames{jj},order,isrst(jj),iscalib(jj));
+    filename = strsplit(filenames{jj},'.');
+    save(fullfile([meta.folder,'/',filename{1},'.mat']),'IMU');
     
-    opts = {'eul'};
+    opts = {'eul','acc','acc_calib','eul_calib'};
     plotIMU(IMU,filenames{jj},opts);
     
+end
+
+%%
+for ii =1:3
+    IMU(ii).timem_calib = (IMU(ii).time_calib-IMU(ii).time_calib(1))/60;
+    IMU(ii).eul_calib = IMU(ii).data_calib(:,1:3);
+    IMU(ii).acc_calib = IMU(ii).data_calib(:,4:6);
+    IMU(ii).q_calib = IMU(ii).data_calib(:,13:16);
 end
 
 %% Get calibration indexes for different poses
 clear JA
 
-tpose = [0.06, 0.1, 0.15, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+% Vertical, Flex 90º, Abb 90º
+%tpose = [0.1, 0.15, 0.2, 0.25]; % 001 21
+%tpose = [0.1, 0.2, 0.32, 0.38]; % 002 21
+%tpose = [0.05, 0.1, 0.25, 0.3]; % 001 22
+%tpose = [0.1, 0.15, 0.25, 0.3]; % 002 22
+tpose = [0.5, 0.55, 0.58, 0.62]; % 001 23
+
 calibtype = 'FE'; % FE/AA/FE+AA
 oritype = 'eul'; % eul/quat
-filt = 0;
+filt = 1;
 rst = 1;
 correct = 0;
 
@@ -47,11 +65,15 @@ JA = getbody2IMUmat(IMU,tpose,calibtype);
 JA = getjointangles(IMU,JA,oritype,filt,rst,correct);
 
 %% Plot joint angles and reconstructed global frame IMU angles
+opts  = {'joint','body'}; % opts = {'joint','body','joint diff'};
+plotJA(IMU,JA,filenames{jj},opts);
 
-for jj = 1:length(filenames)
-    opts  = {'joint'};
-    plotJA(IMU,JA,filenames{jj},opts);
-end
+%% Detrend drift removal
+%bkptst = [ 0 0 0 0; 10 15 20 25 ; 0 0 0 7];
+bkptst = [ 5 16;  8 25 ; 15 25];
+plt = 1;
+
+IMU = dfiltIMU(IMU,bkptst,plt);
 
 %% Binding reset segments
 IMU = bindrst(IMU);
@@ -105,13 +127,6 @@ detaillevel = round(decomplevel/4);
 plt = 1;
 
 IMU = wfiltIMU(IMU,wname,detaillevel,plt);
-
-%% Detrend drift removal
-bkptst = [0;0;0];
-
-plt = 1;
-
-IMU = dfiltIMU(IMU,bkptst,plt);
 
 %% Correlation coefficient 
 for ii = 1:size(IMU,2)

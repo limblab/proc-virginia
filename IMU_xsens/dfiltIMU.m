@@ -37,11 +37,13 @@ for ii = 1:size(IMU,2)
     end
     
     % High pass filtering with detrend - drift removal on yaw/pitch (Euler/quat)  
-    IMU(ii).filt.yw = detrend(IMU(ii).filt.yw,'linear',bkpts(ii,:));
+    IMU(ii).filt.yw = detrend(IMU(ii).filt.yw,'linear',bkpts(ii,:))+ mean(IMU(ii).filt.yw(1:bkpts(ii,1)));
     IMU(ii).filt.ori = [IMU(ii).filt.rl,IMU(ii).filt.pt,IMU(ii).filt.yw];
     
     if isfield(IMU,'q')
-        IMU(ii).filt.q.pt = detrend(IMU(ii).filt.q.pt,'linear',bkpts(ii,:));
+        IMU(ii).filt.q.pt = detrend(IMU(ii).filt.q.pt,'linear',bkpts(ii,:))+ mean(IMU(ii).filt.q.pt(1:bkpts(ii,1)));
+        IMU(ii).filt.q.rl = detrend(IMU(ii).filt.q.rl,'linear',bkpts(ii,:))+ mean(IMU(ii).filt.q.rl(1:bkpts(ii,1)));
+        IMU(ii).filt.q.yw = detrend(IMU(ii).filt.q.yw,'linear',bkpts(ii,:))+ mean(IMU(ii).filt.q.yw(1:bkpts(ii,1)));
     end
     
     % Plot

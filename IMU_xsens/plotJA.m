@@ -14,8 +14,10 @@ if any(strcmp(opts,'joint'))
         hold on
         if ~strcmp(JA(ii).place,'elb')
             plot(JA(1).time,(JA(ii).pt))
+            plot(JA(1).time,unwrap(JA(ii).yw))
+        else
+            plot(JA(1).time,(JA(ii).yw))
         end
-        plot(JA(1).time,unwrap(JA(ii).yw))
         xlabel('Time [min]'); ylabel('Angle [deg]');
         if strcmp(JA(ii).place,'elb')
             legend('FE','PS/R')

@@ -1,4 +1,4 @@
-function[IMU] = loadIMU(filenameIMU,order,isrst)
+function[IMU] = loadIMU(filenameIMU,order,isrst,iscalib)
 
 clear IMU
 
@@ -13,19 +13,27 @@ for ii = 1:nIMU
     if any(strcmp(header,'DevIDd'))
         IMU(ii).ID = IdsIMU{dataIMU(:,1)==ii};
     end
+    
+    IMU(ii).place = order{ii};
     time = dataIMU(dataIMU(:,1)==ii,2);    
     data = dataIMU(dataIMU(:,1)==ii,3:end);
     
     if any(diff(time)<0)
         idx_cbrec = find(diff(time)<0);
-        IMU(ii).time_calib = time(1:idx_cbrec(1));
-        IMU(ii).data_calib = data(1:idx_cbrec(1));
-        % if length(idx_cbrec)>1
-        %         for j = 1:length(idx_cbrec)
-        IMU(ii).time = IMU(ii).time(idx_cbrec(1)+1:end);
-        IMU(ii).data = IMU(ii).data(idx_cbrec(1)+1:end);
-        IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));        
-        IMU(ii).place = order{ii};
+        if iscalib
+            IMU(ii).time = time(1:idx_cbrec(1)-1);
+            IMU(ii).data = data(1:idx_cbrec(1)-1,:);
+        else
+            IMU(ii).time_calib = time(1:idx_cbrec(1));
+            IMU(ii).timem_calib = (IMU(ii).time_calib-IMU(ii).time_calib(1))/60;
+            IMU(ii).data_calib = data(1:idx_cbrec(1),:);
+            IMU(ii).eul_calib = IMU(ii).data_calib(:,1:3);
+            IMU(ii).acc_calib = IMU(ii).data_calib(:,4:6);
+            IMU(ii).q_calib = IMU(ii).data_calib(:,13:16);
+            IMU(ii).time = time(idx_cbrec(2)+1:end);
+            IMU(ii).data = data(idx_cbrec(2)+1:end,:);
+        end
+        IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
         if any(strcmp(header,'Packcount'))    
 
         IMU(ii).pc = IMU(ii).data(:,end);
