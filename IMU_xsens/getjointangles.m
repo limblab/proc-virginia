@@ -8,7 +8,7 @@ function[JA] = getjointangles(IMU,JA,oritype,filt,rst,correct)
 % oritype: which orientation representation was used 'quat' or 'eul'
 % filt: whether to use filtered data
 % rst: whether to detrend data and bring to OpenSim reference angles
-% correct: whether to correct Rsb for flexion angle offset
+% correct: whether to correct Rsb for abduction angle offset
 
 % Implemented from:
 %    Palermo E, Rossi S, Marini F, Patanè F, Cappa P.
@@ -30,7 +30,7 @@ if isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
     joints = {'sho'};
 end
 
-% Correct Rsb
+% Correct Rsb for abduction in calibration pose 1
 if correct
     for ii = 1:size(IMU,2)
         if isfield(IMU,'acc_calib')
@@ -39,7 +39,6 @@ if correct
             accv = mean(IMU(ii).acc(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
         end
         JA(ii).RAA = vec2Rmat([0 accv(2:3)],[0 0 1]);
-        %JA(ii).RFE = vec2Rmat([accv(1:2) 0],[0 0 1]);
         JA(ii).Rsb = JA(ii).RAA*JA(ii).Rsb;
     end
 end
@@ -49,19 +48,18 @@ for ii = 1:length(JA(1).time)
         % Get rotation matrix from sensor data
         if strcmp(oritype,'eul') && ~filt
             JA(jj).Rgs = ypr2Rmat(IMU(jj).yw(ii),IMU(jj).pt(ii),IMU(jj).rl(ii));
+            %JA(jj).Rgs_q = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii));
         elseif strcmp(oritype,'eul') && filt
-%             if ii == 1
-%                 JA(jj).Rgs = ypr2Rmat(180,0,0)*ypr2Rmat(IMU(jj).filt.yw(ii),IMU(jj).filt.pt(ii),IMU(jj).filt.rl(ii));
-%             else
-                JA(jj).Rgs = ypr2Rmat(IMU(jj).filt.yw(ii),IMU(jj).filt.pt(ii),IMU(jj).filt.rl(ii));
-%             end
+            JA(jj).Rgs = ypr2Rmat(IMU(jj).filt.yw(ii),IMU(jj).filt.pt(ii),IMU(jj).filt.rl(ii));
+            %JA(jj).Rgs_q = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii));
         elseif strcmp(oritype,'quat') && ~filt
-            JA(jj).Rgs = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii));  
+            JA(jj).Rgs = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii));
         else
             JA(jj).Rgs = ypr2Rmat(IMU(jj).filt.q.yw(ii),IMU(jj).filt.q.pt(ii),IMU(jj).filt.q.rl(ii));
         end
-        % Reconstruct body IMU angles
+        % Reconstruct IMU angles in body reference frame
         [JA(jj).ywg(ii),JA(jj).ptg(ii),JA(jj).rlg(ii)] = Rmat2ypr(JA(jj).Rgs*JA(jj).Rsb);
+        %[JA(jj).ywgq(ii),JA(jj).ptgq(ii),JA(jj).rlgq(ii)] = Rmat2ypr(JA(jj).Rgs_q*JA(jj).Rsb);
     end
     
     % Body segment to body segment transformation matrix
@@ -83,7 +81,7 @@ end
 
 % Get reference angles when Cerebus file recording
 if isfield(IMU,'acc_calib')
-    ang_calib = JA(1).ixp.ix1:JA(1).ixp.ix2;
+    ang_calib = JA(1).ixp.ix1:JA(1).ixp.ix4;
     for hh = 1:length(ang_calib)
         for ii = 1:size(IMU,2)
             if strcmp(oritype,'eul') && isfield(IMU,'eul_calib')
@@ -97,37 +95,38 @@ if isfield(IMU,'acc_calib')
         Rbb_e(:,:,hh) = inv(Rgs_c(:,:,nelb)*JA(nelb).Rsb)*(Rgs_c(:,:,nsho)*JA(nsho).Rsb); % Elbow angles
         Rbb_s(:,:,hh) = inv(Rgs_c(:,:,nsho)*JA(nsho).Rsb)*(Rgs_c(:,:,nback)*JA(nback).Rsb); % Shoulder angles
         
+        % Joint ngles for calibration poses
         [yw_ce(hh),pt_ce(hh),rl_ce(hh)] = Rmat2ypr(Rbb_e(:,:,hh));
         [yw_cs(hh),pt_cs(hh),rl_cs(hh)] = Rmat2ypr(Rbb_s(:,:,hh));
     end
 end
 
-% Remove mean from data and match to OpenSim reference
-if rst && ~isfield(IMU,'time_calib')
+% Match to OpenSim reference by removing mean of calibration poses - pose 1
+% for pitch, pose 2 for roll and yaw
+if rst && ~isfield(IMU,'acc_calib')
     for kk = 1:size(IMU,2)-1
         JA(kk).yw = JA(kk).yw-mean(JA(kk).yw(JA(1).ixp.ix1:JA(1).ixp.ix2));
-        JA(kk).pt = JA(kk).pt-mean(JA(kk).pt(JA(1).ixp.ix1:JA(1).ixp.ix2));
-        JA(kk).rl = JA(kk).rl-mean(JA(kk).rl(JA(1).ixp.ix1:JA(1).ixp.ix2));
+        JA(kk).pt = JA(kk).pt-mean(JA(kk).pt(JA(1).ixp.ix3:JA(1).ixp.ix4));
+        JA(kk).rl = JA(kk).rl-mean(JA(kk).rl(JA(1).ixp.ix3:JA(1).ixp.ix4));
     end
-        
     for ii = 1:size(IMU,2)
         JA(ii).ywg = JA(ii).ywg-mean(JA(ii).ywg(JA(1).ixp.ix1:JA(1).ixp.ix2));
-        JA(ii).ptg = JA(ii).ptg-mean(JA(ii).ptg(JA(1).ixp.ix1:JA(1).ixp.ix2));
-        JA(ii).rlg = JA(ii).rlg-mean(JA(ii).rlg(JA(1).ixp.ix1:JA(1).ixp.ix2));
+        JA(ii).ptg = JA(ii).ptg-mean(JA(ii).ptg(JA(1).ixp.ix3:JA(1).ixp.ix4));
+        JA(ii).rlg = JA(ii).rlg-mean(JA(ii).rlg(JA(1).ixp.ix3:JA(1).ixp.ix4));
     end
 elseif rst && isfield(IMU,'acc_calib')
-    JA(1).yw = JA(1).yw-(mean(yw_ce));
-    JA(1).pt = JA(1).pt-(mean(pt_ce));
-    JA(1).rl = JA(1).rl-(mean(rl_ce));
+    JA(1).yw = JA(1).yw-(mean(yw_ce(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
+    JA(1).pt = JA(1).pt-(mean(pt_ce(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
+    JA(1).rl = JA(1).rl-(mean(rl_ce(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
     
-    JA(2).yw = JA(2).yw-(mean(yw_cs));
-    JA(2).pt = JA(2).pt-(mean(pt_cs));
-    JA(2).rl = JA(2).rl-(mean(rl_cs));
+    JA(2).yw = JA(2).yw-(mean(yw_cs(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
+    JA(2).pt = JA(2).pt-(mean(pt_cs(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
+    JA(2).rl = JA(2).rl-(mean(rl_cs(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
     
     for ii = 1:size(IMU,2)
-        JA(ii).ywg = JA(ii).ywg-(mean(JA(ii).ywgc));
-        JA(ii).ptg = JA(ii).ptg-(mean(JA(ii).ptgc));
-        JA(ii).rlg = JA(ii).rlg-(mean(JA(ii).rlgc));
+        JA(ii).ywg = JA(ii).ywg-(mean(JA(ii).ywgc(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
+        JA(ii).ptg = JA(ii).ptg-(mean(JA(ii).ptgc(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
+        JA(ii).rlg = JA(ii).rlg-(mean(JA(ii).rlgc(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
     end
     
     JA(1).ywc = yw_ce;
@@ -137,7 +136,6 @@ elseif rst && isfield(IMU,'acc_calib')
     JA(2).ywc = yw_cs;
     JA(2).ptc = pt_cs;
     JA(2).rlc = rl_cs;
-    
 end
 
 % Obtain joint angles by the difference of IMU orientation data
@@ -154,5 +152,4 @@ elseif isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
     JA(1).ptd = JA(nsho).ptg-JA(nback).ptg;
     JA(1).rld = JA(nsho).rlg-JA(nback).rlg;
 end
-
 end

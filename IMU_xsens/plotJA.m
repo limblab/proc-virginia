@@ -1,7 +1,7 @@
 function[] = plotJA(IMU,JA,filenames,varargin)
 
 if isempty(varargin)
-    opts = {'joint','body','joint diff'};
+    opts = {'joint','body','joint diff'};%,'joint calib','body calib'};
 else
     opts = varargin{1};
 end
@@ -56,4 +56,31 @@ if any(strcmp(opts,'body'))
         title([IMU(ii).place, ' IMU'])
     end
 end
+% if any(strcmp(opts,'joint calib'))
+%     figure('name',[filenames, '-Joint Angles from Calibration'])
+%     for ii = 1:size(IMU,2)-1
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).timem_calib,(JA(ii).rlc))
+%         hold on
+%         plot(IMU(ii).timem_calib,(JA(ii).ptc))
+%         plot(IMU(ii).timem_calib,(JA(ii).ywc))
+%         xlabel('Time [min]'); ylabel('Angle [deg]');
+%         legend('Roll','Pitch','Yaw')
+%         title([IMU(ii).place, ' IMU'])
+%     end
+% end
+% if any(strcmp(opts,'body calib'))
+%     figure('name',[filenames, '-Body IMU Angles from Calibration'])
+%     for ii = 1:size(IMU,2)
+%         subplot(size(IMU,2),1,ii)
+%         plot(IMU(ii).timem_calib,(JA(ii).rlgc))
+%         hold on
+%         plot(IMU(ii).timem_calib,(JA(ii).ptgc))
+%         plot(IMU(ii).timem_calib,(JA(ii).ywgc))
+%         xlabel('Time [min]'); ylabel('Angle [deg]');
+%         legend('Roll','Pitch','Yaw')
+%         title([IMU(ii).place, ' IMU'])
+%     end
+% end
+
 end

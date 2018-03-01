@@ -33,6 +33,6 @@ for ii = 1:size(IMU,2)
     IMU(ii).q.yw = rad2deg(IMU(ii).q.yw)';
     IMU(ii).q.pt = rad2deg(IMU(ii).q.pt)';
     IMU(ii).q.rl = rad2deg(IMU(ii).q.rl)';
-    IMU(ii).q.ori = [IMU(ii).q.rl, IMU(ii).q.yw, IMU(ii).q.pt];
+    IMU(ii).q.ori = [IMU(ii).q.rl, IMU(ii).q.pt, IMU(ii).q.yw];
 end
 end
