@@ -1,45 +1,78 @@
-function[IMU] = loadIMU(filenameIMU,order,isrst)
+function[IMU] = loadIMU(filenameIMU,order,detrnd,iscalib)
+% Loads IMU data into IMU struct from txt file 
+
+% IMU: IMU data structure
+% filenameIMU: filename for IMU txt file
+% order: order of IMU placement [back/sho/elb/wrst]
+% detrnd: whether to remove mean of angles through detrend 
+% iscalib: whether to only load calibration data when simultaneous
+% recording with Cerebus
 
 clear IMU
 
+% Read file
 alldataIMU = importdata(filenameIMU,'\t');
 IdsIMU = regexprep(alldataIMU.textdata(2:end,1),'\s','');
 header = regexprep(alldataIMU.textdata(1,1:end),'\s','');
 dataIMU = alldataIMU.data;
 
+% Number of IMUs
 nIMU = max(dataIMU(:,1));
 
 for ii = 1:nIMU
+    % IMU ID number
     if any(strcmp(header,'DevIDd'))
         IMU(ii).ID = IdsIMU{dataIMU(:,1)==ii};
     end
-    time = dataIMU(dataIMU(:,1)==ii,2);    
+    % IMU placement site - back/sho/elb/wrst
+    IMU(ii).place = order{ii};
+    
+    % Separates time and data for each IMU
+    time = dataIMU(dataIMU(:,1)==ii,2);
     data = dataIMU(dataIMU(:,1)==ii,3:end);
     
+    % Check if Cerebus file was recorded simultaneously, will have 2 time
+    % discontinuities (time set to zero): when start recording and when Cerebi sync
     if any(diff(time)<0)
+        % Indexes when Cerebus recording time was set to zero
         idx_cbrec = find(diff(time)<0);
-        IMU(ii).time_calib = time(1:idx_cbrec(1));
-        IMU(ii).data_calib = data(1:idx_cbrec(1));
-        % if length(idx_cbrec)>1
-        %         for j = 1:length(idx_cbrec)
-        IMU(ii).time = IMU(ii).time(idx_cbrec(1)+1:end);
-        IMU(ii).data = IMU(ii).data(idx_cbrec(1)+1:end);
-        IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));        
-        IMU(ii).place = order{ii};
-        if any(strcmp(header,'Packcount'))    
-
-        IMU(ii).pc = IMU(ii).data(:,end);
-%         if any(diff(IMU(ii).pc)~=1)
-%             fprintf('\nWarning: there are non ordered packets\n')
-%             [~,ids] = sort(IMU(ii).pc);
-%             IMU(ii).data = IMU(ii).data(ids,:);
-%             IMU(ii).time = IMU(ii).time(ids);
+        if iscalib % Load only calibration data before Cerebus start recording
+            IMU(ii).time = time(1:idx_cbrec(1)-1);
+            IMU(ii).data = data(1:idx_cbrec(1)-1,:);
+        else
+            % Save time, time in min, all data, euler angles, accelerations
+            % and quaterions from start of IMU recording to start of
+            % Cerebus recording (IMU calibration phase)
+            IMU(ii).time_calib = time(1:idx_cbrec(1));
+            IMU(ii).timem_calib = (IMU(ii).time_calib-IMU(ii).time_calib(1))/60;
+            IMU(ii).data_calib = data(1:idx_cbrec(1),:);
+            IMU(ii).eul_calib = IMU(ii).data_calib(:,1:3);
+            IMU(ii).acc_calib = IMU(ii).data_calib(:,4:6);
+            IMU(ii).q_calib = IMU(ii).data_calib(:,13:16);
+            % Save data starting when Cerebi sync
+            IMU(ii).time = time(idx_cbrec(2)+1:end);
+            IMU(ii).data = data(idx_cbrec(2)+1:end,:);
         end
+    else
+        IMU(ii).time = time;
+        IMU(ii).data = data;
     end
+    
+    % Estimated IMU sampling/update rate
+    IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
+    
+    % IMU packet count - check for missing packets. Packet number starts
+    % when start of measurement mode and wraps at 65535
+    if any(strcmp(header,'Packcount'))
+        IMU(ii).pc = IMU(ii).data(:,end);
+    end
+    
+    % Creates timeseries for synchronization between IMUs
     IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
     IMU(ii).sts = IMU(ii).ts;
 end
 
+% Synchronize IMU data with intersection of time vectors
 if nIMU > 1
     for ii = 1:nIMU-1
         for jj = ii+1:nIMU
@@ -53,39 +86,55 @@ end
 
 it = find(strcmp(header,'CerebusTime'));
 
+% Save synchronized data
 for ii = 1:nIMU
+    % Orientation reset
     if any(strcmp(header,'rst'))
         irst = find(strcmp(header,'rst'))-it;
         IMU(ii).rst = IMU(ii).sts.Data(:,irst);
     end
     
+    % Packet count number
     if any(strcmp(header,'Packcount'))
         ipc = find(strcmp(header,'Packcount'))-it;    
         IMU(ii).spc = IMU(ii).sts.Data(:,ipc);
     end
-
+    
+    % Time vector in seconds
     IMU(ii).stime = IMU(ii).sts.Time;
+    % Time vector in minutes
     IMU(ii).stimem = (IMU(ii).stime-IMU(ii).stime(1))/60;
     
+    % Roll angle
     if any(strcmp(header,'Roll'))
         irl = find(strcmp(header,'Roll'))-it;
         IMU(ii).rl = IMU(ii).sts.Data(:,irl);
     end
+    
+    % Pitch angle
     if any(strcmp(header,'Pitch'))
         ipt = find(strcmp(header,'Pitch'))-it;
         IMU(ii).pt = IMU(ii).sts.Data(:,ipt);
     end
+    
+    % Yaw angle
     if any(strcmp(header,'Yaw'))
         iyw = find(strcmp(header,'Yaw'))-it;
         IMU(ii).yw = IMU(ii).sts.Data(:,iyw);
     end
+    
+    % Orientation matrix [rl, pt, yw]
     if any(strcmp(header,'Yaw')) && any(strcmp(header,'Pitch')) && any(strcmp(header,'Roll'))
         IMU(ii).ori = [IMU(ii).rl,IMU(ii).pt,IMU(ii).yw];
     end
+    
+    % Acceleration matrix [ax, ay, az]
     if any(strcmp(header,'xAcc'))
         iac = find(strcmp(header,'xAcc'))-it;
         IMU(ii).acc = IMU(ii).sts.Data(:,iac:iac+2);
     end
+    
+    % Angular velocity matrix [wx, wy, wz]
     if any(strcmp(header,'xGyro'))
         igy = find(strcmp(header,'xGyro'))-it;
         IMU(ii).gyro = rad2deg(IMU(ii).sts.Data(:,igy:igy+2));
@@ -93,6 +142,8 @@ for ii = 1:nIMU
             IMU(ii).ngyro(j) = norm(IMU(ii).gyro(j,:));
         end
     end
+    
+    % Magnetic field matrix [mx, my, mz]
     if any(strcmp(header,'xMagn'))
         img = find(strcmp(header,'xMagn'))-it;
         IMU(ii).magn = IMU(ii).sts.Data(:,img:img+2);
@@ -100,6 +151,8 @@ for ii = 1:nIMU
                 IMU(ii).nmagn(j) = norm(IMU(ii).magn(j,:));
             end
     end
+    
+    % Quaternions into q stuct
     if any(strcmp(header,'q0'))
         iq = find(strcmp(header,'q0'))-it;
         IMU(ii).q.q0 = IMU(ii).sts.Data(:,iq);
@@ -110,16 +163,16 @@ for ii = 1:nIMU
     end
 end
 
-if ~isrst
+% Remove mean value of angle data through detrend if detrnd is one
+if detrnd
     for ii = 1:nIMU
-        IMU(ii).rl = detrend(IMU(ii).rl);
-        IMU(ii).pt = detrend(IMU(ii).pt);
-        IMU(ii).yw = detrend(IMU(ii).yw);
-        IMU(ii).ori = detrend(IMU(ii).ori);
-        IMU(ii).q.rl = detrend(IMU(ii).q.rl);
-        IMU(ii).q.pt = detrend(IMU(ii).q.pt);
-        IMU(ii).q.yw = detrend(IMU(ii).q.yw);
+        IMU(ii).rl = detrend(IMU(ii).rl,'constant');
+        IMU(ii).pt = detrend(IMU(ii).pt,'constant');
+        IMU(ii).yw = detrend(IMU(ii).yw,'constant');
+        IMU(ii).ori = detrend(IMU(ii).ori,'constant');
+        IMU(ii).q.rl = detrend(IMU(ii).q.rl,'constant');
+        IMU(ii).q.pt = detrend(IMU(ii).q.pt,'constant');
+        IMU(ii).q.yw = detrend(IMU(ii).q.yw,'constant');
     end
 end
-
 end

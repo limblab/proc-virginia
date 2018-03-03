@@ -47,13 +47,13 @@ function getRT3DTaskTable(cds,times)
         hdrSize=21;
         numTgt = (cds.databursts.db(1)-hdrSize)/8;
 
-        CtStartList=  nan(numTrials,1);
-        OtHoldList=  nan(numTrials,1);
-        goCueList=      nan(numTrials,numTgt);
-        numTgts=        numTgt*ones(numTrials,1);
-        numAttempted=   nan(numTrials,1);
+        CtStartList=        nan(numTrials,1);
+        OtHoldList=         nan(numTrials,1);
+        goCueList=          nan(numTrials,numTgt);
+        numTgts=            numTgt*ones(numTrials,1);
+        numAttempted=       nan(numTrials,1);
         ftHoldTimeList=     nan(numTrials,1);
-        otHoldTimeList=   nan(numTrials,1);
+        otHoldTimeList=     nan(numTrials,1);
 
         for trial = 1:numel(times.startTime)
             % Find databurst associated with startTime
@@ -123,12 +123,12 @@ function getRT3DTaskTable(cds,times)
             tgtnum=bytes2float(cds.databursts.db(dbidx,hdrSize+1:end));
 
             % Build arrays
-            CtStartList(trial,:)=     CtStart;              % time of first target onset
-            OtHoldList(trial,:)=     OtHold;                % time of outer target hold
+            CtStartList(trial,:)=       CtStart;            % time of first target onset
+            OtHoldList(trial,:)=        OtHold;             % time of outer target hold
             goCueList(trial,:)=         goCue;              % time stamps of go_cue(s)
             numTgts(trial)=             numTgt;             % max number of targets
             numAttempted(trial,:)=      tgtsAttempted;      % ?
-            ftHoldTimeList(trial,:)=      ftHoldTime;       % first target hold time
+            ftHoldTimeList(trial,:)=    ftHoldTime;         % first target hold time
             otHoldTimeList(trial,:)=    targHoldTime;       % outer target hold time
             tgt(trial,:)=               tgtnum;             %target number
         end
@@ -144,9 +144,9 @@ function getRT3DTaskTable(cds,times)
         cds.addProblem('There are corrupt databursts with more targets than expected. These have been skipped, but this frequently relates to errors in trial table parsting with the RW task')
     end
     trials=[times,trials];
-    trials.Properties.Description='Trial table for the 3DRT task';
+    trials.Properties.Description='Trial table for the RT3D task';
     %cds.setField('trials',trials)
     set(cds,'trials',trials)
-    evntData=loggingListenerEventData('get3DRTTaskTable',[]);
+    evntData=loggingListenerEventData('getRT3DTaskTable',[]);
     notify(cds,'ranOperation',evntData)
 end

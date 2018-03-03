@@ -1,9 +1,3 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function [trial_data,td_params] = parseFileByTrial(data, params)
-%
-%   Wrapper function to create trial_data structs. Currently only supports
-% CDS.
-% 
 % NOTE: Discretizes everything to the dt of the CDS kinematics (by default
 % should be 10 ms bins, I believe). Can rebin later if desired using binTD.
 %
@@ -26,7 +20,18 @@
 %     .all_points    : flag to include all data points. Thus, disregards extra_time
 %                       and trial_results. Each trial ends at trial_start of the one after
 %     .pos_offset    : offset (in units of cds.pos) to zero position (default [0,0])
-%
+%     .include_ts    : Flag to denote whether to include timestamps aligned
+%                       start of the trial or not. If so, includes a cell
+%                       array of timestamps for each trial, one for each
+%                       source of neural data.
+%     .include_start :  Flag to denot whether to include an extra column
+%                       which contains the 'real time' start for each trial
+%                       Useful for comparing in non-standard tasks
+%       
+%     .include_naming: Flag to denote whether to include a conversion
+%                       matrix between the labels that appear on the screen when you are doing sensory mapping
+%                       versus the labels that are given to the recorded
+%                       file.
 % OUTPUTS:
 %   trial_data : the struct! Huzzah!
 %
@@ -75,9 +80,12 @@ event_list     =  {};
 array_alias    =  {};
 trial_results  =  {'R'};
 exclude_units  =  [0,255];
-extra_time     =  [0.2, 0.2];
+extra_time     =  [0.01, 0.01];
 all_points     =  false;
 pos_offset     =  [0,0];
+include_ts     =  false;
+include_naming =  false;
+marker_data    =  [];
 if ~isfield(params,'meta'), disp('WARNING: no meta information provided.'); end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Some parameters that CAN be overwritten, but are mostly intended to be
@@ -108,19 +116,40 @@ if ~isempty(cds.units)
     unit_idx = cell(1,length(arrays));
     for array = 1:length(arrays)
         unit_idx{array} = find(~ismember([cds.units.ID],exclude_units) & strcmpi({cds.units.array},arrays{array}));
+        if include_naming
+            chanNames = cds.units(~cellfun(@isempty,([strfind({cds.units.array},arrays{array})])));
+            sortedUnits = chanNames([chanNames.ID]>0 & [chanNames.ID]<255);
+            elecNames = unique([sortedUnits.chan]);
+            screenNames = {sortedUnits.label};
+            labelNames = zeros(length(sortedUnits),1);
+            for i= 1:length(sortedUnits)
+               labelNames(i) = str2num(screenNames{i}(5:end)); 
+            end
+            labels = unique(labelNames);
+            conversion{array} = [elecNames', labels];
+        end
     end
 end
+
 
 % process some of the trial information
 fn = cds.trials.Properties.VariableNames;
 if ~all(ismember({'startTime','endTime'},fn)), error('Must have start and end times in CDS.'); end
 event_list = union({'startTime';'endTime'},event_list);
 if ismember({'goCueTime'},fn), event_list = union({'goCueTime'},event_list); end
-if ismember({'tgtOnTime'},fn), event_list = union({'tgtOnTime'},event_list); end
+
 % determine which signals are time-varying and which are parameter values
 %   There was a CDS bug where start/end times didn't have units, but I know
 %   they are supposed to be here so it's hard coded for now
-time_events = union({'startTime','endTime'},fn(strcmpi(cds.trials.Properties.VariableUnits,'s')));
+%   Some parameter values have 's' as units but are not time events.
+%   Include them in the time_event_exceptions below.
+time_event_exceptions = {'ctrHold','ftHoldTime','targHoldTime','stHoldTime','otHoldTime','ftHoldTime'};
+time_event_exc_idx = false(size(fn));
+for exc = 1:length(time_event_exceptions)
+    time_event_exc_idx = time_event_exc_idx | contains(fn,time_event_exceptions{exc});
+end
+extra_time_events = fn( strcmpi(cds.trials.Properties.VariableUnits,'s') & ~time_event_exc_idx );
+time_events = union({'startTime','endTime'},extra_time_events);
 
 % get trial list and initialize
 if all_points % we want everything
@@ -131,7 +160,11 @@ end
 trial_data = repmat(struct(),1,length(idx_trials));
 
 % find the bin size of the CDS kinematics
-bin_size = round(1000*mode(diff(cds.kin.t)))/1000;
+if ~isempty(cds.kin)
+    bin_size = round(1000*mode(diff(cds.kin.t)))/1000;
+else
+    bin_size = params.bin_size;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add basic data and metadata
@@ -141,7 +174,7 @@ for i = 1:length(idx_trials)
     trial_data(i).monkey = cds.meta.monkey;
     trial_data(i).date = datestr(cds.meta.dateTime,'mm-dd-yyyy');
     trial_data(i).task = cds.meta.task;
-    
+    trial_data(i).epoch = params.meta.epoch;
    
     switch lower(cds.meta.task)
         case 'co' % center out apparently has broken target dir, so use target id
@@ -157,7 +190,38 @@ for i = 1:length(idx_trials)
         case 'rw' % In random walk, target_direction doesn't make sense
             trial_data(i).target_center = reshape(cds.trials.tgtCtr(iTrial,:),size(cds.trials.tgtCtr(iTrial,:),2)/2,2);
         case 'trt' % TRT denotes targets in the same way as random walk
-            trial_data(i).target_center = reshape(cds.trials.tgtCtr(iTrial,:),size(cds.trials.tgtCtr(iTrial,:),2)/2,2);
+            trial_data(i).target_center = reshape(cds.trials.tgtCtr(iTrial,:),2,size(cds.trials.tgtCtr(iTrial,:),2)/2)';
+        case 'rt3d'
+            targ_angs = [-pi/4, 0, pi/4, pi/2, 3*pi/4, pi, -3*pi/4];
+            targ_angs_inc = [0, pi/4];
+            if ~isnan(cds.trials.tgtnum(iTrial,2)) && cds.trials.tgtnum(iTrial,2) <= length(targ_angs) && cds.trials.tgtnum(iTrial,2) >= 1
+                trial_data(i).task_config = params.task_config(i);
+                trial_data(i).target_direction = targ_angs(cds.trials.tgtnum(iTrial,2));
+                if trial_data(i).task_config == 1
+                    trial_data(i).target_direction_inc = targ_angs_inc(1);
+                else
+                    trial_data(i).target_direction_inc = targ_angs_inc(2);
+                end
+            else
+                disp('This RT3D trial had a bad target ID...');
+                trial_data(i).target_direction = NaN;
+                trial_data(i).target_direction_inc = NaN;
+            end
+        case 'coc3d'
+            targ_angs = [-pi/4, 0, pi/4, pi/2, 3*pi/4, pi, -3*pi/4];
+            targ_angs_inc = [0, pi/4];
+            if ~isnan(cds.trials.otNum(iTrial)) && cds.trials.otNum(iTrial) <= length(targ_angs) && cds.trials.otNum(iTrial) >= 1
+                trial_data(i).target_direction = targ_angs(cds.trials.otNum(iTrial));
+                if strcmp(trial_data(i).epoch,'2D')
+                    trial_data(i).target_direction_inc = targ_angs_inc(1);
+                else
+                    trial_data(i).target_direction_inc = targ_angs_inc(2);
+                end
+            else
+                disp('This COC3D trial had a bad target ID...');
+                trial_data(i).target_direction = NaN;
+                trial_data(i).target_direction_inc = NaN;
+            end
         otherwise
             if any(abs(cds.trials.tgtDir) > 2*pi) % good assumption that it's deg
                 trial_data(i).target_direction = pi/180*cds.trials.tgtDir(iTrial);
@@ -189,12 +253,17 @@ end
 %   1) Check for kinematics and bin those
 %   2) Check for force and bin that
 %   3) Check for EMG and process/bin those
-%   4) Turn the trial table into a binned version
-kin_list = {'t','x','y','vx','vy','ax','ay'};
-force_list = {'t','fx','fy'};
-cds_bin = struct();
-cds_bin.kin = decimate_signals(cds.kin,kin_list,bin_size);
-cds_bin.force = decimate_signals(cds.force,force_list,bin_size);
+%   4) Check for OpenSim data and bin those
+%   5) Check for marker data and bin those
+%   6) Turn the trial table into a binned version
+    cds_bin = struct();
+if ~isempty(cds.kin)
+    kin_list = {'t','x','y','vx','vy','ax','ay'};
+    % force_list = {'t','fx','fy'};
+    force_list = cds.force.Properties.VariableNames;
+    cds_bin.kin = decimate_signals(cds.kin,kin_list,bin_size);
+    cds_bin.force = decimate_signals(cds.force,force_list,bin_size);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Process EMG (high pass, rectify, low pass)
@@ -230,11 +299,9 @@ if opensim_analog_idx > 0
     opensim=cds.analog{opensim_analog_idx};
     opensimList = opensim.Properties.VariableNames;
     
-    % TODO: replace this with something that separates out the different types of
+    % TODO?: replace this with something that separates out the different types of
     % opensim data, e.g. separate joints and muscles, kinematics and
     % dynamics
-    idx_opensim = 1:width(opensim);
-    idx_opensim = idx_opensim>1;
     
     % Assign to a new 'opensim' variable
     cds_bin.opensim = decimate_signals(opensim,opensimList,bin_size);
@@ -242,13 +309,54 @@ if opensim_analog_idx > 0
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Process Markers data
+% Figure out if we have marker data
+marker_analog_idx = 0;
+for i=1:length(cds.analog)
+    header = cds.analog{i}.Properties.VariableNames;
+    if any(contains(header,'Frame')) || any(contains(header,'Marker'))
+        marker_analog_idx = i;
+        break
+    end
+end
+if marker_analog_idx > 0
+    markers=cds.analog{marker_analog_idx};
+    markers = markers(:,2:end); % get rid of frames column
+    
+    % recondition table to have only single column variables
+    new_markers = table(markers.t,'VariableNames',{'t'});
+    marker_postfix = {'_x','_y','_z'};
+    marker_names = markers.Properties.VariableNames;
+    for marker_ctr = 2:width(markers)
+        % for each column in each marker
+        for col_ctr = 1:3
+            % add new column to new_markers
+            col_name = [marker_names{marker_ctr} marker_postfix{col_ctr}];
+            new_col = table(markers.(marker_names{marker_ctr})(:,col_ctr),'VariableNames',{col_name});
+            new_markers = [new_markers new_col];
+        end
+    end
+    markersList = new_markers.Properties.VariableNames;
+    clear marker_analog_idx header markers marker_postfix marker_names marker_ctr col_ctr col_name new_col
+    
+    % Assign to a new 'markers' variable
+    cds_bin.markers = resample_signals(new_markers,markersList,bin_size,cds.kin.t(1),cds.kin.t(end));
+    clear new_markers
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Check the time vectors for these signals to make a master one
-fn = fieldnames(cds_bin);
-cds_bin.t = roundTime(cds_bin.(fn{1}).t);
-% check the time vector lengths just to be sure
-for i = 2:length(fn)
-    if ~isempty(cds_bin.(fn{i})) && (size(cds_bin.(fn{i}).t,1) ~= size(cds_bin.t,1))
-        error('Time is different!');
+if ~isempty(cds.trials) && isempty(cds.kin) && isempty(cds.emg)
+    cds_bin.t = [min(cds.trials.startTime):bin_size:max(cds.trials.endTime)+0.01]';
+    cds_bin.t = roundTime(cds_bin.t);
+else
+    fn = fieldnames(cds_bin);
+    cds_bin.t = roundTime(cds_bin.(fn{1}).t);
+    % check the time vector lengths just to be sure
+    for i = 2:length(fn)
+        if ~isempty(cds_bin.(fn{i})) && (size(cds_bin.(fn{i}).t,1) ~= size(cds_bin.t,1))
+            error('Time is different!');
+        end
     end
 end
 
@@ -275,13 +383,30 @@ end
 % get a new master event list in case any weren't found
 event_list = fieldnames(cds_bin.trials);
 
-
+extra_time_temp = extra_time;
 % This is a little "hack" in case all data is desired
 if all_points % here we want to include all data
     cds_bin.trials.endTime = [cds_bin.trials.startTime(2:end)-1; length(cds_bin.t)];
     extra_time = [0 0];
 else
     extra_time = round(extra_time/bin_size); % convert to number of bins
+    if isempty(cds.kin) && isempty(cds.emg)
+        extra_time = [0 0];
+    end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compute the timestamps for raster plots (if wanted)
+if include_ts
+    for i = 1:length(idx_trials)
+        trialStart(i) = cds_bin.t(cds_bin.trials.startTime(idx_trials(i)));
+        trialEnd(i) = cds_bin.t(cds_bin.trials.endTime(idx_trials(i)));
+        for j = 1:length(arrays)
+            for k = 1:length(unit_idx{j})
+                timestamps{i,j,k} = cds.units(unit_idx{j}(k)).spikes.ts(cds.units(unit_idx{j}(k)).spikes.ts> trialStart(i)-extra_time_temp(1) & cds.units(unit_idx{j}(k)).spikes.ts < trialEnd(i)+extra_time_temp(2)) - trialStart(i);
+            end
+        end
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -294,6 +419,13 @@ for i = 1:length(idx_trials)
         t_end = cds_bin.trials.endTime(iTrial) + extra_time(2);
 
     idx = t_start:t_end-1;
+    % check if any trials have idx<0, i.e. first trial starts within
+    % extra_time samples of beginning of file
+    if any(idx<0)
+        % skip trial
+        warning(['Trial ' num2str(iTrial) ' starts before file starts, skipping'])
+        continue
+    end
     
     % adjust start time for use next
     cds_bin.trials.startTime(iTrial) = cds_bin.trials.startTime(iTrial)+1;
@@ -323,7 +455,7 @@ for i = 1:length(idx_trials)
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % ADD kinematics
-        if isfield(cds_bin,'kin') && ~isempty(cds_bin.kin)
+        if isfield(cds_bin,'kin') 
             trial_data(i).pos = [cds_bin.kin.x(idx)-pos_offset(1),cds_bin.kin.y(idx)-pos_offset(2)];
             trial_data(i).vel = [cds_bin.kin.vx(idx),cds_bin.kin.vy(idx)];
             trial_data(i).acc = [cds_bin.kin.ax(idx),cds_bin.kin.ay(idx)];
@@ -331,13 +463,13 @@ for i = 1:length(idx_trials)
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Add force
-        if isfield(cds_bin,'force') && ~isempty(cds_bin.force)
+        if isfield(cds_bin,'force')
             trial_data(i).force = [cds_bin.force.fx(idx),cds_bin.force.fy(idx)];
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Add emg
-        if isfield(cds_bin,'emg') && ~isempty(cds_bin.emg)
+        if isfield(cds_bin,'emg')
             fn = cds.emg.Properties.VariableNames;
             fn = fn(~strcmpi(fn,'t'));
             
@@ -353,18 +485,34 @@ for i = 1:length(idx_trials)
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Add opensim
-        if isfield(cds_bin,'opensim') && ~isempty(cds_bin.opensim)
+        if isfield(cds_bin,'opensim') 
             fn = opensimList;
             fn = fn(~strcmpi(fn,'t'));
             
             trial_data(i).opensim = zeros(length(idx),length(fn));
-            % loop along the muscles to decimate
+            % loop along the opensim to decimate
             for entry = 1:length(fn)
                 temp = cds_bin.opensim.(fn{entry});
                 trial_data(i).opensim(:,entry) = temp(idx);
             end
             % add opensim names
             trial_data(i).opensim_names = fn;
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Add markers
+        if isfield(cds_bin,'markers')
+            fn = markersList;
+            fn = fn(~strcmpi(fn,'t'));
+            
+            trial_data(i).markers = zeros(length(idx),length(fn));
+            % loop along the markers to decimate
+            for entry = 1:length(fn)
+                temp = cds_bin.markers.(fn{entry});
+                trial_data(i).markers(:,entry) = temp(idx);
+            end
+            % add opensim names
+            trial_data(i).marker_names = fn;
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -382,6 +530,13 @@ for i = 1:length(idx_trials)
             binned_spikes = cds_bin.([arrays{array} '_spikes']);
             trial_data(i).([use_array_name '_spikes']) = binned_spikes(idx,:);
             trial_data(i).([use_array_name '_unit_guide']) = cds_bin.([arrays{array} '_unit_guide']);
+            if include_ts
+                trial_data(i).([use_array_name '_ts']) = squeeze(timestamps(i, array, 1:length(unit_idx{array})));
+                trial_data(i).trial_start_time = trialStart(i);
+            end
+            if include_naming
+                trial_data(i).([use_array_name '_naming']) = conversion{array};
+            end
         end
     end
 end
@@ -423,6 +578,79 @@ end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function out = resample_signals(data,var_list,bin_size,start_time,end_time)
+% resamples continuous data from CDS that may be irregularly sampled
+% assumes data is cds field, e.g. cds.markers
+% Uses spline to reconstruct missing points
+% alters time vector to fit given start_time, end_time, and bin_size
+% also assumes each variable in data table is single column
+if ~isempty(data)
+    out = struct();
+    
+    for var = 1:length(var_list)
+        x = data.(var_list{var});
+        tx = data.t;
+        
+        if size(x,2)>1
+            error('Data in table must have single column variables to resample correctly')
+        end
+        % set edges of signal to 0 to remove edge effects from spline fit
+        % (see https://www.mathworks.com/help/signal/examples/resampling-nonuniformly-sampled-signals.html)
+        x(1) = x(find(~isnan(x(:,1)),1,'first'));
+        x(end) = x(find(~isnan(x(:,1)),1,'last'));
+        a(1) = (x(end)-x(1)) / (tx(end)-tx(1));
+        a(2) = x(1);
+        xdetrend = x - polyval(a,tx);
+
+        % Make sure time vector endpoints are start_time and end_time
+        if start_time>tx(1)
+            xdetrend = xdetrend(tx>start_time);
+            tx = tx(tx>start_time);
+        end
+        tx = [start_time; tx];
+        xdetrend = [xdetrend(1,:); xdetrend];
+        if end_time<tx(end)
+            xdetrend = xdetrend(tx<end_time);
+            tx = tx(tx<end_time);
+        end
+        tx = [tx;end_time];
+        xdetrend = [xdetrend; xdetrend(end,:)];
+        
+        % resample signal
+        [ydetrend,ty] = resample(xdetrend,tx,1/bin_size,'spline');
+        
+        % check time vector (sometimes ty is one sample too long?)
+        if abs(ty(end)-end_time)>eps
+            % check what's wrong
+            if ty(end)>end_time
+                % probably an extra sample, remove it
+                ty=ty(1:end-1);
+                ydetrend = ydetrend(1:end-1);
+            else
+                warning('Something screwy going on with the end of ty in resample_signals...')
+            end
+        end
+        if abs(ty(1)-start_time)>eps
+            % check what's wrong
+            if ty(1)<end_time
+                % probably an extra sample, remove it
+                ty=ty(2:end);
+                ydetrend = ydetrend(2:end);
+            else
+                warning('Something screwy going on with the start of ty in resample_signals...')
+            end
+        end
+        
+        % add back trend line
+        out.(var_list{var}) = ydetrend + polyval(a,ty);
+    end
+    out.t = ty;
+else
+    out = [];
+end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out = bin_events(trials,event_list,t_bin)
 % bins events from CDS
 out = struct();
@@ -458,4 +686,5 @@ end
 % must transform to have same dimensions as kinematics etc
 binned_spikes = binned_spikes';
 end
+
 

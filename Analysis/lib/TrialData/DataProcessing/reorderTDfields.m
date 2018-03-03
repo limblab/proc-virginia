@@ -16,7 +16,11 @@ function trial_data = reorderTDfields(trial_data)
 fn        = fieldnames(trial_data);
 fn_idx    = getTDfields(trial_data,'idx');
 fn_neural = [getTDfields(trial_data,'neural'); getTDfields(trial_data,'unit_guides')];
-fn_cont   = getTDfields(trial_data,'cont');
+if any(isfield(trial_data,{'pos','vel','acc','force','emg'}))
+    fn_cont   = getTDfields(trial_data,'cont');
+else 
+    fn_cont = '';
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % get indices for everything

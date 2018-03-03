@@ -32,6 +32,11 @@ for trial = 1:length(trial_data)
     
     td = trial_data(trial);
     
+    if strcmp(td.task,'RT3D')
+        if td.idx_endTime < 100
+            bad_idx(trial) = true;
+        end
+    end
     % loop along all indices and make sure they aren't NaN
     fn = getTDfields(td,'idx');
     if any(cell2mat(cellfun(@(x) all(isnan(td.(x))),fn,'uni',0)))

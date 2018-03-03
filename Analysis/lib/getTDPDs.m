@@ -11,7 +11,7 @@
 %       .out_signal_names : names of signals to be used as signalID pdTable
 %                           default - empty
 %       .trial_idx    : trials to use.
-%                         DEFAULT: 1:length(trial_data
+%                         DEFAULT: 1:length(trial_data)
 %       .in_signals   : which signals to calculate PDs on
 %                           note: each signal must have only two columns for a PD to be calculated
 %                           default - 'vel'

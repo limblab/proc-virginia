@@ -287,7 +287,7 @@ classdef commonDataStructure < matlab.mixin.SetGet & operationLogger
                 error('meta:BadlabnumFormat','the labnum field must be a numeric value from the following set: [-1 1 2 3 6]')
             elseif ~isfield(meta,'task') || ~ischar(meta.task)  
                 error('meta:BadtaskFormat','the task field must contain a string')
-            elseif isempty(find(strcmp(meta.task,{'RW','CO','CObump','BD','DCO','multi_gadget','UNT','RP','none','Unknown','SABES','UCK','OOR','WF','TRT','RT3D'}),1))
+            elseif isempty(find(strcmp(meta.task,{'RW','CO','CObump','BD','DCO','multi_gadget','UNT','RP','none','Unknown','SABES','UCK','OOR','WF','TRT','RT3D','COC3D'}),1))
                 %standard loading will catch 'Unknown' 
                 error('meta:UnrecognizedTask',['The task string: ',meta.task,' is not recognized. Standard analysis functions may fail to operate correctly using this task string'])
             elseif ~isfield(meta,'monkey') || ~ischar(meta.monkey)
@@ -439,11 +439,13 @@ classdef commonDataStructure < matlab.mixin.SetGet & operationLogger
         getDCOTaskTable(cds,times)
         getSABESTaskTable(cds,times)
         getUCKTaskTable(cds,times)
+        getRT3DTaskTable(cds,times)
+        getCOC3DTaskTable(cds,times)
         %general functions
         addProblem(cds,problem,varargin)%data preprocessing functions
         checkEmg60hz(cds)
         checkLfp60hz(cds)
-        still=isStill(cds,data)
+        still=isStill(cds,data,varargin)
         writeSessionSummary(cds)
         sanitizeTimeWindows(cds)
         idx=skipResets(cds,time)

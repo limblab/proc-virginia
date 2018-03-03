@@ -15,7 +15,7 @@ for i = 1:size(signals,1)
 end
 
 % preallocate, because with massively large datasets its worth it
-x = zeros(size(cat(1,trial_data.pos),1),sum(cellfun(@(x) length(x),idx)));
+%x = zeros(size(cat(1,trial_data.task),1),sum(cellfun(@(x) length(x),idx)));
 count = 0;
 % piece everything together
 for i = 1:size(signals,1)

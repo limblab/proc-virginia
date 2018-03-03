@@ -35,6 +35,7 @@ function [avg_data,cond_idx] = trialAverage(trial_data, conditions, params)
 % DEFAULT PARAMETER VALUES
 do_stretch  =  false;
 num_samp    =  1000;
+array       = 'S1';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Some undocumented extra parameters
 record_flag = true; % will add a flag field saying it's trial-averaged
@@ -57,7 +58,7 @@ if do_stretch
     end
 end
 
-if length(unique(cellfun(@(x) size(x,1),{trial_data.pos}))) ~= 1
+if length(unique(cellfun(@(x) size(x,1),{trial_data.([array '_spikes'])}))) ~= 1
     error('Trials are not uniform length. Do this with time stretching option or trimTD.');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,6 +96,7 @@ for i = 1:num_conds
     
     % populate meta fields
     for f = 1:length(fn_meta)
+        if ~strcmp(fn_meta{f},[array,'_ts'])
         if ischar(trial_data(1).(fn_meta{f}))
             u = unique({trial_data(cond_idx{i}).(fn_meta{f})});
             if length(u) == 1
@@ -111,6 +113,7 @@ for i = 1:num_conds
                 u = unique([trial_data(cond_idx{i}).(fn_meta{f})]);
             end
             avg_data(i).(fn_meta{f}) = u;
+        end
         end
     end
     

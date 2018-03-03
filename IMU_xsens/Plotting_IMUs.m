@@ -1,11 +1,12 @@
 %% File selection
-lab = 0;
+lab = -1;
 switch lab
     case 0 % mac
         txtpath = '/Users/virginia/Documents/MATLAB/LIMBLAB/Data/txt';
         addpath(txtpath);
-    case -1
-        txtpath = 'C:\Users\vct1641\Documents\Data\data-IMU';
+    case -1 % gob2
+        txtpath = [meta.folder,'\IMU\'];
+        %txtpath = 'C:\Users\vct1641\Documents\Data\data-IMU\txt';
         addpath(txtpath);
     case 1
         txtpath = 'E:\Data-lab1\IMU Data\txt';
@@ -18,17 +19,22 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {'20180212_reset_hrz2.txt'};
-
-isrst = [1,1,1]; % When 0 enables detrend
+filenames = {[meta.IMUPrefix,meta.taskAlias{1},'.txt'],[meta.IMUPrefix,meta.taskAlias{2},'.txt']};
+%filenames = {'20180227_calib_abd_2.txt'};
+    
+detrnd = [0,0]; % When 1 enables detrend
+iscalib = [1,1]; % When 1 only load calibrated data
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
    
     order = {'back','sho','elb'};  % [back/sho/elb/wrst]
-    %IMU = loadIMU(filenames{jj},order,isrst(jj));
+    IMU = loadIMU(filenames{jj},order,detrnd(jj),iscalib(jj));
+    filename = strsplit(filenames{jj},'.');
     
-    opts = {'eul'};
+    %save(fullfile([meta.folder,'/',filename{1},'.mat']),'IMU');
+
+    opts = {'eul','acc','acc_calib','eul_calib','quat'};
     plotIMU(IMU,filenames{jj},opts);
     
 end
@@ -36,22 +42,49 @@ end
 %% Get calibration indexes for different poses
 clear JA
 
-tpose = [0.06, 0.1, 0.15, 0.18, 0.26, 0.34]; %% Vertical, Flex 90º, Abb 90º
+% Vertical, Flex 90º, Abb 90º
+%tpose = [0.1, 0.15, 0.2, 0.25]; % 001 21
+%tpose = [0.1, 0.2, 0.32, 0.38]; % 002 21
+tpose = [0.05, 0.1, 0.14, 0.18]; % 001 22
+%tpose = [0.1, 0.15, 0.25, 0.3]; % 002 22
+%tpose = [0.5, 0.55, 0.58, 0.62]; % 001 23
+%tpose = [0.1, 0.2, 0.3, 0.4]; % 001 27
+
+%tpose = [400,600,1000,1400];
+
 calibtype = 'FE'; % FE/AA/FE+AA
 oritype = 'eul'; % eul/quat
-filt = 0;
-rst = 1;
-correct = 0;
+filt = 1; % Use filtered data?
+rst = 1; % Reference to OpenSim model?
+correct = 0; % Correct for abduction in calibration? - not convincing
 
 JA = getbody2IMUmat(IMU,tpose,calibtype);
 JA = getjointangles(IMU,JA,oritype,filt,rst,correct);
 
 %% Plot joint angles and reconstructed global frame IMU angles
+opts  = {'joint','body'}; % opts = {'joint','body','joint diff'};
+plotJA(IMU,JA,filenames{1},opts);
 
-for jj = 1:length(filenames)
-    opts  = {'joint','body'};
-    plotJA(IMU,JA,filenames{jj},opts);
-end
+%% Detrend drift removal
+%bkptst = [2 5 16; 8 10 25 ;2 15 25];
+%bkptst = [ 1 8 10; 1 4 7 ;1 6  10 ];
+bkptst = [3 20 25 ; 5 7 9 ;6 9 20]; % 001 22
+%bkptst = [3 8 25 ; 4 7 10 ;6 10 11]; % 002 22
+%bkptst = [ 2 10 16 ; 5 7 9; 8 15 25]; % 001 27
+
+plt = 1; % Output plot
+IMUfilt = [1,1,1]; % Filter that IMU data?
+IMU = dfiltIMU(IMU,bkptst,IMUfilt,plt);
+
+%% Wavelet drift removal parameters
+wname = 'haar';
+decomplevel = wmaxlev(length(IMU(1).yw),wname);
+detaillevel = round(decomplevel/4);
+
+plt = 1;
+
+IMU = wfiltIMU(IMU,wname,detaillevel,plt);
+>>>>>>> 0b1aea4f5362f790e143283a536c308a5d012140
 
 %% Binding reset segments
 IMU = bindrst(IMU);
@@ -97,22 +130,6 @@ IMU(ii).place = pla{ii};
 end
 
 %% Filtering IMU data and plotting
-%% Wavelet drift removal parameters
-wname = 'haar';
-decomplevel = wmaxlev(length(IMU(1).yw),wname);
-detaillevel = round(decomplevel/4);
-
-plt = 1;
-
-IMU = wfiltIMU(IMU,wname,detaillevel,plt);
-
-%% Detrend drift removal
-bkptst = [0;0;0];
-
-plt = 1;
-
-IMU = dfiltIMU(IMU,bkptst,plt);
-
 %% Correlation coefficient 
 for ii = 1:size(IMU,2)
     CCmat = [IMU(ii).yw IMU(ii).filt.yw];

@@ -17,15 +17,25 @@ JA(1).time = IMU(1).stimem;
 % Get calibration indexes for different poses
 for i = 1:length(tpose)
     ixn = ['ix',num2str(i)];
-    [~,JA.ixp.(ixn)] = min(abs(IMU(1).stimem-tpose(i)));
+    if isfield(IMU,'timem_calib')
+        [~,JA.ixp.(ixn)] = min(abs(IMU(1).timem_calib-tpose(i)));
+    else
+        [~,JA.ixp.(ixn)] = min(abs(IMU(1).stimem-tpose(i)));
+    end
 end
 
 switch calibtype
     case 'FE'
-        % Calibration with IMU accelerations - sho FE
+        % Calibration with IMU accelerations - sho FE - Modified for
+        % Cerebus recording 
         for ii = 1:size(IMU,2)
-            zsgA = mean(IMU(ii).acc(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
-            zsgB1 = mean(IMU(ii).acc(JA(1).ixp.ix3:JA(1).ixp.ix4,:));
+            if isfield(IMU,'acc_calib')
+                zsgA = mean(IMU(ii).acc_calib(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
+                zsgB1 = mean(IMU(ii).acc_calib(JA(1).ixp.ix3:JA(1).ixp.ix4,:));
+            else
+                zsgA = mean(IMU(ii).acc(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
+                zsgB1 = mean(IMU(ii).acc(JA(1).ixp.ix3:JA(1).ixp.ix4,:));
+            end
             zsgB = zsgB1/norm(zsgB1);
             zsb = zsgA/norm(zsgA);
             xsb = -cross(zsb,zsgB)/norm(cross(zsb,zsgB));
