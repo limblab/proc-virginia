@@ -64,12 +64,12 @@ for ii = 1:length(JA(1).time)
     
     % Body segment to body segment transformation matrix
     if ~isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
-        JA(1).Rbb(:,:,ii) = inv(JA(nelb).Rgs*JA(nelb).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Elbow angles
-        JA(2).Rbb(:,:,ii) = inv(JA(nsho).Rgs*JA(nsho).Rsb)*(JA(nback).Rgs*JA(nback).Rsb); % Shoulder angles
+        JA(1).Rbb(:,:,ii) = inv(JA(nsho).Rgs*JA(nsho).Rsb)*(JA(nelb).Rgs*JA(nelb).Rsb); % Elbow angles
+        JA(2).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Shoulder angles
     elseif isempty(nback) && ~isempty(nsho) && ~isempty(nelb)
         JA(1).Rbb(:,:,ii) = inv(JA(nelb).Rgs*JA(nelb).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Elbow angles
     elseif ~isempty(nback) && ~isempty(nsho) && isempty(nelb)
-        JA(1).Rbb(:,:,ii) = inv(JA(nsho).Rgs*JA(nsho).Rsb)*(JA(nback).Rgs*JA(nback).Rsb); % Shoulder angles
+        JA(1).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Shoulder angles
     end
     
     % Reconstruct joint angles from Rbb
@@ -92,8 +92,8 @@ if isfield(IMU,'acc_calib')
             [JA(ii).ywgc(hh),JA(ii).ptgc(hh),JA(ii).rlgc(hh)] = Rmat2ypr(Rgs_c(:,:,ii)*JA(ii).Rsb);
         end
         
-        Rbb_e(:,:,hh) = inv(Rgs_c(:,:,nelb)*JA(nelb).Rsb)*(Rgs_c(:,:,nsho)*JA(nsho).Rsb); % Elbow angles
-        Rbb_s(:,:,hh) = inv(Rgs_c(:,:,nsho)*JA(nsho).Rsb)*(Rgs_c(:,:,nback)*JA(nback).Rsb); % Shoulder angles
+        Rbb_e(:,:,hh) = inv(Rgs_c(:,:,nsho)*JA(nsho).Rsb)*(Rgs_c(:,:,nelb)*JA(nelb).Rsb); % Elbow angles
+        Rbb_s(:,:,hh) = inv(Rgs_c(:,:,nback)*JA(nback).Rsb)*(Rgs_c(:,:,nsho)*JA(nsho).Rsb); % Shoulder angles
         
         % Joint ngles for calibration poses
         [yw_ce(hh),pt_ce(hh),rl_ce(hh)] = Rmat2ypr(Rbb_e(:,:,hh));

@@ -58,7 +58,7 @@ for ii = 1:nIMU
         IMU(ii).data = data;
     end
     
-    % Estimated IMU sampling/update rate
+    % Estimated original IMU sampling/update rate
     IMU(ii).fs = round(length(IMU(ii).time)/(IMU(ii).time(end)-IMU(ii).time(1)));
     
     % IMU packet count - check for missing packets. Packet number starts
@@ -67,8 +67,15 @@ for ii = 1:nIMU
         IMU(ii).pc = IMU(ii).data(:,end);
     end
     
+    % Decimate signals to half the sampling rate (60Hz) and round to 10 ms
+    % resolution for speeding up synchronization of IMUs
+    IMU(ii).timed = round(decimate(IMU(ii).time,2),2);
+    for jj = 1:size(IMU(ii).data,2)
+        IMU(ii).datad(:,jj) = round(decimate(IMU(ii).data(:,jj),2),2);
+    end
+    
     % Creates timeseries for synchronization between IMUs
-    IMU(ii).ts = timeseries(IMU(ii).data,IMU(ii).time);
+    IMU(ii).ts = timeseries(IMU(ii).datad,IMU(ii).timed);
     IMU(ii).sts = IMU(ii).ts;
 end
 

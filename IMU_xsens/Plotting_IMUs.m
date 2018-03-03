@@ -23,20 +23,20 @@ filenames = {[meta.IMUPrefix,meta.taskAlias{1},'.txt'],[meta.IMUPrefix,meta.task
 %filenames = {'20180227_calib_abd_2.txt'};
     
 detrnd = [0,0]; % When 1 enables detrend
-iscalib = [1,1]; % When 1 only load calibrated data
+iscalib = [0,0]; % When 1 only load calibrated data
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
 for  jj = 1:length(filenames)
-   
+    tic
     order = {'back','sho','elb'};  % [back/sho/elb/wrst]
     IMU = loadIMU(filenames{jj},order,detrnd(jj),iscalib(jj));
     filename = strsplit(filenames{jj},'.');
     
     %save(fullfile([meta.folder,'/',filename{1},'.mat']),'IMU');
-
-    opts = {'eul','acc','acc_calib','eul_calib','quat'};
-    plotIMU(IMU,filenames{jj},opts);
     
+    opts = {'eul','acc','acc_calib','eul_calib'};
+    plotIMU(IMU,filenames{jj},opts);
+    toc
 end
 
 %% Get calibration indexes for different poses
@@ -45,10 +45,12 @@ clear JA
 % Vertical, Flex 90º, Abb 90º
 %tpose = [0.1, 0.15, 0.2, 0.25]; % 001 21
 %tpose = [0.1, 0.2, 0.32, 0.38]; % 002 21
-tpose = [0.05, 0.1, 0.14, 0.18]; % 001 22
+%tpose = [0.05, 0.1, 0.14, 0.18]; % 001 22
 %tpose = [0.1, 0.15, 0.25, 0.3]; % 002 22
 %tpose = [0.5, 0.55, 0.58, 0.62]; % 001 23
 %tpose = [0.1, 0.2, 0.3, 0.4]; % 001 27
+tpose = [0.06, 0.1, 0.14, 0.18]; % 001 28
+%tpose = [0.05, 0.1, 0.15, 0.2]; % 002 28
 
 %tpose = [400,600,1000,1400];
 
@@ -67,13 +69,15 @@ plotJA(IMU,JA,filenames{1},opts);
 
 %% Detrend drift removal
 %bkptst = [2 5 16; 8 10 25 ;2 15 25];
-%bkptst = [ 1 8 10; 1 4 7 ;1 6  10 ];
-bkptst = [3 20 25 ; 5 7 9 ;6 9 20]; % 001 22
+%bkptst = [3 20 25 ; 5 7 9 ;6 9 20]; % 001 22
 %bkptst = [3 8 25 ; 4 7 10 ;6 10 11]; % 002 22
+%bkptst = [5 16 20;8 10 25 ;5 15 25]; % 001 23
 %bkptst = [ 2 10 16 ; 5 7 9; 8 15 25]; % 001 27
+%bkptst = [3 10 16 20; 5 10 15 25; 5 10 20 25]; % 001 28
+bkptst = [3 10 2; 5 15 20; 5 10 15]; % 002 28
 
 plt = 1; % Output plot
-IMUfilt = [1,1,1]; % Filter that IMU data?
+IMUfilt = [0,0,0]; % Filter that IMU data?
 IMU = dfiltIMU(IMU,bkptst,IMUfilt,plt);
 
 %% Wavelet drift removal parameters
