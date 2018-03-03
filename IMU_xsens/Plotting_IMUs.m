@@ -88,7 +88,6 @@ detaillevel = round(decomplevel/4);
 plt = 1;
 
 IMU = wfiltIMU(IMU,wname,detaillevel,plt);
->>>>>>> 0b1aea4f5362f790e143283a536c308a5d012140
 
 %% Binding reset segments
 IMU = bindrst(IMU);
