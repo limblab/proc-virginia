@@ -185,6 +185,8 @@ db_version=cds.databursts.db(1,2);
             'start target leave','outer target hold','go back cue','outer target leave',...
             'final target hold','outer target number','IMU reset trigger','start target hold time','outer target hold time','final target hold time'};
 
+    else
+        trials = [];
     end
 
     if corruptDB==1
