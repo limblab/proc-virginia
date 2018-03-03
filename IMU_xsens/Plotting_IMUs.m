@@ -49,7 +49,7 @@ JA = getjointangles(IMU,JA,oritype,filt,rst,correct);
 %% Plot joint angles and reconstructed global frame IMU angles
 
 for jj = 1:length(filenames)
-    opts  = {'joint'};
+    opts  = {'joint','body'};
     plotJA(IMU,JA,filenames{jj},opts);
 end
 
