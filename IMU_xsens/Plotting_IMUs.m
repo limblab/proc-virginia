@@ -32,7 +32,7 @@ for  jj = 1:length(filenames)
     IMU = loadIMU(filenames{jj},order,detrnd(jj),iscalib(jj));
     filename = strsplit(filenames{jj},'.');
     
-    %save(fullfile([meta.folder,'/',filename{1},'.mat']),'IMU');
+    %save(fullfile([txtpath,filename{1},'.mat']),'IMU');
     
     opts = {'eul','acc','acc_calib','eul_calib'};
     plotIMU(IMU,filenames{jj},opts);

@@ -222,25 +222,6 @@ end
 save(fullfile(meta.folder,'CDS',[meta.neuralPrefix '_CDS.mat']),'cds','-v7.3')
 
 %% Make TD
-% COactpas
-% params.array_alias = {'LeftS1Area2','S1'};
-% % params.exclude_units = [255];
-% params.event_list = {'ctrHoldBump';'bumpTime';'bumpDir';'ctrHold'};
-% params.trial_results = {'R','A','F','I'};
-% td_meta = struct('task',meta.task);
-% params.meta = td_meta;
-% trial_data = parseFileByTrial(cds{1},params);
-
-% OOR
-% params.array_alias = {'LeftS1Area2','S1'};
-% % params.exclude_units = [255];
-% params.event_list = {'tgtDir','target_direction';'forceDir','force_direction';'startTargHold','startTargHoldTime';'endTargHoldTime','endTargHoldTime'};
-% params.trial_results = {'R','A','F','I'};
-% td_meta = struct('task','OOR');
-% params.meta = td_meta;
-% 
-% trial_data = parseFileByTrial(cds{1},params);
-
 % Bumpcurl
 % params.array_alias = {'LeftS1Area2','S1'};
 % params.event_list = {'ctrHoldBump';'bumpTime';'bumpDir';'ctrHold'};
@@ -254,30 +235,6 @@ save(fullfile(meta.folder,'CDS',[meta.neuralPrefix '_CDS.mat']),'cds','-v7.3')
 % trial_data_WO = parseFileByTrial(cds{3},params);
 % 
 % trial_data = cat(2,trial_data_BL,trial_data_AD,trial_data_WO);
-
-% TRT
-% params.array_alias = {'LeftS1Area2','S1'};
-% params.event_list = {'bumpTime';'bumpDir';'ctHoldTime';'otHoldTime';'spaceNum';'targetStartTime'};
-% params.trial_results = {'R','A','F','I'};
-% td_meta = struct('task',meta.task);
-% params.meta = td_meta;
-% trial_data = parseFileByTrial(cds{1},params);
-
-% RW DL/PM
-% params.array_alias = {'LeftS1Area2','S1'};
-% params.trial_results = {'R','A','F','I'};
-% td_meta = struct('task',meta.task,'spaceNum',2);
-% params.meta = td_meta;
-% trial_data_DL = parseFileByTrial(cds{1},params);
-% td_meta = struct('task',meta.task,'spaceNum',1);
-% params.meta = td_meta;
-% trial_data_PM = parseFileByTrial(cds{2},params);
-% trial_data = [trial_data_PM trial_data_DL];
-% % match up with TRT
-% for trial = 1:length(trial_data)
-%     trial_data(trial).idx_targetStartTime = trial_data(trial).idx_startTime;
-% end
-% trial_data = reorderTDfields(trial_data);
 
 % RT3D
 % params.array_alias = {'LeftS1Area2','S1'};
@@ -294,7 +251,7 @@ save(fullfile(meta.folder,'CDS',[meta.neuralPrefix '_CDS.mat']),'cds','-v7.3')
 % % 1 vertical, 2 horizontal
 % trial_data = parseFileByTrial(cds{1},params);
 
-% RT3D
+% COC3D
 params.array_alias = {'LeftS1Area2','S1'};
 params.trial_results = {'R','A','F','I'};
 params.bin_size = 0.01;
@@ -302,7 +259,6 @@ params.include_ts = true;
 params.event_list = {'stOn','stHold','goCue','stLeave','otHold','goBackCue','otLeave','ftHold','IMUreset'}';
 td_meta = struct('task',meta.task);
 params.meta = td_meta;
-
 
 params.meta.epoch = '2D';
 trial_data_2D = parseFileByTrial(cds{1},params);
