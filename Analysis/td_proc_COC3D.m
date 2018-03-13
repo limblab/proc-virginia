@@ -33,7 +33,7 @@ params = struct( ...
     'space',        '3D',...
     'targ_dir',     [-pi/4, 0, pi/4, pi/2, 3*pi/4, pi, -3*pi/4],...
     'targ_dir_all', [-3*pi/4, -pi/2, -pi/4, 0, pi/4, pi/2, 3*pi/4, pi],...
-    'xBound',       [-0.1 1],...
+    'xBound',       [-0.1 2],...
     'num_bins',     8,...
     'trim_win',     [0, 1],...
     'bin_size',     trial_data(1).bin_size);
@@ -43,13 +43,14 @@ neu_2802_001 = [1,2,5,6,8,9,10,11,12,13,16,17,20,22,25];
 neu_2802_002 = [1,5,6,8,9,10,11,13,14,16,17,20,21,22,25];
 
 %neuronsamp = [1:size(trial_data(1).S1_spikes,2)];
-neuronsamp = neu_2802_002;
+neuronsamp = [5,8,9,10,16,17,20,25];
 
 params.align = 'stLeave';
+params.sortt = 'otHold';
 params.idx_raster = {'stLeave','otHold','otLeave','ftHold'};
 params.idx_raster_col = {'g','m','c','y'};
 params.idx_raster_bound = {'stLeave','otHold'};
-params.epoch = '3D';
+params.epoch = '2D';
 
 td = removeBadTrials(trial_data);
 params.movem = 'CO';
@@ -58,8 +59,8 @@ td = removeSpontTrials(td,params);
 for j = 1:length(neuronsamp)
     params.neuron = neuronsamp(j);
     [~,td] = getTDidx(td,'epoch',params.epoch);
-    %unitRaster(td,params);
-    epochRaster(td,params);
+    unitRaster(td,params);
+    %epochRaster(td,params);
 end
 
 %% Tuning curves

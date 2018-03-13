@@ -3,6 +3,7 @@ function[] = unitRaster(trial_data, params)
 xBound = [-.8, .8];
 array ='S1';
 align = 'goCue';
+sortt = 'EndTime';
 neuron = 10;
 targ_dir = 0;
 idx_raster = {};
@@ -17,7 +18,7 @@ end
 figure
 for j = 1:length(targ_dir)
     
-    [idx,td] = getTDidx(trial_data,'target_direction',targ_dir(j)); 
+    [~,td] = getTDidx(trial_data,'target_direction',targ_dir(j)); 
 
     subplot(length(targ_dir),1,j)
 
@@ -25,14 +26,14 @@ for j = 1:length(targ_dir)
     
     numTrials = length(td);
     yMax = length(td);
-    endTimes = zeros(1,length(td));
+    sortTimes = zeros(1,length(td));
     count=0;
     
     for trialNum = 1:length(td)
         alignStart = td(trialNum).bin_size * (td(trialNum).(['idx_',align])-td(trialNum).idx_startTime);
-        endTimes(trialNum) = td(trialNum).bin_size * td(trialNum).idx_endTime - alignStart;
+        sortTimes(trialNum) = td(trialNum).bin_size * td(trialNum).(['idx_',sortt]) - alignStart;
     end
-    [~,idx_sort] = sort(endTimes,'descend');
+    [~,idx_sort] = sort(sortTimes,'descend');
     
     for trialNum = 1:length(td)
         count = count + 1;
@@ -49,8 +50,8 @@ for j = 1:length(targ_dir)
             plot([spikes(spike), spikes(spike)], [count*yMax/numTrials, (count+.8)*yMax/numTrials], 'k');
             hold on
         end
-            plot([startTime, startTime],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], 'b', 'LineWidth', 2)
-            plot([endTime, endTime],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], 'r', 'LineWidth', 2)
+            %plot([startTime, startTime],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], 'b', 'LineWidth', 2)
+            %plot([endTime, endTime],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], 'r', 'LineWidth', 2)
            for i = 1:length(idx_raster)
             plot([idx_Time(i), idx_Time(i)],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], idx_raster_col{i}, 'LineWidth', 2)
            end
