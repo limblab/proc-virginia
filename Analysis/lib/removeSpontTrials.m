@@ -21,7 +21,7 @@ for trial = 1:length(trial_data)
                 err = true;
             end
         elseif strcmp(movem, 'OC')
-            if (td.idx_ftHold-td.idx_otLeave)*td.bin_size <= 0.31
+            if (td.idx_ftHold-td.idx_otLeave)*td.bin_size <= 0.21
                 err = true;
             end
         end

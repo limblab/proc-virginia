@@ -4,9 +4,9 @@ clear all
 meta.lab=6;
 meta.ranBy='Virginia';
 meta.monkey='Han';
-meta.date='20180228';
+meta.date='20180309';
 meta.task='COC3D'; % for the loading of cds
-meta.taskAlias={'COC3D_001','COC3D_002'}; % for the filename (cell array list for files to load and save)
+meta.taskAlias={'COC3D_001'};%,'COC3D_002'}; % for the filename (cell array list for files to load and save)
 meta.array='LeftS1Area2'; % for the loading of cds
 meta.arrayAlias='area2'; % for the filename
 meta.project='COC3D'; % for the folder in data-preproc
@@ -41,19 +41,21 @@ params = struct( ...
 %% Unit Raster
 neu_2802_001 = [1,2,5,6,8,9,10,11,12,13,16,17,20,22,25];
 neu_2802_002 = [1,5,6,8,9,10,11,13,14,16,17,20,21,22,25];
+neu_2802 = [5,8,9,10,16,17,20,25];
+neu_0903_001 = [2,3,4,5,7,9,10,11,13,17,18,19,22,24,29,30,34,35,37,43];
 
 %neuronsamp = [1:size(trial_data(1).S1_spikes,2)];
-neuronsamp = [5,8,9,10,16,17,20,25];
+neuronsamp = neu_0903_001;
 
-params.align = 'stLeave';
-params.sortt = 'otHold';
+params.align = 'otLeave';
+params.sortt = 'ftHold';
 params.idx_raster = {'stLeave','otHold','otLeave','ftHold'};
 params.idx_raster_col = {'g','m','c','y'};
 params.idx_raster_bound = {'stLeave','otHold'};
 params.epoch = '2D';
 
 td = removeBadTrials(trial_data);
-params.movem = 'CO';
+params.movem = 'OC';
 td = removeSpontTrials(td,params);
 
 for j = 1:length(neuronsamp)
@@ -64,7 +66,7 @@ for j = 1:length(neuronsamp)
 end
 
 %% Tuning curves
-epochs = {'2D','3D'};
+epochs = {'2D'};
 movems = {'CO','OC'};
 params.trim_win = [0, 0];
 j = 0;
@@ -100,7 +102,7 @@ end
 
 %% Cos fit
 savefig = 0;
-neuronsamp = [5,8,9,10,16,17,20,25];
+%neuronsamp = [5,8,9,10,16,17,20,25];
 targ_dir = params.targ_dir;
 targ_dir_all = params.targ_dir_all;
 

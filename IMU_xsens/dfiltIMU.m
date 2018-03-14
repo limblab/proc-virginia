@@ -24,25 +24,25 @@ end
 
 for ii = 1:size(IMU,2)
     % Low pass filtering with butter - high frequency noise removal
-    [b,a] = butter(forder,flow*2/IMU(ii).fs,'low');
-    
-    IMU(ii).filt.rl = filtfilt(b,a,IMU(ii).rl);
-    IMU(ii).filt.pt = filtfilt(b,a,IMU(ii).pt);
-    IMU(ii).filt.yw = filtfilt(b,a,IMU(ii).yw);
-    
-    if isfield(IMU,'q')
-        IMU(ii).filt.q.rl = filtfilt(b,a,IMU(ii).q.rl);
-        IMU(ii).filt.q.pt = filtfilt(b,a,IMU(ii).q.pt);
-        IMU(ii).filt.q.yw = filtfilt(b,a,IMU(ii).q.yw);
-    end
+%     [b,a] = butter(forder,flow*2/IMU(ii).fs,'low');
 %     
-%     IMU(ii).filt.rl = IMU(ii).rl;
-%     IMU(ii).filt.pt = IMU(ii).pt;
-%     IMU(ii).filt.yw = IMU(ii).yw;
+%     IMU(ii).filt.rl = filtfilt(b,a,IMU(ii).rl);
+%     IMU(ii).filt.pt = filtfilt(b,a,IMU(ii).pt);
+%     IMU(ii).filt.yw = filtfilt(b,a,IMU(ii).yw);
 %     
-%     IMU(ii).filt.q.rl = IMU(ii).q.rl;
-%     IMU(ii).filt.q.pt = IMU(ii).q.pt;
-%     IMU(ii).filt.q.yw = IMU(ii).q.yw;
+%     if isfield(IMU,'q')
+%         IMU(ii).filt.q.rl = filtfilt(b,a,IMU(ii).q.rl);
+%         IMU(ii).filt.q.pt = filtfilt(b,a,IMU(ii).q.pt);
+%         IMU(ii).filt.q.yw = filtfilt(b,a,IMU(ii).q.yw);
+%     end
+    
+    IMU(ii).filt.rl = IMU(ii).rl;
+    IMU(ii).filt.pt = IMU(ii).pt;
+    IMU(ii).filt.yw = IMU(ii).yw;
+    
+    IMU(ii).filt.q.rl = IMU(ii).q.rl;
+    IMU(ii).filt.q.pt = IMU(ii).q.pt;
+    IMU(ii).filt.q.yw = IMU(ii).q.yw;
     
 if IMUfilt(ii) == 1
     % High pass filtering with detrend - drift removal on yaw/pitch (Euler/quat)  

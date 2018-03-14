@@ -1,4 +1,4 @@
-function[JA] = getjointangles(IMU,JA,oritype,filt,rst,correct)
+function[JA] = getjointangles_ref(IMU,JA,oritype,filt,rst,correct)
 % Obtains body segment to body segment transformation matrix (Rbb), joint
 % angles (rl, pt, yw), and reconstructed IMU body referenced angles (rlg,
 % ptg, ywg)
@@ -30,53 +30,13 @@ if isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
     joints = {'sho'};
 end
 
-% Correct Rsb for abduction in calibration pose 1
-if correct
     for ii = 1:size(IMU,2)
-        if isfield(IMU,'acc_calib')
-            accv = mean(IMU(ii).acc_calib(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
-        else
-            accv = mean(IMU(ii).acc(JA(1).ixp.ix1:JA(1).ixp.ix2,:));
-        end
-        JA(ii).RAA = vec2Rmat([0 accv(2:3)],[0 0 1]);
-        JA(ii).Rsb = JA(ii).RAA*JA(ii).Rsb;
-    end
-end
-
-for ii = 1:length(JA(1).time)
-    for jj = 1:size(IMU,2)
-        % Get rotation matrix from sensor data
-        if strcmp(oritype,'eul') && ~filt
-            JA(jj).Rgs = ypr2Rmat(IMU(jj).yw(ii),IMU(jj).pt(ii),IMU(jj).rl(ii));
-        elseif strcmp(oritype,'eul') && filt
-            JA(jj).Rgs = ypr2Rmat(IMU(jj).filt.yw(ii),IMU(jj).filt.pt(ii),IMU(jj).filt.rl(ii));
-        elseif strcmp(oritype,'quat') && ~filt
-            JA(jj).Rgs = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii));
-        else
-            JA(jj).Rgs = ypr2Rmat(IMU(jj).filt.q.yw(ii),IMU(jj).filt.q.pt(ii),IMU(jj).filt.q.rl(ii));
-        end
-        % Reconstruct IMU angles in body reference frame
-        [JA(jj).ywg(ii),JA(jj).ptg(ii),JA(jj).rlg(ii)] = Rmat2ypr(JA(jj).Rgs*JA(jj).Rsb);
+        yw_ref(ii) = (mean(IMU(ii).eul_calib(JA(1).ixp.ix3:JA(1).ixp.ix4,3)));
+        pt_ref(ii) = (mean(IMU(ii).eul_calib(JA(1).ixp.ix1:JA(1).ixp.ix2,2)));
+        rl_ref(ii) = (mean(IMU(ii).eul_calib(JA(1).ixp.ix3:JA(1).ixp.ix4,1)));
     end
     
-    % Body segment to body segment transformation matrix
-    if ~isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
-        JA(1).Rbb(:,:,ii) = inv(JA(nsho).Rgs*JA(nsho).Rsb)*(JA(nelb).Rgs*JA(nelb).Rsb); % Elbow angles
-        JA(2).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Shoulder angles
-    elseif isempty(nback) && ~isempty(nsho) && ~isempty(nelb)
-        JA(1).Rbb(:,:,ii) = inv(JA(nsho).Rgs*JA(nsho).Rsb)*(JA(nelb).Rgs*JA(nelb).Rsb); % Elbow angles
-    elseif ~isempty(nback) && ~isempty(nsho) && isempty(nelb)
-        JA(1).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Shoulder angles
-    end
-    
-    % Reconstruct joint angles from Rbb
-    for kk = 1:size(JA,2)-1
-        [JA(kk).yw(ii),JA(kk).pt(ii),JA(kk).rl(ii)] = Rmat2ypr(JA(kk).Rbb(:,:,ii));
-        JA(kk).place = joints{kk};
-    end
-end
-
-% Get reference angles when Cerebus file recording
+    % Get reference angles when Cerebus file recording
 if isfield(IMU,'acc_calib')
     ang_calib = JA(1).ixp.ix1:JA(1).ixp.ix4;
     for hh = 1:length(ang_calib)
@@ -98,37 +58,68 @@ if isfield(IMU,'acc_calib')
     end
 end
 
+for ii = 1:length(JA(1).time)
+    for jj = 1:size(IMU,2)
+        % Get rotation matrix from sensor data
+        if strcmp(oritype,'eul') && ~filt
+            JA(jj).Rgs = ypr2Rmat(IMU(jj).yw(ii),IMU(jj).pt(ii),IMU(jj).rl(ii));
+            %JA(jj).Rgs_q = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii));
+        elseif strcmp(oritype,'eul') && filt
+            JA(jj).Rgs = ypr2Rmat(IMU(jj).filt.yw(ii),IMU(jj).filt.pt(ii),IMU(jj).filt.rl(ii));
+            %JA(jj).Rgs_q = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii));
+        elseif strcmp(oritype,'quat') && ~filt
+            JA(jj).Rgs = quat2Rmat(IMU(jj).q.q0(ii),IMU(jj).q.q1(ii),IMU(jj).q.q2(ii),IMU(jj).q.q3(ii));
+        else
+            JA(jj).Rgs = ypr2Rmat(IMU(jj).filt.q.yw(ii),IMU(jj).filt.q.pt(ii),IMU(jj).filt.q.rl(ii));
+        end
+        % Reconstruct IMU angles in body reference frame
+        [JA(jj).ywg(ii),JA(jj).ptg(ii),JA(jj).rlg(ii)] = Rmat2ypr(JA(jj).Rgs*JA(jj).Rsb);
+        JA(jj).ywg(ii) = JA(jj).ywg(ii) - mean(JA(jj).ywgc(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end));
+        JA(jj).ptg(ii) = JA(jj).ptg(ii) - mean(JA(jj).ptgc(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2)));
+        JA(jj).rlg(ii) = JA(jj).rlg(ii) - mean(JA(jj).rlgc(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end));
+    end
+  
+    % Body segment to body segment transformation matrix
+    if ~isempty(nelb) && ~isempty(nsho) && ~isempty(nback)
+%         JA(1).Rbb(:,:,ii) = inv(JA(nsho).Rgs*JA(nsho).Rsb)*(JA(nelb).Rgs*JA(nelb).Rsb); % Elbow angles
+%         JA(2).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Shoulder angles
+    JA(1).Rbb(:,:,ii) = inv(ypr2Rmat(JA(nsho).ywg(ii),JA(nsho).ptg(ii),JA(nsho).rlg(ii)))*ypr2Rmat(JA(nelb).ywg(ii),JA(nelb).ptg(ii),JA(nelb).rlg(ii));
+    JA(2).Rbb(:,:,ii) = inv(ypr2Rmat(JA(nback).ywg(ii),JA(nback).ptg(ii),JA(nback).rlg(ii)))*ypr2Rmat(JA(nsho).ywg(ii),JA(nsho).ptg(ii),JA(nsho).rlg(ii));
+    elseif isempty(nback) && ~isempty(nsho) && ~isempty(nelb)
+        JA(1).Rbb(:,:,ii) = inv(JA(nelb).Rgs*JA(nelb).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Elbow angles
+    elseif ~isempty(nback) && ~isempty(nsho) && isempty(nelb)
+        JA(1).Rbb(:,:,ii) = inv(JA(nback).Rgs*JA(nback).Rsb)*(JA(nsho).Rgs*JA(nsho).Rsb); % Shoulder angles
+    end
+    
+    % Reconstruct joint angles from Rbb
+    for kk = 1:size(JA,2)-1
+        [JA(kk).yw(ii),JA(kk).pt(ii),JA(kk).rl(ii)] = Rmat2ypr(JA(kk).Rbb(:,:,ii));
+        JA(kk).place = joints{kk};
+    end
+end
+
 % Match to OpenSim reference by removing mean of calibration poses - pose 1
 % for pitch, pose 2 for roll and yaw
 if rst && ~isfield(IMU,'acc_calib')
     for kk = 1:size(IMU,2)-1
         JA(kk).yw = JA(kk).yw-mean(JA(kk).yw(JA(1).ixp.ix3:JA(1).ixp.ix4));
-        JA(kk).pt = JA(kk).pt-mean(JA(kk).pt(JA(1).ixp.ix3:JA(1).ixp.ix4));
-        JA(kk).rl = JA(kk).rl-mean(JA(kk).rl(JA(1).ixp.ix1:JA(1).ixp.ix2));
+        JA(kk).pt = JA(kk).pt-mean(JA(kk).pt(JA(1).ixp.ix1:JA(1).ixp.ix2));
+        JA(kk).rl = JA(kk).rl-mean(JA(kk).rl(JA(1).ixp.ix3:JA(1).ixp.ix4));
     end
     for ii = 1:size(IMU,2)
         JA(ii).ywg = JA(ii).ywg-mean(JA(ii).ywg(JA(1).ixp.ix3:JA(1).ixp.ix4));
-        JA(ii).ptg = JA(ii).ptg-mean(JA(ii).ptg(JA(1).ixp.ix3:JA(1).ixp.ix4));
-        JA(ii).rlg = JA(ii).rlg-mean(JA(ii).rlg(JA(1).ixp.ix1:JA(1).ixp.ix2));
+        JA(ii).ptg = JA(ii).ptg-mean(JA(ii).ptg(JA(1).ixp.ix1:JA(1).ixp.ix2));
+        JA(ii).rlg = JA(ii).rlg-mean(JA(ii).rlg(JA(1).ixp.ix3:JA(1).ixp.ix4));
     end
-    
 elseif rst && isfield(IMU,'acc_calib')
-    JA(1).ywr = JA(1).yw;
-    JA(1).ptr = JA(1).pt;
-    JA(1).rlr = JA(1).rl;
-    
-    JA(2).ywr = JA(2).yw;
-    JA(2).ptr = JA(2).pt;
-    JA(2).rlr = JA(2).rl;
-
-    JA(1).yw = JA(1).yw-(mean(yw_ce(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
+    JA(1).yw = JA(1).yw-(mean(yw_ce(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
     JA(1).pt = JA(1).pt-(mean(pt_ce(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
-    JA(1).rl = JA(1).rl-(mean(rl_ce(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
+    JA(1).rl = JA(1).rl-(mean(rl_ce(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
     
-    JA(2).yw = JA(2).yw-(mean(yw_cs(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
+    JA(2).yw = JA(2).yw-(mean(yw_cs(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
     JA(2).pt = JA(2).pt-(mean(pt_cs(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
-    JA(2).rl = JA(2).rl-(mean(rl_cs(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
-    
+    JA(2).rl = JA(2).rl-(mean(rl_cs(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
+   
     for ii = 1:size(IMU,2)
         JA(ii).ywg = JA(ii).ywg-(mean(JA(ii).ywgc(length(JA(1).ixp.ix1:JA(1).ixp.ix2)+1:end)));
         JA(ii).ptg = JA(ii).ptg-(mean(JA(ii).ptgc(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));

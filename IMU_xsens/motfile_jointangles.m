@@ -1,5 +1,5 @@
 %% Create .mot file with joint angles
-IMUname = strsplit(filenames{2},'.');
+IMUname = strsplit(filenames{1},'.');
 motname = [IMUname{1},'_JA_J.mot'];
 %txtpath = 'C:\Users\vct1641\Documents\Data\data-IMU\mot\';
 fid = fopen(fullfile([txtpath,motname]),'wt'); %txtpath is loaded in first section of Plotting_IMUs
@@ -13,6 +13,22 @@ fprintf(fid,'%s\t %s\t %s\t %s\t %s\t %s\n',header{:});
 dlmwrite([txtpath,motname],OpenSim.all,'-append','delimiter','\t','precision','%.6f');
 fclose(fid);
 
+%% Additional filtering
+close all
+bkpts = [350];
+OpenSim.shoulder_rotation = dfiltsignal(OpenSim.shoulder_rotation,IMU,bkpts,1);
+%OpenSim.shoulder_adduction = dfiltsignal(OpenSim.shoulder_adduction,IMU,bkpts,1);
+
+OpenSim.all = [];
+for ii = 1:length(header)
+    OpenSim.all = [OpenSim.all OpenSim.(header{ii})];
+end
+
+figure
+plot(OpenSim.time,OpenSim.all(:,2:end))
+legend(header{2:end})
+xlabel('Time [s]'); ylabel('Angles [deg]');
+
 %% Get OpenSim angles from calibration - Monkey model
 clear OpenSim
 nsho = find(strcmp({JA.place},'sho'));
@@ -21,12 +37,12 @@ nelb = find(strcmp({JA.place},'elb'));
 OpenSim.time = IMU(1).stime;
 
 OpenSim.shoulder_rotation = -(JA(nsho).yw)';
-OpenSim.shoulder_flexion = -JA(nsho).rl';
+OpenSim.shoulder_flexion = -(JA(nsho).rl)';
 OpenSim.shoulder_adduction = -(JA(nsho).pt)';
 
 % OpenSim.shoulder_rotation = (JA(nsho).ywg)';
-% OpenSim.shoulder_flexion = JA(nsho).rlg';
-% OpenSim.shoulder_adduction = -(JA(nsho).ptg)';
+% OpenSim.shoulder_flexion = -JA(nsho).rlg';
+% OpenSim.shoulder_adduction = (JA(nsho).ptg)';
 
 OpenSim.elbow_flexion = -JA(nelb).rl'+20;
 OpenSim.radial_pronation = -(JA(nelb).yw');
