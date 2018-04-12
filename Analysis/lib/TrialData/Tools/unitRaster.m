@@ -27,7 +27,8 @@ for j = 1:length(targ_dir)
     numTrials = length(td);
     yMax = length(td);
     sortTimes = zeros(1,length(td));
-    count=0;
+    count = 0;
+    k = 0; 
     
     for trialNum = 1:length(td)
         alignStart = td(trialNum).bin_size * (td(trialNum).(['idx_',align])-td(trialNum).idx_startTime);
@@ -50,20 +51,26 @@ for j = 1:length(targ_dir)
             plot([spikes(spike), spikes(spike)], [count*yMax/numTrials, (count+.8)*yMax/numTrials], 'k');
             hold on
         end
-            %plot([startTime, startTime],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], 'b', 'LineWidth', 2)
-            %plot([endTime, endTime],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], 'r', 'LineWidth', 2)
-           for i = 1:length(idx_raster)
-            plot([idx_Time(i), idx_Time(i)],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], idx_raster_col{i}, 'LineWidth', 2)
-           end
+        %plot([startTime, startTime],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], 'b', 'LineWidth', 2)
+        %plot([endTime, endTime],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], 'r', 'LineWidth', 2)
+        for i = 1:length(idx_raster)
+            if trialNum == 1 && j == 1
+                k = k + 1;
+                h(k) = plot([idx_Time(i), idx_Time(i)],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], idx_raster_col{i}, 'LineWidth', 2);
+            else
+                plot([idx_Time(i), idx_Time(i)],  [count*yMax/numTrials, (count+.8)*yMax/numTrials], idx_raster_col{i}, 'LineWidth', 2)
+            end
+        end
     end
     xlim(xBound); ylim([0, yMax]);
-    ylabel([num2str(rad2deg(targ_dir(j)))],'fontsize',10);
-    set(gca,'ytick',[],'fontsize',8)
+    ylabel([num2str(rad2deg(targ_dir(j)))],'fontsize',12);
+    %legend(h,idx_raster)
+    set(gca,'ytick',[],'fontsize',12)
     if j == 1
-        title(['Raster: Neuron ',num2str(params.neuron)]);
+        title(['Raster: Neuron ',num2str(params.neuron),', ',params.epoch,', ',params.movem],'fontsize',14);
     end
     if j == length(targ_dir)
-        xlabel('Time [s]','fontsize',10);
+        xlabel('Time [s]','fontsize',12);
     else
         set(gca,'xtick',[]);
     end

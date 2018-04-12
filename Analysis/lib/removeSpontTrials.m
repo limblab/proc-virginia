@@ -17,11 +17,11 @@ for trial = 1:length(trial_data)
     
     if strcmp(td.task,'COC3D')
         if strcmp(movem, 'CO')
-            if (td.idx_otHold-td.idx_stLeave)*td.bin_size <= 0.31
+            if (td.idx_otHold-td.idx_stLeave)*td.bin_size <= 0.21
                 err = true;
             end
         elseif strcmp(movem, 'OC')
-            if (td.idx_ftHold-td.idx_otLeave)*td.bin_size <= 0.31
+            if (td.idx_ftHold-td.idx_otLeave)*td.bin_size <= 0.21
                 err = true;
             end
         end

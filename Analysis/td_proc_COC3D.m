@@ -20,6 +20,7 @@ path = [meta.folder '\TD\' filename];
 if strcmp(computer, 'MACI64')
     load('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/Han_20180228_TD.mat')
     trial_data = trial_datam;
+    addpath('/Users/virginia/Documents/MATLAB/LIMBLAB/Data/Figs/')
 else
     load(path);
 end
@@ -41,26 +42,57 @@ params = struct( ...
 %% Unit Raster
 neu_2802_001 = [1,2,5,6,8,9,10,11,12,13,16,17,20,22,25];
 neu_2802_002 = [1,5,6,8,9,10,11,13,14,16,17,20,21,22,25];
+neu_2802 = [5,8,9,10,16,17,20,25];
 
 %neuronsamp = [1:size(trial_data(1).S1_spikes,2)];
-neuronsamp = [5,8,9,10,16,17,20,25];
+neuronsamp = [5,16,17,25];
 
-params.align = 'stLeave';
-params.sortt = 'otHold';
+epochs = {'2D','3D'};
+movems = {'CO','OC'};
 params.idx_raster = {'stLeave','otHold','otLeave','ftHold'};
 params.idx_raster_col = {'g','m','c','y'};
 params.idx_raster_bound = {'stLeave','otHold'};
-params.epoch = '2D';
 
-td = removeBadTrials(trial_data);
-params.movem = 'CO';
-td = removeSpontTrials(td,params);
+savefig = 1;
 
-for j = 1:length(neuronsamp)
-    params.neuron = neuronsamp(j);
-    [~,td] = getTDidx(td,'epoch',params.epoch);
-    unitRaster(td,params);
-    %epochRaster(td,params);
+for i = 1:length(epochs)
+    
+    params.epoch = epochs{i};
+    
+    for j = 1:length(movems)
+        if strcmp(movems{j},'CO')
+            params.align = 'stLeave';
+            params.sortt = 'otHold';
+            params.xBound = [-0.1,1.5];
+            params.idx_raster = {'stLeave','otHold','otLeave','ftHold'};
+            params.idx_raster_col = {'g','r','b','m'};
+        else
+            params.align = 'otLeave';
+            params.sortt = 'ftHold';
+            params.xBound = [-0.1,1];
+            params.idx_raster = {'otLeave','ftHold'};
+            params.idx_raster_col = {'b','m'};
+        end
+        
+        td = removeBadTrials(trial_data);
+        params.movem = movems{j};
+        td = removeSpontTrials(td,params);
+        
+        for k = 1:length(neuronsamp)
+            params.neuron = neuronsamp(k);
+            [~,td] = getTDidx(td,'epoch',params.epoch);
+            unitRaster(td,params);
+            %epochRaster(td,params);
+            if savefig
+                figname = [meta.monkey,'_',meta.date,'_n',num2str(neuronsamp(k)),'_',params.epoch,'_',params.movem,'_Raster.png'];
+                if strcmp(computer,'MACI64')
+                    saveas(gcf,['/Users/virginia/Documents/MATLAB/LIMBLAB/Data/Figs/',figname])
+                else
+                    saveas(gcf,['C:\Users\vct1641\Documents\Figs\',figname])
+                end
+            end
+        end
+    end 
 end
 
 %% Tuning curves
@@ -99,8 +131,8 @@ for k = 1:length(movems)
 end
 
 %% Cos fit
-savefig = 0;
-neuronsamp = [5,8,9,10,16,17,20,25];
+savefig = 1;
+neuronsamp = [5,16,17,25];
 targ_dir = params.targ_dir;
 targ_dir_all = params.targ_dir_all;
 
@@ -134,9 +166,9 @@ for k = 1:length(movems)
             h(j) = plot(bins_lin,fun(x),cols{j},'linewidth',1.5); hold on;
             plot(bins_dir,spikes_neu_dir,[cols{j},'*'])
             errorbar(bins_dir,spikes_neu_dir,std_err_neu_dir,[cols{j},'.'])
-            xlabel('Target Direction [deg]','fontsize',10);
-            ylabel('Mean Firing Rate [Hz]','fontsize',10);
-            title(['Tuning: Neuron ',num2str(neuronsamp(i)),', ',movem]); 
+            xlabel('Target Direction [deg]','fontsize',12);
+            ylabel('Mean Firing Rate [Hz]','fontsize',12);
+            title(['Tuning: Neuron ',num2str(neuronsamp(i)),', ',movem],'fontsize',14); 
         end
         legend(h,epochs);
         ax = gca;
@@ -145,7 +177,7 @@ for k = 1:length(movems)
         if savefig
             figname = [meta.monkey,'_',meta.date,'_n',num2str(neuronsamp(i)),'_',movem,'_Tuning.png'];
             if strcmp(computer,'MACI64')
-                saveas(gcf,['C:/Users/virginia/Documents/MATLAB/LIMBLAB/Data/Figs/',figname])
+                saveas(gcf,['/Users/virginia/Documents/MATLAB/LIMBLAB/Data/Figs/',figname])
             else
                 saveas(gcf,['C:\Users\vct1641\Documents\Figs\',figname])
             end
@@ -153,8 +185,8 @@ for k = 1:length(movems)
     end
 end
 
-%% Trial Average
-savefig = 0;
+%% Mean firing rate
+savefig = 1;
 targ_dir = sort(params.targ_dir);
 params.do_stretch = true;
 params.num_samp = 60;
@@ -186,16 +218,17 @@ for k = 1:length(movems)
             time_spikes = linspace(0,length(avg_spikes),length(avg_spikes))*(td(1).bin_size);
             
             h(j) = plot(time_spikes,avg_spikes,cols{j}); hold on;
-            xlabel('Time [s]','fontsize',10); ylabel('Mean Firing Rate [Hz]','fontsize',10);
-            title(['FR: Neuron ',num2str(neuronsamp(i)),', ',params.movem])
+            xlabel('Time [s]','fontsize',12); 
+            ylabel('Mean Firing Rate [Hz]','fontsize',12);
+            title(['FR: Neuron ',num2str(neuronsamp(i)),', ',params.movem],'Fontsize',14)
             xlim([min(time_spikes),max(time_spikes)])
         end
         legend(h,epochs);
         
         if savefig
-            figname = [meta.monkey,'_',meta.date,'_n',num2str(neuronsamp(i)),'_',movem,'_FR.png'];
+            figname = [meta.monkey,'_',meta.date,'_n',num2str(neuronsamp(i)),'_',params.movem,'_FR.png'];
             if strcmp(computer,'MACI64')
-                saveas(gcf,['C:/Users/virginia/Documents/MATLAB/LIMBLAB/Data/Figs/',figname])
+                saveas(gcf,['/Users/virginia/Documents/MATLAB/LIMBLAB/Data/Figs/',figname])
             else
                 saveas(gcf,['C:\Users\vct1641\Documents\Figs\',figname])
             end
