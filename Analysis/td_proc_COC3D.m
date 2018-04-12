@@ -4,9 +4,9 @@ clear all
 meta.lab=6;
 meta.ranBy='Virginia';
 meta.monkey='Han';
-meta.date='20180228';
+meta.date='20180309';
 meta.task='COC3D'; % for the loading of cds
-meta.taskAlias={'COC3D_001','COC3D_002'}; % for the filename (cell array list for files to load and save)
+meta.taskAlias={'COC3D_001'};%,'COC3D_002'}; % for the filename (cell array list for files to load and save)
 meta.array='LeftS1Area2'; % for the loading of cds
 meta.arrayAlias='area2'; % for the filename
 meta.project='COC3D'; % for the folder in data-preproc
@@ -49,11 +49,12 @@ neuronsamp = [5,16,17,25];
 
 epochs = {'2D','3D'};
 movems = {'CO','OC'};
+
 params.idx_raster = {'stLeave','otHold','otLeave','ftHold'};
 params.idx_raster_col = {'g','m','c','y'};
 params.idx_raster_bound = {'stLeave','otHold'};
 
-savefig = 1;
+savefig = 0;
 
 for i = 1:length(epochs)
     
@@ -96,7 +97,7 @@ for i = 1:length(epochs)
 end
 
 %% Tuning curves
-epochs = {'2D','3D'};
+epochs = {'2D'};
 movems = {'CO','OC'};
 params.trim_win = [0, 0];
 j = 0;
@@ -131,8 +132,9 @@ for k = 1:length(movems)
 end
 
 %% Cos fit
-savefig = 1;
+savefig = 0;
 neuronsamp = [5,16,17,25];
+
 targ_dir = params.targ_dir;
 targ_dir_all = params.targ_dir_all;
 
@@ -186,7 +188,7 @@ for k = 1:length(movems)
 end
 
 %% Mean firing rate
-savefig = 1;
+savefig = 0;
 targ_dir = sort(params.targ_dir);
 params.do_stretch = true;
 params.num_samp = 60;
