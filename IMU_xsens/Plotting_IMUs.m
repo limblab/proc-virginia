@@ -19,7 +19,7 @@ switch lab
         addpath(txtpath);
 end
 
-filenames = {[meta.IMUPrefix,meta.taskAlias{1},'.txt']};%,[meta.IMUPrefix,meta.taskAlias{2},'.txt']};
+filenames = {[meta.IMUPrefix,meta.taskAlias{1},'.txt'],[meta.IMUPrefix,meta.taskAlias{2},'.txt']};
 %filenames = {'20180126_sho.txt'};
     
 detrnd = [0,0]; % When 1 enables detrend
@@ -45,19 +45,19 @@ clear JA
 % Vertical, Flex 90º, Abb 90º
 %tpose = [0.1, 0.15, 0.2, 0.25]; % 001 21
 %tpose = [0.1, 0.2, 0.32, 0.38]; % 002 21
-%tpose = [0.05, 0.1, 0.14, 0.18]; % 001 22
+tpose = [0.05, 0.1, 0.14, 0.18]; % 001 22
 %tpose = [0.1, 0.15, 0.25, 0.3]; % 002 22
 %tpose = [0.5, 0.55, 0.58, 0.62]; % 001 23
 %tpose = [0.1, 0.2, 0.3, 0.4]; % 001 27
 %tpose = [0.06, 0.1, 0.14, 0.18]; % 001 28
 %tpose = [0.05, 0.1, 0.15, 0.2]; % 002 28
-tpose = [0.005, 0.03, 0.1, 0.15]; % 001 09
+%tpose = [0.005, 0.03, 0.1, 0.15]; % 001 09
 
 %tpose = [0.06,0.1,0.14,0.18];
 
 calibtype = 'FE'; % FE/AA/FE+AA
 oritype = 'eul'; % eul/quat
-filt = 0; % Use filtered data?
+filt = 1; % Use filtered data?
 rst = 1; % Reference to OpenSim model?
 correct = 0; % Correct for abduction in calibration? - not convincing
 
@@ -70,15 +70,15 @@ plotJA(IMU,JA,filenames{1},opts);
 
 %% Detrend drift removal
 %bkptst = [2 5 16; 8 10 25 ;2 15 25];
-%bkptst = [3 20 25 ; 5 7 9 ;6 9 20]; % 001 22
-bkptst = [3 8 25 ; 4 7 10 ;6 10 11]; % 002 22
+bkptst = [3 20 25 ; 5 7 9 ;6 9 20]; % 001 22
+%bkptst = [3 8 25 ; 4 7 10 ;6 10 11]; % 002 22
 %bkptst = [5 16 20;8 10 25 ;5 15 25]; % 001 23
 %bkptst = [ 2 10 16 ; 5 7 9; 8 15 25]; % 001 27
 %bkptst = [3 10 16 20; 5 10 15 25; 5 10 20 25]; % 001 28
 %bkptst = [3 10 2; 5 15 20; 5 10 15]; % 002 28
 
 plt = 1; % Output plot
-IMUfilt = [0,0,1]; % Filter that IMU data?
+IMUfilt = [1,1,1]; % Filter that IMU data?
 IMU = dfiltIMU(IMU,bkptst,IMUfilt,plt);
 
 %%

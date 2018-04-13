@@ -121,12 +121,12 @@ elseif rst && isfield(IMU,'acc_calib')
     JA(2).ptr = JA(2).pt;
     JA(2).rlr = JA(2).rl;
 
-    JA(1).yw = JA(1).yw-(mean(yw_ce(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
-    JA(1).pt = JA(1).pt-(mean(pt_ce(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
+    JA(1).yw = JA(1).yw-(mean(yw_ce(1:length(JA(1).ixp.ix3:JA(1).ixp.ix4))));
+    JA(1).pt = JA(1).pt-(mean(pt_ce(1:length(JA(1).ixp.ix3:JA(1).ixp.ix4))));
     JA(1).rl = JA(1).rl-(mean(rl_ce(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
     
-    JA(2).yw = JA(2).yw-(mean(yw_cs(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
-    JA(2).pt = JA(2).pt-(mean(pt_cs(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
+    JA(2).yw = JA(2).yw-(mean(yw_cs(1:length(JA(1).ixp.ix3:JA(1).ixp.ix4))));
+    JA(2).pt = JA(2).pt-(mean(pt_cs(1:length(JA(1).ixp.ix3:JA(1).ixp.ix4))));
     JA(2).rl = JA(2).rl-(mean(rl_cs(1:length(JA(1).ixp.ix1:JA(1).ixp.ix2))));
     
     for ii = 1:size(IMU,2)

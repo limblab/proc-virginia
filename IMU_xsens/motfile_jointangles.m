@@ -1,6 +1,6 @@
 %% Create .mot file with joint angles
 IMUname = strsplit(filenames{1},'.');
-motname = [IMUname{1},'_JA_J.mot'];
+motname = [IMUname{1},'_JA_J_3.mot'];
 %txtpath = 'C:\Users\vct1641\Documents\Data\data-IMU\mot\';
 fid = fopen(fullfile([txtpath,motname]),'wt'); %txtpath is loaded in first section of Plotting_IMUs
 
