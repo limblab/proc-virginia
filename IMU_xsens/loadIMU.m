@@ -1,12 +1,13 @@
-function[IMU] = loadIMU(filenameIMU,order,detrnd,iscalib)
+function[IMU] = loadIMU(filenameIMU,order,iscalib,nfile,nCB)
 % Loads IMU data into IMU struct from txt file 
 
 % IMU: IMU data structure
 % filenameIMU: filename for IMU txt file
 % order: order of IMU placement [back/sho/elb/wrst]
-% detrnd: whether to remove mean of angles through detrend 
 % iscalib: whether to only load calibration data when simultaneous
 % recording with Cerebus
+% nfile: Cerebus file number
+% nCB: Number of Cerebi used
 
 clear IMU
 
@@ -31,11 +32,16 @@ for ii = 1:nIMU
     time = dataIMU(dataIMU(:,1)==ii,2);
     data = dataIMU(dataIMU(:,1)==ii,3:end);
     
-    % Check if Cerebus file was recorded simultaneously, will have 2 time
+    % Check if Cerebus file was recorded simultaneously, may have 2 time
     % discontinuities (time set to zero): when start recording and when Cerebi sync
     if any(diff(time)<0)
         % Indexes when Cerebus recording time was set to zero
         idx_cbrec = find(diff(time)<0);
+        if nCB > 1 % Only consider indexes from sync with 2CB
+            idx_sync = find(diff(idx_cbrec)<1000);
+            idx_cbrec = sort([idx_cbrec(idx_sync);idx_cbrec(idx_sync)+1]);
+        end
+        idx_cbrec = [idx_cbrec; length(time)];
         if iscalib % Load only calibration data before Cerebus start recording
             IMU(ii).time = time(1:idx_cbrec(1)-1);
             IMU(ii).data = data(1:idx_cbrec(1)-1,:);
@@ -49,9 +55,20 @@ for ii = 1:nIMU
             IMU(ii).eul_calib = IMU(ii).data_calib(:,1:3);
             IMU(ii).acc_calib = IMU(ii).data_calib(:,4:6);
             IMU(ii).q_calib = IMU(ii).data_calib(:,13:16);
-            % Save data starting when Cerebi sync
-            IMU(ii).time = time(idx_cbrec(2)+1:end);
-            IMU(ii).data = data(idx_cbrec(2)+1:end,:);
+            % Save non-calibration data
+            if length(idx_cbrec) >= 3 && nCB == 1 % 1CB, 2CB files for 1IMU file
+                IMU(ii).time = time(idx_cbrec(nfile)+1:idx_cbrec(nfile+1)-1);
+                IMU(ii).data = data(idx_cbrec(nfile)+1:idx_cbrec(nfile+1)-1,:);
+            elseif length(idx_cbrec) > 3 && nCB > 1 % 2CB, 2CB files for 1IMU file
+                IMU(ii).time = time(idx_cbrec(2*nfile)+1:idx_cbrec(2*nfile+1)-1);
+                IMU(ii).data = data(idx_cbrec(2*nfile)+1:idx_cbrec(2*nfile+1)-1,:);
+            elseif length(idx_cbrec) == 2  && nCB == 1 % 1CB, 2CB files for 2IMU files
+                IMU(ii).time = time(idx_cbrec(1)+1:end);
+                IMU(ii).data = data(idx_cbrec(1)+1:end,:);
+            else % 2CB, 2CB files for 2IMU files
+                IMU(ii).time = time(idx_cbrec(2)+1:end); 
+                IMU(ii).data = data(idx_cbrec(2)+1:end,:);
+            end
         end
     else
         IMU(ii).time = time;
@@ -171,15 +188,15 @@ for ii = 1:nIMU
 end
 
 % Remove mean value of angle data through detrend if detrnd is one
-if detrnd
-    for ii = 1:nIMU
-        IMU(ii).rl = detrend(IMU(ii).rl,'constant');
-        IMU(ii).pt = detrend(IMU(ii).pt,'constant');
-        IMU(ii).yw = detrend(IMU(ii).yw,'constant');
-        IMU(ii).ori = detrend(IMU(ii).ori,'constant');
-        IMU(ii).q.rl = detrend(IMU(ii).q.rl,'constant');
-        IMU(ii).q.pt = detrend(IMU(ii).q.pt,'constant');
-        IMU(ii).q.yw = detrend(IMU(ii).q.yw,'constant');
-    end
-end
+% if detrnd
+%     for ii = 1:nIMU
+%         IMU(ii).rl = detrend(IMU(ii).rl,'constant');
+%         IMU(ii).pt = detrend(IMU(ii).pt,'constant');
+%         IMU(ii).yw = detrend(IMU(ii).yw,'constant');
+%         IMU(ii).ori = detrend(IMU(ii).ori,'constant');
+%         IMU(ii).q.rl = detrend(IMU(ii).q.rl,'constant');
+%         IMU(ii).q.pt = detrend(IMU(ii).q.pt,'constant');
+%         IMU(ii).q.yw = detrend(IMU(ii).q.yw,'constant');
+%     end
+% end
 end

@@ -18,24 +18,46 @@ switch lab
         txtpath = 'C:\data\IMU\txt\';
         addpath(txtpath);
 end
-
-filenames = {[meta.IMUPrefix,meta.taskAlias{1},'.txt'],[meta.IMUPrefix,meta.taskAlias{2},'.txt']};
-%filenames = {'20180126_sho.txt'};
-    
-detrnd = [0,0]; % When 1 enables detrend
+   
 iscalib = [0,0]; % When 1 only load calibrated data
+nneufiles = length(meta.taskAlias); % Number of CB data files 
+nIMUfiles = 2; % Number of IMU data files
+nCB = 2; % Number of Cerebi, to know if there was a sync time
+
+filenames = {};
+if nneufiles == nIMUfiles % Number of CB files matches IMU files
+    for i = 1:nIMUfiles
+        filenames{i} = [meta.IMUPrefix,meta.taskAlias{i},'.txt'];
+    end
+else % 2 CB files for 1 IMU file
+    filenames{1} = [meta.IMUPrefix,meta.taskAlias{2},'.txt'];
+end
+%filenames = {'20180126_sho.txt'};
 
 %% Data loading into IMU struct and plotting angles, accelerations and angular velocities
-for  jj = 1:length(filenames)
+saveIMUmat = 0;
+
+for  jj = 1:nneufiles
     tic
     order = {'back','sho','elb'};  % [back/sho/elb/wrst]
-    IMU = loadIMU(filenames{jj},order,detrnd(jj),iscalib(jj));
-    filename = strsplit(filenames{jj},'.');
+    if nneufiles == nIMUfiles % Number of CB files matches IMU files
+        IMU = loadIMU(filenames{jj},order,iscalib(jj),jj,nCB);
+        filename = strsplit(filenames{jj},'.');
+    else % 2 CB files for 1 IMU file
+        IMU = loadIMU(filenames{1},order,iscalib(jj),jj,nCB);
+        filename = strsplit(filenames{1},'.');
+    end
     
-    save(fullfile([txtpath,filename{1},'.mat']),'IMU');
+    if saveIMUmat
+        save(fullfile([txtpath,filename{1},'.mat']),'IMU');
+    end
     
-    opts = {'eul','acc','eul_calib','acc_calib'};
-    plotIMU(IMU,filenames{jj},opts);
+    opts = {'eul','eul_calib'};
+    if nneufiles == nIMUfiles
+        plotIMU(IMU,filenames{jj},opts);   
+    else
+        plotIMU(IMU,filenames{:},opts);
+    end
     toc
 end
 
